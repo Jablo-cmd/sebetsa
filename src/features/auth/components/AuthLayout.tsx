@@ -22,7 +22,7 @@ export function AuthLayout({ eyebrow = 'Secure sign in', title, subtitle, childr
       <div className="flex flex-col items-center gap-2 text-center">
         <Logo />
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-content-tertiary">
-          Education Management System
+          Workforce Operations Platform
         </p>
       </div>
 
@@ -39,18 +39,7 @@ export function AuthLayout({ eyebrow = 'Secure sign in', title, subtitle, childr
       </div>
 
       <div className="flex flex-col items-center gap-1 text-center">
-        <p className="text-xs text-content-tertiary">
-          Secure education management powered by{' '}
-          <a
-            href="https://aurisnexus.co.za"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="focus-ring rounded font-medium text-brand-600 hover:underline dark:text-brand-300"
-          >
-            Auris Nexus
-          </a>
-        </p>
-        <p className="text-[11px] text-content-tertiary">© {year} Auris Nexus Technologies. All rights reserved.</p>
+        <p className="text-[11px] text-content-tertiary">© {year} Sebetsa. All rights reserved.</p>
       </div>
     </div>
   );

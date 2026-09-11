@@ -7,46 +7,25 @@ export interface PageTitleEntry {
  * Static route → { title, section } lookup for the application header's
  * title/breadcrumb block. Purely presentational — does not affect routing,
  * permissions, or data. Ordered longest-prefix-first so a child route
- * (e.g. `/academic/years`) isn't shadowed by its parent (`/academic`).
+ * (e.g. `/employees/departments`) isn't shadowed by its parent (`/employees`).
  */
 const PAGE_TITLES: Array<[string, PageTitleEntry]> = [
   ['/dashboard', { title: 'Dashboard', section: 'Overview' }],
   ['/my-profile', { title: 'My Profile', section: 'Administration' }],
-  ['/school/profile', { title: 'School Profile', section: 'Administration' }],
-  ['/schools', { title: 'Schools', section: 'Administration' }],
+  ['/organizations', { title: 'Organizations', section: 'Administration' }],
   ['/users', { title: 'Users & Roles', section: 'Administration' }],
-  ['/academic/years', { title: 'Academic Years', section: 'Academics' }],
-  ['/academic/terms', { title: 'Terms', section: 'Academics' }],
-  ['/academic/grades', { title: 'Grades', section: 'Academics' }],
-  ['/academic/classes', { title: 'Classes', section: 'Academics' }],
-  ['/academic/subjects', { title: 'Subjects', section: 'Academics' }],
-  ['/academic/teaching-assignments', { title: 'Teaching Assignments', section: 'Academics' }],
-  ['/academic/assessments', { title: 'Assessments', section: 'Academics' }],
-  ['/timetable', { title: 'Timetable', section: 'Academics' }],
-  ['/academic', { title: 'Academic Overview', section: 'Academics' }],
-  ['/admissions', { title: 'Admissions Pipeline', section: 'People' }],
-  ['/alumni', { title: 'Alumni', section: 'People' }],
-  ['/learners', { title: 'Learners', section: 'People' }],
-  ['/employees/departments', { title: 'Departments', section: 'People' }],
-  ['/employees/attendance', { title: 'Staff Attendance', section: 'Operations' }],
-  ['/employees/leave', { title: 'Leave Requests', section: 'Operations' }],
-  ['/employees', { title: 'Employees', section: 'People' }],
+  ['/regions', { title: 'Regions', section: 'Organisation' }],
+  ['/clients', { title: 'Clients', section: 'Organisation' }],
+  ['/sites', { title: 'Sites', section: 'Organisation' }],
+  ['/contracts', { title: 'Contracts', section: 'Organisation' }],
+  ['/employees/departments', { title: 'Departments', section: 'Workforce' }],
+  ['/employees', { title: 'Employees', section: 'Workforce' }],
   ['/attendance', { title: 'Attendance', section: 'Operations' }],
-  ['/fees/structures', { title: 'Fee Structures', section: 'Operations' }],
-  ['/fees/reconciliation', { title: 'Bank Reconciliation', section: 'Operations' }],
-  ['/fees', { title: 'Finance Overview', section: 'Operations' }],
-  ['/notifications', { title: 'Notifications', section: 'Overview' }],
-  ['/announcements', { title: 'Announcements', section: 'Operations' }],
-  ['/safeguarding', { title: 'Safeguarding', section: 'Operations' }],
-  ['/reports/learners', { title: 'Learner Report', section: 'Reporting' }],
-  ['/reports/employees', { title: 'Employee Report', section: 'Reporting' }],
-  ['/reports/academic', { title: 'Academic Report', section: 'Reporting' }],
-  ['/reports/assessments', { title: 'Assessment Report', section: 'Reporting' }],
-  ['/reports/attendance', { title: 'Attendance Report', section: 'Reporting' }],
-  ['/reports', { title: 'Reports', section: 'Reporting' }],
+  ['/notifications/settings', { title: 'Notification Preferences', section: 'Communication' }],
+  ['/notifications', { title: 'Notifications', section: 'Communication' }],
 ];
 
-const DEFAULT_ENTRY: PageTitleEntry = { title: 'Funda360', section: 'Overview' };
+const DEFAULT_ENTRY: PageTitleEntry = { title: 'Sebetsa', section: 'Overview' };
 
 export function getPageTitle(pathname: string): PageTitleEntry {
   const match = PAGE_TITLES.find(

@@ -12,7 +12,7 @@ import { useEmployeesList } from '@/features/employees/hooks/useEmployeesList';
 import { useDepartments } from '@/features/employees/hooks/useDepartments';
 import { EmployeesFiltersBar } from '@/features/employees/components/EmployeesFiltersBar';
 import { EmployeesTable } from '@/features/employees/components/EmployeesTable';
-import { EmployeesPagination } from '@/features/employees/components/EmployeesPagination';
+import { Pagination } from '@/components/ui/Pagination';
 import { EmployeeFormModal } from '@/features/employees/components/EmployeeFormModal';
 import { TerminateEmployeeDialog } from '@/features/employees/components/TerminateEmployeeDialog';
 import { ReactivateEmployeeDialog } from '@/features/employees/components/ReactivateEmployeeDialog';
@@ -85,12 +85,7 @@ export function EmployeesPage() {
             onTerminate={setTerminatingEmployee}
             onReactivate={setReactivatingEmployee}
           />
-          <EmployeesPagination
-            page={page}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            onPageChange={setPage}
-          />
+          <Pagination page={page} pageSize={pageSize} totalCount={totalCount} onPageChange={setPage} resource="employees" />
         </>
       )}
 

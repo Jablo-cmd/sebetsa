@@ -10,8 +10,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-const AUTH_STORAGE_KEY = 'funda360-auth';
-const PERSIST_PREFERENCE_KEY = 'funda360-auth-persist';
+const AUTH_STORAGE_KEY = 'sebetsa-auth';
+const PERSIST_PREFERENCE_KEY = 'sebetsa-auth-persist';
 
 /**
  * Supabase writes the session to this storage adapter synchronously during

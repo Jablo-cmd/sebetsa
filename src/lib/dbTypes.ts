@@ -19,9 +19,22 @@ export type ProfileInsert = TableInsert<'profiles'>;
 export type ProfileUpdate = TableUpdate<'profiles'>;
 
 export type RegionRow = TableRow<'regions'>;
+export type RegionInsert = TableInsert<'regions'>;
+export type RegionUpdate = TableUpdate<'regions'>;
+
 export type ClientRow = TableRow<'clients'>;
+export type ClientInsert = TableInsert<'clients'>;
+export type ClientUpdate = TableUpdate<'clients'>;
+
 export type SiteRow = TableRow<'sites'>;
+export type SiteInsert = TableInsert<'sites'>;
+export type SiteUpdate = TableUpdate<'sites'>;
+
 export type ContractRow = TableRow<'contracts'>;
+export type ContractInsert = TableInsert<'contracts'>;
+export type ContractUpdate = TableUpdate<'contracts'>;
+
+export type ContractSiteRow = TableRow<'contract_sites'>;
 
 export type DepartmentRow = TableRow<'departments'>;
 export type PositionRow = TableRow<'positions'>;

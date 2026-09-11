@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 export type Theme = 'light' | 'dark';
 
-const STORAGE_KEY = 'funda360-theme';
+const STORAGE_KEY = 'sebetsa-theme';
 
 function getInitialTheme(): Theme {
   if (typeof document === 'undefined') return 'light';

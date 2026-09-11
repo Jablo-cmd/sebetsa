@@ -7,8 +7,8 @@ export interface LogoProps {
 }
 
 /**
- * Funda360 mark: three overlapping tiles representing the platform's
- * multi-tenant, 360° view of a school's operations.
+ * Sebetsa mark: a rounded tile with an "S" monogram — the platform's
+ * multi-tenant workforce/operations identity.
  */
 export function Logo({ variant = 'default', showWordmark = true, className }: LogoProps) {
   const wordmarkClass = variant === 'inverse' ? 'text-white' : 'text-content-primary';
@@ -18,18 +18,16 @@ export function Logo({ variant = 'default', showWordmark = true, className }: Lo
       <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect width="32" height="32" rx="6" className="fill-brand-600" />
         <path
-          d="M9 21.5V11.8c0-.66.54-1.2 1.2-1.2h8.6"
+          d="M21 12.5c0-1.5-1.8-2.5-5-2.5s-5 1-5 2.5 1.8 2.2 5 2.7 5 1.4 5 3-1.8 2.8-5 2.8-5-1.1-5-2.8"
           stroke="white"
           strokeWidth="2"
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
-        <path d="M9.6 16.2h7" stroke="white" strokeWidth="2" strokeLinecap="round" />
       </svg>
 
       {showWordmark && (
-        <span className={cn('text-lg font-bold tracking-tight', wordmarkClass)}>
-          Funda<span className="text-brand-500">360</span>
-        </span>
+        <span className={cn('text-lg font-bold tracking-tight', wordmarkClass)}>Sebetsa</span>
       )}
     </div>
   );

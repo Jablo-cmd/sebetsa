@@ -29,7 +29,7 @@ async function listFactors(): Promise<Factor[]> {
 
 /** Starts TOTP enrollment. The returned factor is `unverified` until verifyEnrollment() succeeds — listFactors() won't count it as active MFA until then. */
 async function startEnrollment(): Promise<EnrollmentResult> {
-  const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'Funda360' });
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'Sebetsa' });
   if (error) throw error;
   // enroll()'s return type is a { type: 'totp' } | { type: 'phone' } union
   // even though we only ever request 'totp' — narrow explicitly rather

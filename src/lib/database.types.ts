@@ -792,6 +792,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          status: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at: string
         }
@@ -800,6 +801,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at?: string
         }
@@ -808,6 +810,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id?: string
           updated_at?: string
         }

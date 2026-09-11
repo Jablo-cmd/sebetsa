@@ -76,6 +76,23 @@ const NotificationSettingsPage = named(
   () => import('@/features/notifications/pages/NotificationSettingsPage'),
   'NotificationSettingsPage',
 );
+const RegionsPage = named(() => import('@/features/orgStructure/pages/RegionsPage'), 'RegionsPage');
+const RegionDetailPage = named(
+  () => import('@/features/orgStructure/pages/RegionDetailPage'),
+  'RegionDetailPage',
+);
+const ClientsPage = named(() => import('@/features/orgStructure/pages/ClientsPage'), 'ClientsPage');
+const ClientDetailPage = named(
+  () => import('@/features/orgStructure/pages/ClientDetailPage'),
+  'ClientDetailPage',
+);
+const SitesPage = named(() => import('@/features/orgStructure/pages/SitesPage'), 'SitesPage');
+const SiteDetailPage = named(() => import('@/features/orgStructure/pages/SiteDetailPage'), 'SiteDetailPage');
+const ContractsPage = named(() => import('@/features/orgStructure/pages/ContractsPage'), 'ContractsPage');
+const ContractDetailPage = named(
+  () => import('@/features/orgStructure/pages/ContractDetailPage'),
+  'ContractDetailPage',
+);
 
 export function AppRoutes() {
   return (
@@ -122,6 +139,17 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="attendance.view" />}>
                 <Route path="/attendance" element={<AttendancePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="org_structure.view" />}>
+                <Route path="/regions" element={<RegionsPage />} />
+                <Route path="/regions/:id" element={<RegionDetailPage />} />
+                <Route path="/clients" element={<ClientsPage />} />
+                <Route path="/clients/:id" element={<ClientDetailPage />} />
+                <Route path="/sites" element={<SitesPage />} />
+                <Route path="/sites/:id" element={<SiteDetailPage />} />
+                <Route path="/contracts" element={<ContractsPage />} />
+                <Route path="/contracts/:id" element={<ContractDetailPage />} />
               </Route>
             </Route>
           </Route>

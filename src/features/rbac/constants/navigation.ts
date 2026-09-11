@@ -7,6 +7,7 @@ import {
   BuildingIcon,
   CheckIcon,
   ChatIcon,
+  ClipboardListIcon,
   GearIcon,
   GridIcon,
   LayersIcon,
@@ -37,15 +38,24 @@ export interface NavGroupDef {
 /**
  * The single source of truth for the sidebar. `DashboardSidebar` filters
  * this per role and drops any group left empty — see `resolveNavForRole`.
- * Only modules with a real, routed page are modelled here — org
- * structure (regions/clients/sites/contracts), scheduling, leave and tasks
- * have schema + RLS (see supabase/migrations) but no UI yet, so they are
- * deliberately absent rather than linking to a page that doesn't exist.
+ * Only modules with a real, routed page are modelled here — scheduling,
+ * leave and tasks have schema + RLS (see supabase/migrations) but no UI
+ * yet, so they are deliberately absent rather than linking to a page that
+ * doesn't exist.
  */
 export const NAV_MODEL: NavGroupDef[] = [
   {
     label: 'Overview',
     items: [{ label: 'Dashboard', path: '/dashboard', icon: GridIcon, end: true }],
+  },
+  {
+    label: 'Organisation',
+    items: [
+      { label: 'Regions', path: '/regions', icon: LayersIcon, permission: 'org_structure.view', end: true },
+      { label: 'Clients', path: '/clients', icon: BuildingIcon, permission: 'org_structure.view', end: true },
+      { label: 'Sites', path: '/sites', icon: BuildingIcon, permission: 'org_structure.view', end: true },
+      { label: 'Contracts', path: '/contracts', icon: ClipboardListIcon, permission: 'org_structure.view', end: true },
+    ],
   },
   {
     label: 'Workforce',

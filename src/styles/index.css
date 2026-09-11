@@ -7,7 +7,7 @@
 @tailwind utilities;
 
 /**
- * Funda360 Design System — Design Tokens
+ * Sebetsa Design System — Design Tokens
  * Executive navy + white institutional palette. Values are R G B triplets
  * (no `rgb()` wrapper) so Tailwind can apply alpha-value opacity modifiers,
  * e.g. bg-brand-600/50.

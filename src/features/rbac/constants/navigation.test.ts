@@ -60,6 +60,22 @@ describe('resolveNavForRole', () => {
     );
   });
 
+  it('gives org_structure.view holders the Regions/Clients/Sites/Contracts group', () => {
+    for (const role of ['organization_administrator', 'operations_manager', 'regional_manager', 'site_manager'] as const) {
+      const l = labels(role);
+      expect(l).toEqual(expect.arrayContaining(['Regions', 'Clients', 'Sites', 'Contracts']));
+    }
+  });
+
+  it('hides the org hierarchy from roles without org_structure.view', () => {
+    for (const role of ['employee', 'client_user'] as const) {
+      const l = labels(role);
+      for (const forbidden of ['Regions', 'Clients', 'Sites', 'Contracts']) {
+        expect(l).not.toContain(forbidden);
+      }
+    }
+  });
+
   it('restricts Users & Roles to profile.manage_any holders', () => {
     expect(labels('organization_administrator')).toContain('Users & Roles');
     expect(labels('hr_user')).toContain('Users & Roles');
