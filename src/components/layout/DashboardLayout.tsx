@@ -1,40 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 import { AppFooter } from '@/components/layout/AppFooter';
 import { CloseIcon } from '@/components/ui/icons';
 import { MfaRequiredBanner } from '@/features/mfa/components/MfaRequiredBanner';
-import { CommandPalette } from '@/features/search/components/CommandPalette';
-import { usePermissions } from '@/hooks/usePermissions';
 
 export function DashboardLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { can } = usePermissions();
-  const canSearchAnything = can('learner.view') || can('employee.view') || can('guardian.view');
-
-  // The global Cmd/Ctrl+K shortcut lives here (the one place that's always
-  // mounted regardless of which page is active), alongside the header's
-  // visible search button — both open the same controlled CommandPalette.
-  useEffect(() => {
-    if (!canSearchAnything) return;
-    function handleGlobalKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault();
-        setIsSearchOpen(true);
-      }
-    }
-    document.addEventListener('keydown', handleGlobalKeyDown);
-    return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [canSearchAnything]);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-surface-sunken">
-      <DashboardHeader
-        onMenuClick={() => setIsMobileNavOpen(true)}
-        onSearchClick={canSearchAnything ? () => setIsSearchOpen(true) : undefined}
-      />
+      <DashboardHeader onMenuClick={() => setIsMobileNavOpen(true)} />
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="hidden w-64 shrink-0 md:block">
@@ -72,8 +49,6 @@ export function DashboardLayout() {
       </div>
 
       <AppFooter />
-
-      <CommandPalette isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
 }

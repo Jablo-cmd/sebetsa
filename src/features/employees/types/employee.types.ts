@@ -1,35 +1,33 @@
-import type { EmploymentType, EmploymentStatus } from '@/lib/database.types';
+import type { Database } from '@/lib/database.types';
 
-export type { EmploymentType, EmploymentStatus };
+export type EmploymentType = Database['public']['Enums']['employment_type'];
+export type EmploymentStatus = Database['public']['Enums']['employment_status'];
 
 /**
- * Roles provisionable through Employee Management's provision_employee_login()
- * — a deliberate subset, mirrored exactly from can_assign_employee_role() in
- * supabase/migrations (see that function's own comment for why this is not
- * ASSIGNABLE_ROLES/can_assign_role() from Users Management: governance roles
- * go through admin_create_user() instead, never through employee onboarding).
+ * Roles provisionable through Employee Management's login-provisioning flow
+ * (admin_create_user) — deliberately every non-platform role, since
+ * Sebetsa's employee-to-user relationship is 1:1-or-none, not a fixed
+ * subset the way Funda360's was.
  */
 export const PROVISIONABLE_ROLES = [
-  'hr_manager',
-  'teacher',
-  'department_head',
-  'receptionist',
-  'accountant',
-  'librarian',
-  'admissions_officer',
-  'medical_officer',
+  'organization_administrator',
+  'operations_manager',
+  'regional_manager',
+  'site_manager',
+  'supervisor',
+  'hr_user',
+  'employee',
 ] as const;
 export type ProvisionableRole = (typeof PROVISIONABLE_ROLES)[number];
 
 export const PROVISIONABLE_ROLE_LABELS: Record<ProvisionableRole, string> = {
-  hr_manager: 'HR Manager',
-  teacher: 'Teacher',
-  department_head: 'Department Head',
-  receptionist: 'Receptionist',
-  accountant: 'Accountant',
-  librarian: 'Librarian',
-  admissions_officer: 'Admissions Officer',
-  medical_officer: 'Medical Officer',
+  organization_administrator: 'Organization Administrator',
+  operations_manager: 'Operations Manager',
+  regional_manager: 'Regional Manager',
+  site_manager: 'Site Manager',
+  supervisor: 'Supervisor',
+  hr_user: 'HR User',
+  employee: 'Employee',
 };
 
 export interface ProvisionLoginResult {
@@ -39,50 +37,36 @@ export interface ProvisionLoginResult {
 
 export interface Department {
   id: string;
-  schoolId: string;
+  tenantId: string;
   name: string;
-  code: string | null;
-  description: string | null;
-  active: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateDepartmentInput {
   name: string;
-  code?: string | null;
-  description?: string | null;
 }
 
-export interface UpdateDepartmentInput {
-  name?: string;
-  code?: string | null;
-  description?: string | null;
-  active?: boolean;
-}
+export type UpdateDepartmentInput = Partial<CreateDepartmentInput>;
 
 export interface Employee {
   id: string;
-  schoolId: string;
+  tenantId: string;
   profileId: string | null;
   employeeNumber: string;
   firstName: string;
   lastName: string;
-  workEmail: string | null;
-  workPhone: string | null;
-  idNumber: string | null;
-  dateOfBirth: string | null;
+  email: string | null;
+  phone: string | null;
   departmentId: string | null;
-  jobTitle: string | null;
-  employmentType: EmploymentType | null;
+  positionId: string | null;
+  supervisorId: string | null;
+  regionId: string | null;
+  homeSiteId: string | null;
+  employmentType: EmploymentType;
   employmentStatus: EmploymentStatus;
-  hireDate: string;
-  terminationDate: string | null;
-  reportsToEmployeeId: string | null;
-  emergencyContactName: string | null;
-  emergencyContactPhone: string | null;
-  createdBy: string | null;
-  updatedBy: string | null;
+  employmentStartDate: string;
+  employmentEndDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -91,17 +75,14 @@ export interface CreateEmployeeInput {
   employeeNumber: string;
   firstName: string;
   lastName: string;
-  workEmail?: string | null;
-  workPhone?: string | null;
-  idNumber?: string | null;
-  dateOfBirth?: string | null;
+  email?: string | null;
+  phone?: string | null;
   departmentId?: string | null;
-  jobTitle?: string | null;
-  employmentType?: EmploymentType | null;
-  hireDate: string;
-  reportsToEmployeeId?: string | null;
-  emergencyContactName?: string | null;
-  emergencyContactPhone?: string | null;
+  positionId?: string | null;
+  supervisorId?: string | null;
+  homeSiteId?: string | null;
+  employmentType?: EmploymentType;
+  employmentStartDate: string;
 }
 
 export type UpdateEmployeeInput = Partial<CreateEmployeeInput>;

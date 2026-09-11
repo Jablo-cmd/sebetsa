@@ -24,7 +24,7 @@ export interface ProvisionLoginModalProps {
 export function ProvisionLoginModal({ isOpen, onClose, employee, onProvisioned }: ProvisionLoginModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<ProvisionLoginResult | null>(null);
-  const canProvision = Boolean(employee.workEmail);
+  const canProvision = Boolean(employee.email);
 
   const {
     register,
@@ -33,7 +33,7 @@ export function ProvisionLoginModal({ isOpen, onClose, employee, onProvisioned }
     formState: { errors, isSubmitting },
   } = useForm<ProvisionLoginFormValues>({
     resolver: zodResolver(provisionLoginSchema),
-    defaultValues: { ...provisionLoginDefaultValues, phone: employee.workPhone ?? '' },
+    defaultValues: { ...provisionLoginDefaultValues, phone: employee.phone ?? '' },
   });
 
   // Unlike CreateUserModal (which also shows a persistent temp-password
@@ -49,7 +49,7 @@ export function ProvisionLoginModal({ isOpen, onClose, employee, onProvisioned }
     const wasProvisioned = Boolean(result);
     setSubmitError(null);
     setResult(null);
-    reset({ ...provisionLoginDefaultValues, phone: employee.workPhone ?? '' });
+    reset({ ...provisionLoginDefaultValues, phone: employee.phone ?? '' });
     onClose();
     if (wasProvisioned) onProvisioned();
   };
@@ -119,7 +119,7 @@ export function ProvisionLoginModal({ isOpen, onClose, employee, onProvisioned }
           )}
 
           <p className="text-sm text-content-secondary">
-            Creates a login for <span className="font-medium text-content-primary">{employee.workEmail}</span>. A
+            Creates a login for <span className="font-medium text-content-primary">{employee.email}</span>. A
             one-time temporary password will be shown once, on this screen only.
           </p>
 

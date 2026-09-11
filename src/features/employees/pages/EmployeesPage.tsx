@@ -5,9 +5,9 @@ import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
-import { NoActiveSchoolNotice } from '@/components/ui/NoActiveSchoolNotice';
+import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useSchool } from '@/features/school/hooks/useSchool';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useEmployeesList } from '@/features/employees/hooks/useEmployeesList';
 import { useDepartments } from '@/features/employees/hooks/useDepartments';
 import { EmployeesFiltersBar } from '@/features/employees/components/EmployeesFiltersBar';
@@ -21,7 +21,7 @@ import type { Employee } from '@/features/employees/types/employee.types';
 export function EmployeesPage() {
   const { can } = usePermissions();
   const canManage = can('employee.manage');
-  const { school } = useSchool();
+  const organization = useCurrentOrganization();
   const {
     employees,
     totalCount,
@@ -33,8 +33,8 @@ export function EmployeesPage() {
     setFilters,
     setPage,
     refetch,
-  } = useEmployeesList(school?.id);
-  const { departments } = useDepartments(school?.id);
+  } = useEmployeesList(organization?.id);
+  const { departments } = useDepartments(organization?.id);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -45,7 +45,7 @@ export function EmployeesPage() {
     <PageContainer>
       <PageHeader
         title="Employees"
-        description="Manage the staff directory for your school."
+        description="Manage the workforce directory for your organization."
         action={
           <div className="flex flex-wrap gap-3">
             <Link
@@ -54,7 +54,7 @@ export function EmployeesPage() {
             >
               Manage departments
             </Link>
-            {canManage && school && (
+            {canManage && organization && (
               <div className="w-full sm:w-auto sm:min-w-[9rem]">
                 <Button type="button" onClick={() => setIsCreateOpen(true)}>
                   Add employee
@@ -65,14 +65,14 @@ export function EmployeesPage() {
         }
       />
 
-      {school && (
+      {organization && (
         <EmployeesFiltersBar filters={filters} departments={departments} onChange={setFilters} />
       )}
 
       <ErrorAlert message={error} />
 
-      {!school ? (
-        <NoActiveSchoolNotice resource="employees" />
+      {!organization ? (
+        <NoActiveOrganizationNotice resource="employees" />
       ) : isLoading ? (
         <LoadingBlock label="Loading employees…" />
       ) : (
@@ -94,21 +94,21 @@ export function EmployeesPage() {
         </>
       )}
 
-      {school && (
+      {organization && (
         <EmployeeFormModal
           isOpen={isCreateOpen}
           onClose={() => setIsCreateOpen(false)}
-          schoolId={school.id}
+          tenantId={organization.id}
           departments={departments}
           onSaved={() => void refetch()}
         />
       )}
 
-      {editingEmployee && school && (
+      {editingEmployee && organization && (
         <EmployeeFormModal
           isOpen={Boolean(editingEmployee)}
           onClose={() => setEditingEmployee(null)}
-          schoolId={school.id}
+          tenantId={organization.id}
           employee={editingEmployee}
           departments={departments}
           onSaved={() => void refetch()}

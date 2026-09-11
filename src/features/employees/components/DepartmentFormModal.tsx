@@ -16,12 +16,12 @@ import type { Department } from '@/features/employees/types/employee.types';
 export interface DepartmentFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  schoolId: string;
+  tenantId: string;
   department?: Department | null;
   onSaved: () => void;
 }
 
-export function DepartmentFormModal({ isOpen, onClose, schoolId, department, onSaved }: DepartmentFormModalProps) {
+export function DepartmentFormModal({ isOpen, onClose, tenantId, department, onSaved }: DepartmentFormModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isEditing = Boolean(department);
 
@@ -34,30 +34,17 @@ export function DepartmentFormModal({ isOpen, onClose, schoolId, department, onS
 
   useEffect(() => {
     if (!isOpen) return;
-    reset(
-      department
-        ? {
-            name: department.name,
-            code: department.code ?? '',
-            description: department.description ?? '',
-          }
-        : departmentDefaultValues,
-    );
+    reset(department ? { name: department.name } : departmentDefaultValues);
     setSubmitError(null);
   }, [isOpen, department, reset]);
 
   const onValid = async (values: DepartmentFormValues) => {
     setSubmitError(null);
     try {
-      const payload = {
-        name: values.name,
-        code: values.code?.trim() || null,
-        description: values.description?.trim() || null,
-      };
       if (department) {
-        await departmentService.updateDepartment(department.id, payload);
+        await departmentService.updateDepartment(department.id, values);
       } else {
-        await departmentService.createDepartment(schoolId, payload);
+        await departmentService.createDepartment(tenantId, values);
       }
       onSaved();
       onClose();
@@ -88,8 +75,6 @@ export function DepartmentFormModal({ isOpen, onClose, schoolId, department, onS
         )}
 
         <TextField label="Name" required placeholder="Finance" error={errors.name?.message} {...register('name')} />
-        <TextField label="Code" placeholder="FIN" error={errors.code?.message} {...register('code')} />
-        <TextField label="Description" error={errors.description?.message} {...register('description')} />
       </form>
     </Modal>
   );

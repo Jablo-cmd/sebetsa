@@ -1,6 +1,6 @@
 export interface Notification {
   id: string;
-  schoolId: string | null;
+  tenantId: string | null;
   recipientProfileId: string;
   type: string;
   title: string;

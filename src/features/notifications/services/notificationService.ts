@@ -1,11 +1,11 @@
 import { supabase } from '@/lib/supabase';
-import type { NotificationRow } from '@/lib/database.types';
+import type { NotificationRow } from '@/lib/dbTypes';
 import type { Notification } from '@/features/notifications/types/notification.types';
 
 function toNotification(row: NotificationRow): Notification {
   return {
     id: row.id,
-    schoolId: row.school_id,
+    tenantId: row.tenant_id,
     recipientProfileId: row.recipient_profile_id,
     type: row.type,
     title: row.title,

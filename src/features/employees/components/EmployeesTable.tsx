@@ -46,9 +46,6 @@ export function EmployeesTable({
               Name
             </th>
             <th scope="col" className="px-4 py-3 font-medium">
-              Job title
-            </th>
-            <th scope="col" className="px-4 py-3 font-medium">
               Department
             </th>
             <th scope="col" className="px-4 py-3 font-medium">
@@ -71,7 +68,6 @@ export function EmployeesTable({
                 </Link>
                 <p className="text-content-tertiary">{employee.employeeNumber}</p>
               </td>
-              <td className="px-4 py-3 text-content-secondary">{employee.jobTitle ?? '—'}</td>
               <td className="px-4 py-3 text-content-secondary">{departmentName(employee.departmentId)}</td>
               <td className="px-4 py-3">
                 <span

@@ -92,27 +92,27 @@ export function DashboardScreen({ children }: { children: ReactNode }) {
 }
 
 /**
- * Shown to a platform-level admin who hasn't selected a school yet — every
- * school-scoped widget would otherwise be a wall of misleading zeros.
+ * Shown to a platform-level admin who hasn't selected an organization yet —
+ * every tenant-scoped widget would otherwise be a wall of misleading zeros.
  */
-export function NoSchoolSelectedState() {
+export function NoOrganizationSelectedState() {
   return (
     <div className="flex flex-col items-center gap-4 rounded-card border border-dashed border-border-strong bg-surface-raised px-6 py-14 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
         <BuildingIcon className="h-6 w-6" />
       </span>
       <div>
-        <p className="text-base font-semibold text-content-primary">No school selected</p>
+        <p className="text-base font-semibold text-content-primary">No organization selected</p>
         <p className="mx-auto mt-1 max-w-md text-sm text-content-secondary">
-          As a platform administrator you operate across every school. Create the first school, or switch into an
+          As a platform administrator you operate across every organization. Create the first one, or switch into an
           existing one, to manage its records.
         </p>
       </div>
       <Link
-        to="/schools"
+        to="/organizations"
         className="focus-ring inline-flex h-11 items-center justify-center rounded-md bg-brand-600 px-5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-brand-500"
       >
-        Go to Schools
+        Go to Organizations
       </Link>
     </div>
   );

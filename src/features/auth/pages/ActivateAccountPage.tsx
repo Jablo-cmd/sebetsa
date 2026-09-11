@@ -31,7 +31,7 @@ export function ActivateAccountPage() {
   }
 
   return (
-    <AuthLayout eyebrow="Account activation" title="Activate your account" subtitle="Set a password to access the Parent Portal.">
+    <AuthLayout eyebrow="Account activation" title="Activate your account" subtitle="Set a password to access your account.">
       {status === 'authenticated' ? <ActivateAccountForm /> : <InvalidInvitationNotice />}
     </AuthLayout>
   );

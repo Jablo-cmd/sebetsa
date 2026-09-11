@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { EmployeeRow, EmployeeInsert, EmployeeUpdate } from '@/lib/database.types';
+import type { EmployeeRow, EmployeeInsert, EmployeeUpdate } from '@/lib/dbTypes';
 import type {
   Employee,
   CreateEmployeeInput,
@@ -22,14 +22,13 @@ export interface EmployeeCandidate {
  * Search-driven candidate lookup for the "reports to" picker — the staff
  * directory is paginated (see getEmployees below), so a plain `<select>`
  * fed by whatever page happens to be loaded would silently omit most of the
- * school's employees. Mirrors guardianService.searchGuardianCandidates'
- * shape for the same reason: a potentially large related-entity set.
+ * organization's employees.
  */
-async function searchEmployeeCandidates(schoolId: string, search = '', excludeId?: string): Promise<EmployeeCandidate[]> {
+async function searchEmployeeCandidates(tenantId: string, search = '', excludeId?: string): Promise<EmployeeCandidate[]> {
   let query = supabase
     .from('employees')
     .select('id, first_name, last_name')
-    .eq('school_id', schoolId);
+    .eq('tenant_id', tenantId);
 
   if (excludeId) query = query.neq('id', excludeId);
 
@@ -48,39 +47,29 @@ async function searchEmployeeCandidates(schoolId: string, search = '', excludeId
 export function toEmployee(row: EmployeeRow): Employee {
   return {
     id: row.id,
-    schoolId: row.school_id,
+    tenantId: row.tenant_id,
     profileId: row.profile_id,
     employeeNumber: row.employee_number,
     firstName: row.first_name,
     lastName: row.last_name,
-    workEmail: row.work_email,
-    workPhone: row.work_phone,
-    idNumber: row.id_number,
-    dateOfBirth: row.date_of_birth,
+    email: row.email,
+    phone: row.phone,
     departmentId: row.department_id,
-    jobTitle: row.job_title,
+    positionId: row.position_id,
+    supervisorId: row.supervisor_id,
+    regionId: row.region_id,
+    homeSiteId: row.home_site_id,
     employmentType: row.employment_type,
     employmentStatus: row.employment_status,
-    hireDate: row.hire_date,
-    terminationDate: row.termination_date,
-    reportsToEmployeeId: row.reports_to_employee_id,
-    emergencyContactName: row.emergency_contact_name,
-    emergencyContactPhone: row.emergency_contact_phone,
-    createdBy: row.created_by,
-    updatedBy: row.updated_by,
+    employmentStartDate: row.employment_start_date,
+    employmentEndDate: row.employment_end_date,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
-/**
- * Server-side pagination, the same judgment call as learnerService.getLearners
- * (see its own comment) — staff directories scale with headcount, not with a
- * small bounded catalogue like departments, so an unpaginated fetch (the
- * Academic Structure precedent) isn't appropriate here.
- */
 async function getEmployees(
-  schoolId: string,
+  tenantId: string,
   filters: EmployeesListFilters = {},
   page = 1,
   pageSize = DEFAULT_PAGE_SIZE,
@@ -88,13 +77,13 @@ async function getEmployees(
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  let query = supabase.from('employees').select('*', { count: 'exact' }).eq('school_id', schoolId);
+  let query = supabase.from('employees').select('*', { count: 'exact' }).eq('tenant_id', tenantId);
 
   const term = filters.search?.trim();
   if (term) {
     const escaped = term.replace(/[%,]/g, '');
     query = query.or(
-      `first_name.ilike.%${escaped}%,last_name.ilike.%${escaped}%,employee_number.ilike.%${escaped}%,job_title.ilike.%${escaped}%`,
+      `first_name.ilike.%${escaped}%,last_name.ilike.%${escaped}%,employee_number.ilike.%${escaped}%`,
     );
   }
   if (filters.employmentStatus) query = query.eq('employment_status', filters.employmentStatus);
@@ -117,35 +106,32 @@ async function getEmployee(id: string): Promise<Employee | null> {
   return data ? toEmployee(data) : null;
 }
 
-/** Self-service: the employee record linked to the caller's own profile, if any. RLS (employees_select's `profile_id = auth.uid()` clause) is what actually confines this to the caller's own row. */
+/** Self-service: the employee record linked to the caller's own profile, if any. */
 async function getMyEmployee(profileId: string): Promise<Employee | null> {
   const { data, error } = await supabase.from('employees').select('*').eq('profile_id', profileId).maybeSingle();
   if (error) throw error;
   return data ? toEmployee(data) : null;
 }
 
-function toInsertPayload(schoolId: string, input: CreateEmployeeInput): EmployeeInsert {
+function toInsertPayload(tenantId: string, input: CreateEmployeeInput): EmployeeInsert {
   return {
-    school_id: schoolId,
+    tenant_id: tenantId,
     employee_number: input.employeeNumber,
     first_name: input.firstName,
     last_name: input.lastName,
-    work_email: input.workEmail ?? null,
-    work_phone: input.workPhone ?? null,
-    id_number: input.idNumber ?? null,
-    date_of_birth: input.dateOfBirth ?? null,
+    email: input.email ?? null,
+    phone: input.phone ?? null,
     department_id: input.departmentId ?? null,
-    job_title: input.jobTitle ?? null,
-    employment_type: input.employmentType ?? null,
-    hire_date: input.hireDate,
-    reports_to_employee_id: input.reportsToEmployeeId ?? null,
-    emergency_contact_name: input.emergencyContactName ?? null,
-    emergency_contact_phone: input.emergencyContactPhone ?? null,
+    position_id: input.positionId ?? null,
+    supervisor_id: input.supervisorId ?? null,
+    home_site_id: input.homeSiteId ?? null,
+    employment_type: input.employmentType ?? undefined,
+    employment_start_date: input.employmentStartDate,
   };
 }
 
-async function createEmployee(schoolId: string, input: CreateEmployeeInput): Promise<Employee> {
-  const { data, error } = await supabase.from('employees').insert(toInsertPayload(schoolId, input)).select('*').single();
+async function createEmployee(tenantId: string, input: CreateEmployeeInput): Promise<Employee> {
+  const { data, error } = await supabase.from('employees').insert(toInsertPayload(tenantId, input)).select('*').single();
   if (error) throw error;
   return toEmployee(data);
 }
@@ -155,17 +141,14 @@ async function updateEmployee(id: string, updates: UpdateEmployeeInput): Promise
   if (updates.employeeNumber !== undefined) payload.employee_number = updates.employeeNumber;
   if (updates.firstName !== undefined) payload.first_name = updates.firstName;
   if (updates.lastName !== undefined) payload.last_name = updates.lastName;
-  if (updates.workEmail !== undefined) payload.work_email = updates.workEmail;
-  if (updates.workPhone !== undefined) payload.work_phone = updates.workPhone;
-  if (updates.idNumber !== undefined) payload.id_number = updates.idNumber;
-  if (updates.dateOfBirth !== undefined) payload.date_of_birth = updates.dateOfBirth;
+  if (updates.email !== undefined) payload.email = updates.email;
+  if (updates.phone !== undefined) payload.phone = updates.phone;
   if (updates.departmentId !== undefined) payload.department_id = updates.departmentId;
-  if (updates.jobTitle !== undefined) payload.job_title = updates.jobTitle;
+  if (updates.positionId !== undefined) payload.position_id = updates.positionId;
+  if (updates.supervisorId !== undefined) payload.supervisor_id = updates.supervisorId;
+  if (updates.homeSiteId !== undefined) payload.home_site_id = updates.homeSiteId;
   if (updates.employmentType !== undefined) payload.employment_type = updates.employmentType;
-  if (updates.hireDate !== undefined) payload.hire_date = updates.hireDate;
-  if (updates.reportsToEmployeeId !== undefined) payload.reports_to_employee_id = updates.reportsToEmployeeId;
-  if (updates.emergencyContactName !== undefined) payload.emergency_contact_name = updates.emergencyContactName;
-  if (updates.emergencyContactPhone !== undefined) payload.emergency_contact_phone = updates.emergencyContactPhone;
+  if (updates.employmentStartDate !== undefined) payload.employment_start_date = updates.employmentStartDate;
 
   const { data, error } = await supabase.from('employees').update(payload).eq('id', id).select('*').single();
   if (error) throw error;
@@ -175,8 +158,7 @@ async function updateEmployee(id: string, updates: UpdateEmployeeInput): Promise
 /**
  * The only path that terminates an employee — calls the SECURITY DEFINER
  * terminate_employee() RPC, which atomically sets employment_status and, if
- * a login is linked, deactivates it in the same transaction (see
- * supabase/migrations).
+ * a login is linked, deactivates it in the same transaction.
  */
 async function terminate(id: string, terminationDate: string): Promise<Employee> {
   const { data, error } = await supabase.rpc('terminate_employee', {
@@ -187,7 +169,6 @@ async function terminate(id: string, terminationDate: string): Promise<Employee>
   return toEmployee(data);
 }
 
-/** Calls the SECURITY DEFINER reactivate_employee() RPC — deliberately does not touch a linked login's status (see the RPC's own comment). */
 async function reactivate(id: string): Promise<Employee> {
   const { data, error } = await supabase.rpc('reactivate_employee', { p_employee_id: id });
   if (error) throw error;
@@ -196,13 +177,10 @@ async function reactivate(id: string): Promise<Employee> {
 
 /**
  * The only path that provisions a login for an existing employee — calls
- * the SECURITY DEFINER provision_employee_login() RPC (see
- * supabase/migrations), which seeds profiles.first_name/last_name from the
- * employee's own name once at creation (never synced afterward) and links
- * employees.profile_id back to the new profile in the same transaction.
- * Rejects (server-side) if the employee already has a linked login, has no
- * work_email, the email is already registered, or the role isn't in the
- * provisionable set.
+ * the SECURITY DEFINER provision_employee_login() RPC, which creates the
+ * auth user and links employees.profile_id back to it in the same
+ * transaction. Rejects (server-side) if the employee already has a linked
+ * login, has no email on file, or the role isn't provisionable.
  */
 async function provisionLogin(
   employeeId: string,
@@ -212,11 +190,11 @@ async function provisionLogin(
   const { data, error } = await supabase.rpc('provision_employee_login', {
     p_employee_id: employeeId,
     p_role: role,
-    p_phone: phone,
+    p_phone: phone ?? undefined,
   });
   if (error) throw error;
 
-  const row = data[0];
+  const row = data?.[0];
   if (!row) throw new Error('Login provisioning did not return the expected result.');
   return { userId: row.user_id, temporaryPassword: row.temporary_password };
 }

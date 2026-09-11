@@ -19,47 +19,47 @@ describe('isValidRole', () => {
 
 describe('hasRole', () => {
   it('matches when role is in the allowed list', () => {
-    expect(hasRole('principal', 'principal', 'vice_principal')).toBe(true);
+    expect(hasRole('organization_administrator', 'organization_administrator', 'operations_manager')).toBe(true);
   });
 
   it('does not match when role is absent from the allowed list', () => {
-    expect(hasRole('teacher', 'principal', 'vice_principal')).toBe(false);
+    expect(hasRole('employee', 'organization_administrator', 'operations_manager')).toBe(false);
   });
 
   it('never matches a null or undefined role', () => {
-    expect(hasRole(null, 'principal')).toBe(false);
-    expect(hasRole(undefined, 'principal')).toBe(false);
+    expect(hasRole(null, 'organization_administrator')).toBe(false);
+    expect(hasRole(undefined, 'organization_administrator')).toBe(false);
   });
 });
 
 describe('isAtLeast', () => {
   it('is true when role outranks the threshold', () => {
-    expect(isAtLeast('principal', 'teacher')).toBe(true);
+    expect(isAtLeast('organization_administrator', 'employee')).toBe(true);
   });
 
   it('is true when role exactly matches the threshold', () => {
-    expect(isAtLeast('teacher', 'teacher')).toBe(true);
+    expect(isAtLeast('employee', 'employee')).toBe(true);
   });
 
   it('is false when role is junior to the threshold', () => {
-    expect(isAtLeast('learner', 'teacher')).toBe(false);
+    expect(isAtLeast('client_user', 'employee')).toBe(false);
   });
 
   it('is false for a null or undefined role regardless of threshold', () => {
-    expect(isAtLeast(null, 'guest')).toBe(false);
-    expect(isAtLeast(undefined, 'guest')).toBe(false);
+    expect(isAtLeast(null, 'client_user')).toBe(false);
+    expect(isAtLeast(undefined, 'client_user')).toBe(false);
   });
 
-  it('places super_administrator at least as senior as every other role', () => {
+  it('places platform_administrator at least as senior as every other role', () => {
     for (const role of USER_ROLES) {
-      expect(isAtLeast('super_administrator', role)).toBe(true);
+      expect(isAtLeast('platform_administrator', role)).toBe(true);
     }
   });
 
-  it('places guest below every other role', () => {
+  it('places client_user below every other role', () => {
     for (const role of USER_ROLES) {
-      if (role === 'guest') continue;
-      expect(isAtLeast('guest', role)).toBe(false);
+      if (role === 'client_user') continue;
+      expect(isAtLeast('client_user', role)).toBe(false);
     }
   });
 });

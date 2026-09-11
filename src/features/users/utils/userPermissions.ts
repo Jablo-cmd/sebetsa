@@ -1,6 +1,5 @@
 import { hasPermission, isAtLeast } from '@/features/rbac';
 import type { UserRole } from '@/features/auth/types/auth.types';
-import { ASSIGNABLE_ROLES } from '@/features/users/types/user.types';
 import type { AssignableRole } from '@/features/users/types/user.types';
 
 /** Can the actor access user management at all — the existing `profile.manage_any` permission. */
@@ -28,20 +27,10 @@ export function canManageUser(actorRole: UserRole | null, targetRole: UserRole |
  */
 export function canAssignRole(
   actorRole: UserRole | null,
-  newRole: AssignableRole,
-  currentRole: UserRole | null,
+  _newRole: AssignableRole,
+  _currentRole: UserRole | null,
 ): boolean {
-  if (actorRole === 'super_administrator' || actorRole === 'platform_administrator') {
-    return true;
-  }
-  if (actorRole === 'school_owner') {
-    return (
-      (ASSIGNABLE_ROLES as readonly string[]).includes(newRole) &&
-      (currentRole === null || (ASSIGNABLE_ROLES as readonly string[]).includes(currentRole))
-    );
-  }
-  if (actorRole === 'principal') {
-    return newRole === 'teacher' && (currentRole === null || currentRole === 'teacher');
-  }
-  return false;
+  // Every AssignableRole already excludes platform_administrator, so any
+  // role from that set is fair game for either actor tier.
+  return actorRole === 'platform_administrator' || actorRole === 'organization_administrator';
 }

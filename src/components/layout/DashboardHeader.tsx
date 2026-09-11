@@ -1,18 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Logo } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { MenuIcon, SearchIcon } from '@/components/ui/icons';
+import { MenuIcon } from '@/components/ui/icons';
 import { UserMenu } from '@/components/layout/UserMenu';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
-import { useSchool } from '@/features/school/hooks/useSchool';
-import { useAcademic } from '@/features/academic/hooks/useAcademic';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getPageTitle } from '@/lib/pageTitles';
 
 export interface DashboardHeaderProps {
   onMenuClick: () => void;
-  /** Omitted (rather than gated internally) when the caller holds none of learner.view/employee.view/guardian.view — DashboardLayout already knows this before rendering the button, so there is nothing to show. */
-  onSearchClick?: () => void;
 }
 
 /**
@@ -21,13 +18,12 @@ export interface DashboardHeaderProps {
  * would both break single-H1-per-page accessibility and make every
  * `getByRole('heading', ...)` query in the app ambiguous.
  */
-export function DashboardHeader({ onMenuClick, onSearchClick }: DashboardHeaderProps) {
-  const { school } = useSchool();
-  const { currentAcademicYear } = useAcademic();
+export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
+  const organization = useCurrentOrganization();
   const { can } = usePermissions();
   const { pathname } = useLocation();
   const { title, section } = getPageTitle(pathname);
-  const canSwitchSchool = can('tenant.switch');
+  const canSwitchTenant = can('tenant.switch');
 
   return (
     <header className="flex h-[4.5rem] shrink-0 items-center justify-between gap-4 border-b border-border bg-surface-raised px-4 sm:px-6">
@@ -60,33 +56,16 @@ export function DashboardHeader({ onMenuClick, onSearchClick }: DashboardHeaderP
       <div className="flex shrink-0 items-center gap-3">
         <span className="hidden max-w-[16rem] truncate text-right sm:block">
           <span className="block text-sm font-medium text-content-secondary">
-            {school?.name ?? 'No school selected'}
+            {organization?.name ?? 'No organization selected'}
           </span>
-          {currentAcademicYear && (
-            <span className="block font-mono text-[11px] uppercase tracking-wide text-content-tertiary">
-              {currentAcademicYear.name}
-            </span>
-          )}
         </span>
-        {canSwitchSchool && (
+        {canSwitchTenant && (
           <Link
-            to="/schools"
+            to="/organizations"
             className="focus-ring hidden h-9 shrink-0 items-center rounded-md border border-border-strong px-3 text-xs font-medium text-content-secondary transition-colors hover:bg-surface-sunken hover:text-content-primary sm:flex"
           >
-            Switch school
+            Switch organization
           </Link>
-        )}
-        {onSearchClick && (
-          <button
-            type="button"
-            onClick={onSearchClick}
-            aria-label="Search"
-            className="focus-ring hidden h-9 shrink-0 items-center gap-2 rounded-md border border-border-strong px-3 text-xs font-medium text-content-secondary transition-colors hover:bg-surface-sunken hover:text-content-primary sm:flex"
-          >
-            <SearchIcon className="h-3.5 w-3.5" />
-            Search
-            <kbd className="rounded border border-border-strong px-1 py-0.5 text-[10px] text-content-tertiary">⌘K</kbd>
-          </button>
         )}
         <div className="hidden h-9 w-px bg-border sm:block" />
         <NotificationBell to="/notifications" />

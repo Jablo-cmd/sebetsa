@@ -64,9 +64,9 @@ async function createUser(input: CreateUserInput): Promise<CreateUserResult> {
     p_email: input.email,
     p_first_name: input.firstName,
     p_last_name: input.lastName,
-    p_phone: input.phone ?? null,
+    p_phone: input.phone ?? '',
     p_role: input.role,
-    p_tenant_id: input.tenantId ?? null,
+    p_tenant_id: input.tenantId ?? undefined,
   });
   if (error) throw error;
 

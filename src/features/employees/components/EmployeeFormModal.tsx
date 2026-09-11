@@ -17,13 +17,13 @@ import type { Employee, Department } from '@/features/employees/types/employee.t
 export interface EmployeeFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  schoolId: string;
+  tenantId: string;
   employee?: Employee | null;
   departments: Department[];
   onSaved: (employee: Employee) => void;
 }
 
-export function EmployeeFormModal({ isOpen, onClose, schoolId, employee, departments, onSaved }: EmployeeFormModalProps) {
+export function EmployeeFormModal({ isOpen, onClose, tenantId, employee, departments, onSaved }: EmployeeFormModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [managerSearch, setManagerSearch] = useState('');
   const [managerCandidates, setManagerCandidates] = useState<EmployeeCandidate[]>([]);
@@ -39,7 +39,7 @@ export function EmployeeFormModal({ isOpen, onClose, schoolId, employee, departm
     formState: { errors, isSubmitting },
   } = useForm<EmployeeFormValues>({ resolver: zodResolver(employeeSchema), defaultValues: employeeDefaultValues });
 
-  const reportsToEmployeeId = watch('reportsToEmployeeId');
+  const supervisorId = watch('supervisorId');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -49,17 +49,13 @@ export function EmployeeFormModal({ isOpen, onClose, schoolId, employee, departm
             employeeNumber: employee.employeeNumber,
             firstName: employee.firstName,
             lastName: employee.lastName,
-            workEmail: employee.workEmail ?? '',
-            workPhone: employee.workPhone ?? '',
-            idNumber: employee.idNumber ?? '',
-            dateOfBirth: employee.dateOfBirth ?? '',
+            email: employee.email ?? '',
+            phone: employee.phone ?? '',
             departmentId: employee.departmentId ?? '',
-            jobTitle: employee.jobTitle ?? '',
+            positionId: employee.positionId ?? '',
             employmentType: employee.employmentType ?? '',
-            hireDate: employee.hireDate,
-            reportsToEmployeeId: employee.reportsToEmployeeId ?? '',
-            emergencyContactName: employee.emergencyContactName ?? '',
-            emergencyContactPhone: employee.emergencyContactPhone ?? '',
+            employmentStartDate: employee.employmentStartDate,
+            supervisorId: employee.supervisorId ?? '',
           }
         : employeeDefaultValues,
     );
@@ -69,26 +65,26 @@ export function EmployeeFormModal({ isOpen, onClose, schoolId, employee, departm
   }, [isOpen, employee, reset]);
 
   useEffect(() => {
-    if (!isOpen || !employee?.reportsToEmployeeId) return;
+    if (!isOpen || !employee?.supervisorId) return;
     let cancelled = false;
-    void employeeService.getEmployee(employee.reportsToEmployeeId).then((result) => {
+    void employeeService.getEmployee(employee.supervisorId).then((result) => {
       if (!cancelled && result) setSelectedManager({ id: result.id, firstName: result.firstName, lastName: result.lastName });
     });
     return () => {
       cancelled = true;
     };
-  }, [isOpen, employee?.reportsToEmployeeId]);
+  }, [isOpen, employee?.supervisorId]);
 
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    void employeeService.searchEmployeeCandidates(schoolId, managerSearch, employee?.id).then((results) => {
+    void employeeService.searchEmployeeCandidates(tenantId, managerSearch, employee?.id).then((results) => {
       if (!cancelled) setManagerCandidates(results);
     });
     return () => {
       cancelled = true;
     };
-  }, [isOpen, schoolId, managerSearch, employee?.id]);
+  }, [isOpen, tenantId, managerSearch, employee?.id]);
 
   const onValid = async (values: EmployeeFormValues) => {
     setSubmitError(null);
@@ -97,21 +93,17 @@ export function EmployeeFormModal({ isOpen, onClose, schoolId, employee, departm
         employeeNumber: values.employeeNumber,
         firstName: values.firstName,
         lastName: values.lastName,
-        workEmail: values.workEmail?.trim() || null,
-        workPhone: values.workPhone?.trim() || null,
-        idNumber: values.idNumber?.trim() || null,
-        dateOfBirth: values.dateOfBirth?.trim() || null,
+        email: values.email?.trim() || null,
+        phone: values.phone?.trim() || null,
         departmentId: values.departmentId?.trim() || null,
-        jobTitle: values.jobTitle?.trim() || null,
-        employmentType: values.employmentType || null,
-        hireDate: values.hireDate,
-        reportsToEmployeeId: values.reportsToEmployeeId?.trim() || null,
-        emergencyContactName: values.emergencyContactName?.trim() || null,
-        emergencyContactPhone: values.emergencyContactPhone?.trim() || null,
+        positionId: values.positionId?.trim() || null,
+        employmentType: values.employmentType || undefined,
+        employmentStartDate: values.employmentStartDate,
+        supervisorId: values.supervisorId?.trim() || null,
       };
       const saved = employee
         ? await employeeService.updateEmployee(employee.id, payload)
-        : await employeeService.createEmployee(schoolId, payload);
+        : await employeeService.createEmployee(tenantId, payload);
       onSaved(saved);
       onClose();
     } catch (error) {
@@ -151,23 +143,36 @@ export function EmployeeFormModal({ isOpen, onClose, schoolId, employee, departm
             error={errors.employeeNumber?.message}
             {...register('employeeNumber')}
           />
-          <TextField label="Job title" error={errors.jobTitle?.message} {...register('jobTitle')} />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextField label="Work email" error={errors.workEmail?.message} {...register('workEmail')} />
-          <TextField label="Work phone" error={errors.workPhone?.message} {...register('workPhone')} />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextField label="ID number" error={errors.idNumber?.message} {...register('idNumber')} />
           <TextField
-            label="Date of birth"
+            label="Start date"
             type="date"
-            error={errors.dateOfBirth?.message}
-            {...register('dateOfBirth')}
+            required
+            error={errors.employmentStartDate?.message}
+            {...register('employmentStartDate')}
           />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextField label="Hire date" type="date" required error={errors.hireDate?.message} {...register('hireDate')} />
+          <TextField label="Email" error={errors.email?.message} {...register('email')} />
+          <TextField label="Phone" error={errors.phone?.message} {...register('phone')} />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="employee-department" className="mb-1.5 block text-sm font-medium text-content-primary">
+              Department
+            </label>
+            <select
+              id="employee-department"
+              className="focus-ring h-11 w-full rounded-lg border border-border-strong bg-surface-raised px-3.5 text-sm text-content-primary"
+              {...register('departmentId')}
+            >
+              <option value="">Unassigned</option>
+              {departments.map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.name}
+                </option>
+              ))}
+            </select>
+          </div>
           <div>
             <label htmlFor="employee-employment-type" className="mb-1.5 block text-sm font-medium text-content-primary">
               Employment type
@@ -185,85 +190,52 @@ export function EmployeeFormModal({ isOpen, onClose, schoolId, employee, departm
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="employee-department" className="mb-1.5 block text-sm font-medium text-content-primary">
-              Department
-            </label>
-            <select
-              id="employee-department"
-              className="focus-ring h-11 w-full rounded-lg border border-border-strong bg-surface-raised px-3.5 text-sm text-content-primary"
-              {...register('departmentId')}
+        <div>
+          <TextField
+            label="Reports to"
+            hint={selectedManager ? `Selected: ${selectedManager.firstName} ${selectedManager.lastName}` : 'Search by name…'}
+            placeholder="Search by name…"
+            value={managerSearch}
+            onChange={(event) => setManagerSearch(event.target.value)}
+          />
+          <div className="mt-2 flex max-h-32 flex-col gap-1 overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => {
+                setValue('supervisorId', '', { shouldValidate: true });
+                setSelectedManager(null);
+              }}
+              className={`focus-ring rounded-lg border px-3 py-2 text-left text-sm ${
+                !supervisorId
+                  ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10'
+                  : 'border-border-strong bg-surface-raised hover:bg-surface-sunken'
+              }`}
             >
-              <option value="">Unassigned</option>
-              {departments
-                .filter((department) => department.active)
-                .map((department) => (
-                  <option key={department.id} value={department.id}>
-                    {department.name}
-                  </option>
-                ))}
-            </select>
-          </div>
-          <div>
-            <TextField
-              label="Reports to"
-              hint={selectedManager ? `Selected: ${selectedManager.firstName} ${selectedManager.lastName}` : 'Search by name…'}
-              placeholder="Search by name…"
-              value={managerSearch}
-              onChange={(event) => setManagerSearch(event.target.value)}
-            />
-            <div className="mt-2 flex max-h-32 flex-col gap-1 overflow-y-auto">
+              No manager
+            </button>
+            {managerCandidates.map((candidate) => (
               <button
+                key={candidate.id}
                 type="button"
                 onClick={() => {
-                  setValue('reportsToEmployeeId', '', { shouldValidate: true });
-                  setSelectedManager(null);
+                  setValue('supervisorId', candidate.id, { shouldValidate: true });
+                  setSelectedManager(candidate);
                 }}
                 className={`focus-ring rounded-lg border px-3 py-2 text-left text-sm ${
-                  !reportsToEmployeeId
+                  supervisorId === candidate.id
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10'
                     : 'border-border-strong bg-surface-raised hover:bg-surface-sunken'
                 }`}
               >
-                No manager
+                {candidate.firstName} {candidate.lastName}
               </button>
-              {managerCandidates.map((candidate) => (
-                <button
-                  key={candidate.id}
-                  type="button"
-                  onClick={() => {
-                    setValue('reportsToEmployeeId', candidate.id, { shouldValidate: true });
-                    setSelectedManager(candidate);
-                  }}
-                  className={`focus-ring rounded-lg border px-3 py-2 text-left text-sm ${
-                    reportsToEmployeeId === candidate.id
-                      ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10'
-                      : 'border-border-strong bg-surface-raised hover:bg-surface-sunken'
-                  }`}
-                >
-                  {candidate.firstName} {candidate.lastName}
-                </button>
-              ))}
-            </div>
-            {errors.reportsToEmployeeId && (
-              <p role="alert" className="mt-1.5 text-xs font-medium text-danger-600">
-                {errors.reportsToEmployeeId.message}
-              </p>
-            )}
+            ))}
           </div>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <TextField
-            label="Emergency contact name"
-            error={errors.emergencyContactName?.message}
-            {...register('emergencyContactName')}
-          />
-          <TextField
-            label="Emergency contact phone"
-            error={errors.emergencyContactPhone?.message}
-            {...register('emergencyContactPhone')}
-          />
+          {errors.supervisorId && (
+            <p role="alert" className="mt-1.5 text-xs font-medium text-danger-600">
+              {errors.supervisorId.message}
+            </p>
+          )}
         </div>
       </form>
     </Modal>

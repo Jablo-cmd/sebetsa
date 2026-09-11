@@ -42,7 +42,7 @@ function round(value: number, decimals: number): number {
 
 /** Tallies raw status counts into a StatusCounts object — the one place `for (const row of records) counts[row.status] += 1` is written. */
 export function tallyStatusCounts(records: { status: AttendanceRecord['status'] }[]): AttendanceStatusCounts {
-  const counts: AttendanceStatusCounts = { present: 0, absent: 0, late: 0, excused: 0 };
+  const counts: AttendanceStatusCounts = { present: 0, absent: 0, late: 0, excused: 0, unconfirmed: 0 };
   for (const record of records) counts[record.status] += 1;
   return counts;
 }

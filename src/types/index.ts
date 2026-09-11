@@ -6,7 +6,7 @@
  */
 export type { UserRole as Role } from '@/features/auth/types/auth.types';
 export type { Permission } from '@/features/rbac/types/permission.types';
-export type { School, SchoolType, SchoolStatus } from '@/types/school.types';
+export type { Organization, OrganizationStatus } from '@/types/organization.types';
 export type { Profile, ProfileStatus, UserProfile } from '@/types/profile.types';
 export type { Tenant, TenantStatus } from '@/types/tenant.types';
 export type { Session } from '@/types/session.types';

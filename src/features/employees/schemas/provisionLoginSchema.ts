@@ -9,6 +9,6 @@ export const provisionLoginSchema = z.object({
 export type ProvisionLoginFormValues = z.infer<typeof provisionLoginSchema>;
 
 export const provisionLoginDefaultValues: ProvisionLoginFormValues = {
-  role: 'teacher',
+  role: 'employee',
   phone: '',
 };

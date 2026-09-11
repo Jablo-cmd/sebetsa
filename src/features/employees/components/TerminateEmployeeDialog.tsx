@@ -74,7 +74,7 @@ export function TerminateEmployeeDialog({ isOpen, onClose, employee, onTerminate
           label="Termination date"
           type="date"
           required
-          min={employee.hireDate}
+          min={employee.employmentStartDate}
           value={terminationDate}
           onChange={(event) => setTerminationDate(event.target.value)}
         />

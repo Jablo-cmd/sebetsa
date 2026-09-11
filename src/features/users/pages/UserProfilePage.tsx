@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { FullScreenSpinner } from '@/components/ui/FullScreenSpinner';
 import { FullScreenNotice } from '@/components/ui/FullScreenNotice';
 import { useAuth } from '@/features/auth/context/authContext';
-import { useCurrentSchool } from '@/features/tenant/hooks/useCurrentSchool';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useUserProfile } from '@/features/users/hooks/useUserProfile';
 import { EditUserModal } from '@/features/users/components/EditUserModal';
 import { ChangeRoleModal } from '@/features/users/components/ChangeRoleModal';
@@ -16,7 +16,7 @@ export function UserProfilePage() {
   const navigate = useNavigate();
   const { user: actor } = useAuth();
   const actorRole = actor?.role ?? null;
-  const currentSchool = useCurrentSchool();
+  const currentOrganization = useCurrentOrganization();
   const { user, isLoading, error, refetch } = useUserProfile(id);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -91,7 +91,7 @@ export function UserProfilePage() {
               School association
             </dt>
             <dd className="mt-1 text-sm text-content-primary">
-              {user.tenantId ? (currentSchool?.name ?? 'Your school') : 'No school assigned (platform-level account)'}
+              {user.tenantId ? (currentOrganization?.name ?? 'Your organization') : 'No organization assigned (platform-level account)'}
             </dd>
           </div>
         </dl>

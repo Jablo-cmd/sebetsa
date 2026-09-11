@@ -7,7 +7,7 @@ import { FullScreenNotice } from '@/components/ui/FullScreenNotice';
 /**
  * Sits inside ProtectedRoute: an authenticated, verified user might still
  * have no profile row, no tenant assignment, or belong to a suspended
- * school. Each of those gets its own graceful message instead of a blank
+ * organization. Each of those gets its own graceful message instead of a blank
  * or broken page.
  */
 export function TenantGate() {
@@ -22,7 +22,7 @@ export function TenantGate() {
     return (
       <FullScreenNotice
         title="Profile not found"
-        message="We couldn't find a profile for your account. Please contact your school administrator."
+        message="We couldn't find a profile for your account. Please contact your organization administrator."
       />
     );
   }
@@ -40,20 +40,20 @@ export function TenantGate() {
     return (
       <FullScreenNotice
         title="Account deactivated"
-        message="Your account has been deactivated. Please contact your school administrator."
+        message="Your account has been deactivated. Please contact your organization administrator."
       />
     );
   }
 
   if (tenantStatus === 'idle' || tenantStatus === 'loading') {
-    return <FullScreenSpinner label="Loading your school…" />;
+    return <FullScreenSpinner label="Loading your organization…" />;
   }
 
   if (tenantStatus === 'missing') {
     return (
       <FullScreenNotice
-        title="No school assigned"
-        message="Your account isn't linked to a school yet. Please contact your administrator."
+        title="No organization assigned"
+        message="Your account isn't linked to an organization yet. Please contact your administrator."
       />
     );
   }
@@ -61,8 +61,8 @@ export function TenantGate() {
   if (tenantStatus === 'inactive') {
     return (
       <FullScreenNotice
-        title="School inactive"
-        message={`${tenant?.school.name ?? 'This school'}'s account is currently inactive. Please contact your administrator.`}
+        title="Organization inactive"
+        message={`${tenant?.organization.name ?? 'This organization'}'s account is currently inactive. Please contact your administrator.`}
       />
     );
   }
@@ -71,7 +71,7 @@ export function TenantGate() {
     return (
       <FullScreenNotice
         title="Something went wrong"
-        message={tenantError ?? 'Failed to load your school.'}
+        message={tenantError ?? 'Failed to load your organization.'}
       />
     );
   }

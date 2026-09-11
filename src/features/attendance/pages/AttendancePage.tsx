@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useSchool } from '@/features/school/hooks/useSchool';
-import { useAcademic } from '@/features/academic/hooks/useAcademic';
-import { useClasses } from '@/features/academic/hooks/useClasses';
-import { useMyTeachingAssignments } from '@/features/teaching/hooks/useMyTeachingAssignments';
+import { useAuth } from '@/features/auth/context/authContext';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
+import { useSitesList } from '@/features/attendance/hooks/useSitesList';
 import { useAttendanceRoster } from '@/features/attendance/hooks/useAttendanceRoster';
 import { attendanceService } from '@/features/attendance/services/attendanceService';
 import type { AttendanceStatus } from '@/features/attendance/types/attendance.types';
@@ -12,7 +11,7 @@ import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
-import { NoActiveSchoolNotice } from '@/components/ui/NoActiveSchoolNotice';
+import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { TableScrollContainer } from '@/components/ui/TableScrollContainer';
 import { cn } from '@/lib/cn';
 import { getDbErrorMessage } from '@/lib/dbErrors';
@@ -23,8 +22,8 @@ function todayIsoDate(): string {
 
 const STATUS_OPTIONS: { value: AttendanceStatus; label: string }[] = [
   { value: 'present', label: 'Present' },
-  { value: 'absent', label: 'Absent' },
   { value: 'late', label: 'Late' },
+  { value: 'absent', label: 'Absent' },
   { value: 'excused', label: 'Excused' },
 ];
 
@@ -36,42 +35,24 @@ const STATUS_BUTTON_CLASSES: Record<AttendanceStatus, string> = {
   late: 'data-[active=true]:bg-warning-50 data-[active=true]:text-warning-600 data-[active=true]:border-warning-500/40 dark:data-[active=true]:bg-warning-500/15 dark:data-[active=true]:text-warning-500',
   excused:
     'data-[active=true]:bg-brand-50 data-[active=true]:text-brand-700 data-[active=true]:border-brand-400 dark:data-[active=true]:bg-brand-500/15 dark:data-[active=true]:text-brand-300',
+  unconfirmed: 'data-[active=true]:bg-surface-sunken data-[active=true]:text-content-tertiary',
 };
 
 export function AttendancePage() {
   const { can } = usePermissions();
-  const canManageAny = can('academic.manage');
-  const { school } = useSchool();
-  const { currentAcademicYear } = useAcademic();
-  const { classes } = useClasses(school?.id);
-  const myAssignments = useMyTeachingAssignments();
+  const { user } = useAuth();
+  const canRecord = can('attendance.manage');
+  const organization = useCurrentOrganization();
+  const { sites } = useSitesList(organization?.id);
 
-  const myClassIds = useMemo(
-    () => new Set(myAssignments.data.map((a) => a.classId)),
-    [myAssignments.data],
-  );
-  const availableClasses = useMemo(
-    () =>
-      classes
-        .filter((c) => c.active && (canManageAny || myClassIds.has(c.id)))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [classes, canManageAny, myClassIds],
-  );
-
-  const [classId, setClassId] = useState<string>('');
+  const [siteId, setSiteId] = useState<string>('');
   const [date, setDate] = useState<string>(todayIsoDate());
 
   useEffect(() => {
-    if (!classId && availableClasses.length > 0) setClassId(availableClasses[0]?.id ?? '');
-  }, [availableClasses, classId]);
+    if (!siteId && sites.length > 0) setSiteId(sites[0]?.id ?? '');
+  }, [sites, siteId]);
 
-  const canRecordForClass = canManageAny || myClassIds.has(classId);
-
-  const { roster, existingRecords, isLoading, error } = useAttendanceRoster(
-    classId || undefined,
-    currentAcademicYear?.id,
-    date,
-  );
+  const { roster, existingRecords, isLoading, error } = useAttendanceRoster(siteId || undefined, date);
 
   const [statuses, setStatuses] = useState<Record<string, AttendanceStatus>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -80,36 +61,29 @@ export function AttendancePage() {
 
   useEffect(() => {
     const next: Record<string, AttendanceStatus> = {};
-    for (const learner of roster) {
-      const existing = existingRecords.find((record) => record.learnerId === learner.id);
-      next[learner.id] = existing?.status ?? 'present';
+    for (const employee of roster) {
+      const existing = existingRecords.find((record) => record.employeeId === employee.id);
+      next[employee.id] = existing?.status ?? 'present';
     }
     setStatuses(next);
     setSaved(false);
   }, [roster, existingRecords]);
 
   const handleSave = async () => {
-    if (!school || !currentAcademicYear || !classId) return;
+    if (!organization || !siteId || !user) return;
     setIsSaving(true);
     setSaveError(null);
     setSaved(false);
     try {
       await attendanceService.saveAttendance(
-        school.id,
-        currentAcademicYear.id,
-        classId,
-        date,
-        roster.map((learner) => ({
-          learnerId: learner.id,
-          status: statuses[learner.id] ?? 'present',
+        organization.id,
+        siteId,
+        roster.map((employee) => ({
+          employeeId: employee.id,
+          status: statuses[employee.id] ?? 'present',
         })),
+        user.id,
       );
-      // Deliberately not refetching here: `statuses` already reflects
-      // exactly what was just persisted (that's what we sent), and the
-      // roster/existingRecords effect above resets `saved` to false on
-      // every `existingRecords` change (it has to, so switching class/date
-      // clears a stale banner) — refetching would immediately clobber the
-      // success message that follows.
       setSaved(true);
     } catch (err) {
       setSaveError(getDbErrorMessage(err, 'Failed to save attendance.'));
@@ -118,7 +92,7 @@ export function AttendancePage() {
     }
   };
 
-  const selectedClassName = availableClasses.find((c) => c.id === classId)?.name;
+  const selectedSiteName = sites.find((s) => s.id === siteId)?.name;
   const formattedDate = new Date(`${date}T00:00:00`).toLocaleDateString('en-ZA', {
     weekday: 'short',
     day: '2-digit',
@@ -126,44 +100,36 @@ export function AttendancePage() {
     year: 'numeric',
   });
 
-  if (!school) {
+  if (!organization) {
     return (
       <PageContainer>
-        <PageHeader
-          title="Attendance"
-          description="Take or review the daily register for a class."
-        />
-        <NoActiveSchoolNotice resource="attendance" />
+        <PageHeader title="Attendance" description="Record who was present at a site on a given date." />
+        <NoActiveOrganizationNotice resource="attendance" />
       </PageContainer>
     );
   }
 
   return (
     <PageContainer>
-      <PageHeader title="Attendance" description="Take or review the daily register for a class." />
+      <PageHeader title="Attendance" description="Record who was present at a site on a given date." />
 
       <div className="flex flex-col gap-3 rounded-card border border-border bg-surface-raised p-4 sm:flex-row sm:items-end sm:gap-4">
         <div className="flex-1">
-          <label
-            htmlFor="attendance-class"
-            className="mb-1.5 block text-sm font-medium text-content-primary"
-          >
-            Class
+          <label htmlFor="attendance-site" className="mb-1.5 block text-sm font-medium text-content-primary">
+            Site
           </label>
-          {availableClasses.length === 0 ? (
-            <p className="text-sm text-content-tertiary">
-              {canManageAny ? 'No active classes yet.' : 'You have no assigned classes yet.'}
-            </p>
+          {sites.length === 0 ? (
+            <p className="text-sm text-content-tertiary">No sites yet.</p>
           ) : (
             <select
-              id="attendance-class"
-              value={classId}
-              onChange={(event) => setClassId(event.target.value)}
+              id="attendance-site"
+              value={siteId}
+              onChange={(event) => setSiteId(event.target.value)}
               className="focus-ring h-11 w-full rounded-md border border-border-strong bg-surface-raised px-3.5 text-sm text-content-primary sm:w-64"
             >
-              {availableClasses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
                 </option>
               ))}
             </select>
@@ -171,10 +137,7 @@ export function AttendancePage() {
         </div>
 
         <div>
-          <label
-            htmlFor="attendance-date"
-            className="mb-1.5 block text-sm font-medium text-content-primary"
-          >
+          <label htmlFor="attendance-date" className="mb-1.5 block text-sm font-medium text-content-primary">
             Date
           </label>
           <input
@@ -187,49 +150,40 @@ export function AttendancePage() {
         </div>
       </div>
 
-      {!currentAcademicYear && (
-        <p className="text-sm text-content-tertiary">
-          Set an active academic year before taking attendance.
-        </p>
-      )}
-
       <ErrorAlert message={error ?? saveError} />
 
-      {classId && currentAcademicYear && (
+      {siteId && (
         <div className="flex flex-col gap-3">
           {!isLoading && roster.length > 0 && (
             <p className="text-sm text-content-secondary">
-              <span className="font-medium text-content-primary">
-                {selectedClassName ?? 'Class'}
-              </span>
+              <span className="font-medium text-content-primary">{selectedSiteName ?? 'Site'}</span>
               {' · '}
               {formattedDate}
               {' · '}
-              {roster.length} {roster.length === 1 ? 'learner' : 'learners'}
+              {roster.length} {roster.length === 1 ? 'employee' : 'employees'}
             </p>
           )}
 
           {isLoading ? (
             <div className="rounded-card border border-border bg-surface-raised">
-              <LoadingBlock label="Loading register…" />
+              <LoadingBlock label="Loading roster…" />
             </div>
           ) : roster.length === 0 ? (
             <p className="rounded-card border border-border bg-surface-raised px-4 py-10 text-center text-sm text-content-tertiary">
-              No learners enrolled in this class yet.
+              No employees assigned to this site yet.
             </p>
           ) : (
             <>
-              {/* Desktop / tablet: table */}
               <div className="hidden md:block">
                 <TableScrollContainer>
                   <table className="w-full text-left text-sm">
                     <thead>
                       <tr className="border-b border-border text-xs uppercase tracking-wide text-content-tertiary">
                         <th scope="col" className="px-4 py-3 font-medium">
-                          Learner
+                          Employee
                         </th>
                         <th scope="col" className="px-4 py-3 font-medium">
-                          Learner #
+                          Employee #
                         </th>
                         <th scope="col" className="px-4 py-3 text-right font-medium">
                           Status
@@ -237,24 +191,22 @@ export function AttendancePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {roster.map((learner) => (
-                        <tr key={learner.id} className="border-b border-border last:border-0">
+                      {roster.map((employee) => (
+                        <tr key={employee.id} className="border-b border-border last:border-0">
                           <td className="px-4 py-3 font-medium text-content-primary">
-                            {learner.firstName} {learner.lastName}
+                            {employee.firstName} {employee.lastName}
                           </td>
-                          <td className="px-4 py-3 text-content-secondary">
-                            {learner.learnerNumber}
-                          </td>
+                          <td className="px-4 py-3 text-content-secondary">{employee.employeeNumber}</td>
                           <td className="px-4 py-3">
                             <div className="flex justify-end gap-1.5">
                               {STATUS_OPTIONS.map((option) => (
                                 <button
                                   key={option.value}
                                   type="button"
-                                  disabled={!canRecordForClass}
-                                  data-active={statuses[learner.id] === option.value}
+                                  disabled={!canRecord}
+                                  data-active={statuses[employee.id] === option.value}
                                   onClick={() =>
-                                    setStatuses((prev) => ({ ...prev, [learner.id]: option.value }))
+                                    setStatuses((prev) => ({ ...prev, [employee.id]: option.value }))
                                   }
                                   className={cn(
                                     'focus-ring rounded-md border border-border-strong px-2.5 py-1 text-xs font-medium text-content-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-60',
@@ -273,27 +225,21 @@ export function AttendancePage() {
                 </TableScrollContainer>
               </div>
 
-              {/* Mobile: one card per learner, full-width status buttons */}
               <div className="flex flex-col gap-2 md:hidden">
-                {roster.map((learner) => (
-                  <div
-                    key={learner.id}
-                    className="rounded-card border border-border bg-surface-raised p-3.5"
-                  >
+                {roster.map((employee) => (
+                  <div key={employee.id} className="rounded-card border border-border bg-surface-raised p-3.5">
                     <p className="text-sm font-medium text-content-primary">
-                      {learner.firstName} {learner.lastName}
+                      {employee.firstName} {employee.lastName}
                     </p>
-                    <p className="text-xs text-content-tertiary">{learner.learnerNumber}</p>
+                    <p className="text-xs text-content-tertiary">{employee.employeeNumber}</p>
                     <div className="mt-2.5 flex gap-1.5">
                       {STATUS_OPTIONS.map((option) => (
                         <button
                           key={option.value}
                           type="button"
-                          disabled={!canRecordForClass}
-                          data-active={statuses[learner.id] === option.value}
-                          onClick={() =>
-                            setStatuses((prev) => ({ ...prev, [learner.id]: option.value }))
-                          }
+                          disabled={!canRecord}
+                          data-active={statuses[employee.id] === option.value}
+                          onClick={() => setStatuses((prev) => ({ ...prev, [employee.id]: option.value }))}
                           className={cn(
                             'focus-ring flex-1 rounded-md border border-border-strong px-2.5 py-2 text-xs font-medium text-content-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                             STATUS_BUTTON_CLASSES[option.value],
@@ -307,12 +253,12 @@ export function AttendancePage() {
                 ))}
               </div>
 
-              {canRecordForClass && (
+              {canRecord && (
                 <div className="flex items-center justify-end gap-3 rounded-card border border-border bg-surface-raised px-4 py-3">
-                  {saved && <span className="text-sm text-success-500">Register saved.</span>}
+                  {saved && <span className="text-sm text-success-500">Attendance saved.</span>}
                   <div className="w-full sm:w-auto sm:min-w-[9rem]">
                     <Button type="button" onClick={() => void handleSave()} isLoading={isSaving}>
-                      Save register
+                      Save attendance
                     </Button>
                   </div>
                 </div>

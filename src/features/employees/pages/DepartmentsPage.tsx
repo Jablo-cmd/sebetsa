@@ -5,9 +5,9 @@ import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
-import { NoActiveSchoolNotice } from '@/components/ui/NoActiveSchoolNotice';
+import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useSchool } from '@/features/school/hooks/useSchool';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useDepartments } from '@/features/employees/hooks/useDepartments';
 import { departmentService } from '@/features/employees/services/departmentService';
 import { DepartmentsTable } from '@/features/employees/components/DepartmentsTable';
@@ -19,17 +19,12 @@ export function DepartmentsPage() {
   const navigate = useNavigate();
   const { can } = usePermissions();
   const canManage = can('employee.manage');
-  const { school } = useSchool();
-  const { departments, isLoading, error, refetch } = useDepartments(school?.id);
+  const organization = useCurrentOrganization();
+  const { departments, isLoading, error, refetch } = useDepartments(organization?.id);
 
-  const [showArchived, setShowArchived] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-
-  const visibleDepartments = showArchived
-    ? departments
-    : departments.filter((department) => department.active);
 
   const openCreate = () => {
     setEditingDepartment(null);
@@ -41,17 +36,13 @@ export function DepartmentsPage() {
     setIsFormOpen(true);
   };
 
-  const handleToggleActive = async (department: Department) => {
+  const handleDelete = async (department: Department) => {
     setActionError(null);
     try {
-      if (department.active) {
-        await departmentService.archiveDepartment(department.id);
-      } else {
-        await departmentService.restoreDepartment(department.id);
-      }
+      await departmentService.deleteDepartment(department.id);
       await refetch();
     } catch (err) {
-      setActionError(getDbErrorMessage(err, 'Failed to update department.'));
+      setActionError(getDbErrorMessage(err, 'Failed to delete department.'));
     }
   };
 
@@ -67,10 +58,10 @@ export function DepartmentsPage() {
 
       <PageHeader
         title="Departments"
-        description="Manage the department catalogue for your school."
+        description="Manage the department catalogue for your organization."
         action={
           canManage &&
-          school && (
+          organization && (
             <div className="w-full sm:w-auto sm:min-w-[9rem]">
               <Button type="button" onClick={openCreate}>
                 Add department
@@ -80,38 +71,21 @@ export function DepartmentsPage() {
         }
       />
 
-      {school && (
-        <label className="flex w-fit items-center gap-2 text-sm text-content-secondary">
-          <input
-            type="checkbox"
-            checked={showArchived}
-            onChange={(event) => setShowArchived(event.target.checked)}
-            className="focus-ring h-4 w-4 rounded border-border-strong"
-          />
-          Show archived departments
-        </label>
-      )}
-
       <ErrorAlert message={error ?? actionError} />
 
-      {!school ? (
-        <NoActiveSchoolNotice resource="departments" />
+      {!organization ? (
+        <NoActiveOrganizationNotice resource="departments" />
       ) : isLoading ? (
         <LoadingBlock label="Loading departments…" />
       ) : (
-        <DepartmentsTable
-          departments={visibleDepartments}
-          canManage={canManage}
-          onEdit={openEdit}
-          onToggleActive={(department) => void handleToggleActive(department)}
-        />
+        <DepartmentsTable departments={departments} canManage={canManage} onEdit={openEdit} onDelete={(department) => void handleDelete(department)} />
       )}
 
-      {school && (
+      {organization && (
         <DepartmentFormModal
           isOpen={isFormOpen}
           onClose={() => setIsFormOpen(false)}
-          schoolId={school.id}
+          tenantId={organization.id}
           department={editingDepartment}
           onSaved={() => void refetch()}
         />

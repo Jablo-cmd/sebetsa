@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { ProfileRow, ProfileUpdate } from '@/lib/database.types';
+import type { ProfileRow, ProfileUpdate } from '@/lib/dbTypes';
 import type { Profile } from '@/types/profile.types';
 
 /** Exported so userService (features/users) can reuse it instead of re-declaring its own mapper. */

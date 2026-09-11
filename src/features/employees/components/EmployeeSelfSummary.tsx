@@ -18,9 +18,7 @@ export function EmployeeSelfSummary({ employee }: EmployeeSelfSummaryProps) {
             <h2 className="text-xl font-bold text-content-primary">
               {employee.firstName} {employee.lastName}
             </h2>
-            <p className="text-sm text-content-secondary">
-              {employee.employeeNumber} · {employee.jobTitle ?? 'No job title'}
-            </p>
+            <p className="text-sm text-content-secondary">{employee.employeeNumber}</p>
           </div>
         </div>
         <span className="inline-flex w-fit items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium capitalize text-brand-700 dark:bg-brand-500/15 dark:text-brand-200">
@@ -36,16 +34,16 @@ export function EmployeeSelfSummary({ employee }: EmployeeSelfSummaryProps) {
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Hire date</dt>
-          <dd className="mt-1 text-sm text-content-primary">{employee.hireDate}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Start date</dt>
+          <dd className="mt-1 text-sm text-content-primary">{employee.employmentStartDate}</dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Work email</dt>
-          <dd className="mt-1 text-sm text-content-primary">{employee.workEmail ?? '—'}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Email</dt>
+          <dd className="mt-1 text-sm text-content-primary">{employee.email ?? '—'}</dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Work phone</dt>
-          <dd className="mt-1 text-sm text-content-primary">{employee.workPhone ?? '—'}</dd>
+          <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Phone</dt>
+          <dd className="mt-1 text-sm text-content-primary">{employee.phone ?? '—'}</dd>
         </div>
       </dl>
     </div>

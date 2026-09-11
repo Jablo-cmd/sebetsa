@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
-import type { School } from '@/types/school.types';
+import type { Organization } from '@/types/organization.types';
 import type { Tenant } from '@/types/tenant.types';
-import type { CreateSchoolInput } from '@/features/tenant/services/tenantService';
+import type { CreateOrganizationInput } from '@/features/tenant/services/tenantService';
 
 export type TenantLoadStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'inactive' | 'error';
 
@@ -10,12 +10,12 @@ export interface TenantContextValue {
   tenant: Tenant | null;
   error: string | null;
   /** Populated only for platform-level roles (RBAC `tenant.switch` permission). */
-  availableSchools: School[];
-  /** True while the initial (or a refreshed) availableSchools fetch is in flight. */
-  availableSchoolsLoading: boolean;
-  switchTenant: (schoolId: string) => Promise<void>;
-  /** Creates a new school (and adds it to availableSchools) — does NOT switch the active tenant to it; call switchTenant(school.id) afterward if that's wanted (CreateSchoolModal does; SchoolOnboardingWizardPage defers it). Platform-level roles only. */
-  createSchool: (input: CreateSchoolInput) => Promise<School>;
+  availableOrganizations: Organization[];
+  /** True while the initial (or a refreshed) availableOrganizations fetch is in flight. */
+  availableOrganizationsLoading: boolean;
+  switchTenant: (organizationId: string) => Promise<void>;
+  /** Creates a new organization (and adds it to availableOrganizations) — does NOT switch the active tenant to it; call switchTenant(organization.id) afterward if that's wanted. Platform-level roles only. */
+  createOrganization: (input: CreateOrganizationInput) => Promise<Organization>;
   refetch: () => Promise<void>;
 }
 

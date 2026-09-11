@@ -1,15 +1,15 @@
-import type { School } from '@/types/school.types';
+import type { Organization } from '@/types/organization.types';
 
 export type TenantStatus = 'idle' | 'loading' | 'ready' | 'missing' | 'inactive' | 'error';
 
 /**
- * The resolved tenant context for the current session: which school is
+ * The resolved tenant context for the current session: which organization is
  * active, and whether that's because the user natively belongs to it or
- * because a platform-level role (super/platform admin) is viewing it via
- * cross-tenant access (RBAC spec §6 — "All tenants" scope).
+ * because a platform-level role (platform admin) is viewing it via
+ * cross-tenant access.
  */
 export interface Tenant {
   id: string;
-  school: School;
+  organization: Organization;
   isPlatformLevelAccess: boolean;
 }

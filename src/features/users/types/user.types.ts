@@ -2,18 +2,31 @@ import type { UserRole } from '@/features/auth/types/auth.types';
 import type { Profile, ProfileStatus } from '@/types/profile.types';
 
 /**
- * Roles assignable through the User Management UI — a deliberate subset of
- * the full RBAC catalogue (RBAC spec §6), matching the Milestone 5 brief.
- * "School Administrator" is the display label for the existing
- * `school_owner` role, not a new one — see ASSIGNABLE_ROLE_LABELS.
+ * Roles assignable through the User Management UI. Every non-platform role
+ * is assignable here — can_assign_role() (supabase/migrations) is the real
+ * enforcement, this is just the UI's offered list.
  */
-export const ASSIGNABLE_ROLES = ['school_owner', 'principal', 'teacher'] as const;
+export const ASSIGNABLE_ROLES = [
+  'organization_administrator',
+  'operations_manager',
+  'regional_manager',
+  'site_manager',
+  'supervisor',
+  'hr_user',
+  'employee',
+  'client_user',
+] as const;
 export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
 
 export const ASSIGNABLE_ROLE_LABELS: Record<AssignableRole, string> = {
-  school_owner: 'School Administrator',
-  principal: 'Principal',
-  teacher: 'Teacher',
+  organization_administrator: 'Organization Administrator',
+  operations_manager: 'Operations Manager',
+  regional_manager: 'Regional Manager',
+  site_manager: 'Site Manager',
+  supervisor: 'Supervisor',
+  hr_user: 'HR User',
+  employee: 'Employee',
+  client_user: 'Client User',
 };
 
 export interface CreateUserInput {

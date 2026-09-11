@@ -3,11 +3,11 @@ import type { ReactNode } from 'react';
 import { useAuth } from '@/features/auth/context/authContext';
 import { useProfile } from '@/features/profile/context/profileContext';
 import { tenantService } from '@/features/tenant/services/tenantService';
-import type { CreateSchoolInput } from '@/features/tenant/services/tenantService';
+import type { CreateOrganizationInput } from '@/features/tenant/services/tenantService';
 import { rbacService } from '@/features/rbac/services/rbacService';
 import { TenantContext } from '@/features/tenant/context/tenantContext';
 import type { TenantContextValue, TenantLoadStatus } from '@/features/tenant/context/tenantContext';
-import type { School } from '@/types/school.types';
+import type { Organization } from '@/types/organization.types';
 import type { Tenant } from '@/types/tenant.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
@@ -18,8 +18,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<TenantLoadStatus>('idle');
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [availableSchools, setAvailableSchools] = useState<School[]>([]);
-  const [availableSchoolsLoading, setAvailableSchoolsLoading] = useState(false);
+  const [availableOrganizations, setAvailableOrganizations] = useState<Organization[]>([]);
+  const [availableOrganizationsLoading, setAvailableOrganizationsLoading] = useState(false);
 
   const isPlatformLevel = rbacService.can(user?.role ?? null, 'tenant.switch');
 
@@ -37,14 +37,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       setStatus('loading');
       setError(null);
       try {
-        const school = await tenantService.getSchoolById(tenantId);
-        if (!school) {
+        const organization = await tenantService.getOrganizationById(tenantId);
+        if (!organization) {
           setTenant(null);
           setStatus('missing');
           return;
         }
-        setTenant({ id: school.id, school, isPlatformLevelAccess });
-        setStatus(school.status === 'active' ? 'ready' : 'inactive');
+        setTenant({ id: organization.id, organization, isPlatformLevelAccess });
+        setStatus(organization.status === 'active' ? 'ready' : 'inactive');
       } catch (err) {
         setTenant(null);
         setStatus('error');
@@ -54,18 +54,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     [isPlatformLevel],
   );
 
-  // ProfileProvider legitimately re-fetches the profile in the background from
-  // time to time (it re-derives on every auth event, including a routine
-  // supabase-js token refresh) — each cycle passes through 'loading' then
-  // 'loaded' again, even though nothing about the profile actually changed.
-  // For a platform-level role (tenant_id is always NULL on their own profile
-  // by design — they operate across tenants), re-running loadTenant(null) on
-  // every such cycle would silently reset a tenant they explicitly picked via
-  // switchTenant()/createSchool() straight back to "no school selected".
-  // Once such a role has an active tenant, this effect steps aside; it only
-  // re-derives from the profile when there's no tenant chosen yet, or when
-  // the profile's own tenant assignment actually changes (a real reassignment,
-  // or a tenant-scoped role, for whom this is the only source of truth).
   useEffect(() => {
     if (isPlatformLevel && tenant) return;
 
@@ -83,22 +71,22 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isPlatformLevel) {
-      setAvailableSchools([]);
-      setAvailableSchoolsLoading(false);
+      setAvailableOrganizations([]);
+      setAvailableOrganizationsLoading(false);
       return;
     }
     let isMounted = true;
-    setAvailableSchoolsLoading(true);
+    setAvailableOrganizationsLoading(true);
     tenantService
-      .listAvailableSchools()
-      .then((schools) => {
-        if (isMounted) setAvailableSchools(schools);
+      .listAvailableOrganizations()
+      .then((organizations) => {
+        if (isMounted) setAvailableOrganizations(organizations);
       })
       .catch(() => {
-        if (isMounted) setAvailableSchools([]);
+        if (isMounted) setAvailableOrganizations([]);
       })
       .finally(() => {
-        if (isMounted) setAvailableSchoolsLoading(false);
+        if (isMounted) setAvailableOrganizationsLoading(false);
       });
     return () => {
       isMounted = false;
@@ -106,34 +94,24 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   }, [isPlatformLevel]);
 
   const switchTenant = useCallback(
-    async (schoolId: string) => {
+    async (organizationId: string) => {
       if (!isPlatformLevel) {
         console.warn('Tenant switching is restricted to platform-level roles.');
         return;
       }
-      await loadTenant(schoolId, true);
+      await loadTenant(organizationId, true);
     },
     [isPlatformLevel, loadTenant],
   );
 
-  const createSchool = useCallback(
-    async (input: CreateSchoolInput) => {
+  const createOrganization = useCallback(
+    async (input: CreateOrganizationInput) => {
       if (!isPlatformLevel) {
-        throw new Error('School creation is restricted to platform-level roles.');
+        throw new Error('Organization creation is restricted to platform-level roles.');
       }
-      const school = await tenantService.createSchool(input);
-      setAvailableSchools((prev) => [...prev, school].sort((a, b) => a.name.localeCompare(b.name)));
-      // Deliberately does NOT switch the active tenant itself — TenantGate
-      // shows a full-screen spinner for the brief 'loading' window
-      // switchTenant()/loadTenant() passes through, which unmounts
-      // whatever routed page called this (confirmed the hard way: the
-      // onboarding wizard's own local step state was wiped by this exact
-      // remount when createSchool() used to switch inline). Callers that
-      // want the "creating implies selecting" behavior (CreateSchoolModal)
-      // call switchTenant() themselves right after; a multi-step flow
-      // (SchoolOnboardingWizardPage) can defer switching until it's
-      // actually navigating away, when a remount no longer matters.
-      return school;
+      const organization = await tenantService.createOrganization(input);
+      setAvailableOrganizations((prev) => [...prev, organization].sort((a, b) => a.name.localeCompare(b.name)));
+      return organization;
     },
     [isPlatformLevel],
   );
@@ -151,20 +129,20 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       status,
       tenant,
       error,
-      availableSchools,
-      availableSchoolsLoading,
+      availableOrganizations,
+      availableOrganizationsLoading,
       switchTenant,
-      createSchool,
+      createOrganization,
       refetch,
     }),
     [
       status,
       tenant,
       error,
-      availableSchools,
-      availableSchoolsLoading,
+      availableOrganizations,
+      availableOrganizationsLoading,
       switchTenant,
-      createSchool,
+      createOrganization,
       refetch,
     ],
   );

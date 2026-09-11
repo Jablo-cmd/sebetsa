@@ -1,32 +1,19 @@
 /**
- * Role catalogue per RBAC & Security Permissions Specification §6.
- * Slugs are the expected values of the `role` claim in `app_metadata`.
+ * Role catalogue. Slugs are the expected values of the `role` claim in
+ * `app_metadata` and must match `public.user_role` in
+ * supabase/migrations/20260911100300_user_role_management.sql — keep both
+ * in sync.
  */
 export const USER_ROLES = [
-  'super_administrator',
   'platform_administrator',
-  'support_engineer',
-  'school_owner',
-  'principal',
-  'vice_principal',
-  'department_head',
-  'teacher',
-  'class_teacher',
-  'subject_teacher',
-  'hr_manager',
-  'finance_manager',
-  'accountant',
-  'receptionist',
-  'admissions_officer',
-  'librarian',
-  'transport_coordinator',
-  'sports_coordinator',
-  'medical_officer',
-  'parent',
-  'guardian',
-  'learner',
-  'guest',
-  'auditor',
+  'organization_administrator',
+  'operations_manager',
+  'regional_manager',
+  'site_manager',
+  'supervisor',
+  'hr_user',
+  'employee',
+  'client_user',
 ] as const;
 
 export type UserRole = (typeof USER_ROLES)[number];

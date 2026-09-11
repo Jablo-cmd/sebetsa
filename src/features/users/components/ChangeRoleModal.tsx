@@ -19,7 +19,7 @@ export interface ChangeRoleModalProps {
 
 export function ChangeRoleModal({ isOpen, onClose, user, actorRole, onRoleChanged }: ChangeRoleModalProps) {
   const [selectedRole, setSelectedRole] = useState<AssignableRole>(
-    (ASSIGNABLE_ROLES as readonly string[]).includes(user.role ?? '') ? (user.role as AssignableRole) : 'teacher',
+    (ASSIGNABLE_ROLES as readonly string[]).includes(user.role ?? '') ? (user.role as AssignableRole) : 'employee',
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -27,7 +27,7 @@ export function ChangeRoleModal({ isOpen, onClose, user, actorRole, onRoleChange
   useEffect(() => {
     if (isOpen) {
       setSelectedRole(
-        (ASSIGNABLE_ROLES as readonly string[]).includes(user.role ?? '') ? (user.role as AssignableRole) : 'teacher',
+        (ASSIGNABLE_ROLES as readonly string[]).includes(user.role ?? '') ? (user.role as AssignableRole) : 'employee',
       );
       setSubmitError(null);
     }

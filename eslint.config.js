@@ -13,7 +13,14 @@ export default [
     // toolchain (deno check + deno lint, run by the `edge-functions` CI
     // job and configured in supabase/functions/deno.json). Linting it here
     // only produces false `'Deno' is not defined` errors.
-    ignores: ['dist', 'node_modules', 'supabase/.temp', 'supabase/.branches', 'supabase/functions'],
+    ignores: [
+      'dist',
+      'node_modules',
+      'supabase/.temp',
+      'supabase/.branches',
+      'supabase/functions',
+      'docs/funda360-reference-other',
+    ],
   },
   js.configs.recommended,
   {

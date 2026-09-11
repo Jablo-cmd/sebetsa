@@ -1,89 +1,70 @@
 import { supabase } from '@/lib/supabase';
-import type { SchoolInsert, SchoolRow } from '@/lib/database.types';
-import type { School, SchoolStatus, SchoolType } from '@/types/school.types';
+import type { OrganizationInsert, OrganizationRow } from '@/lib/dbTypes';
+import type { Organization, OrganizationStatus } from '@/types/organization.types';
 
-/** Exported so schoolService (features/school) can reuse it instead of re-declaring its own mapper. */
-export function toSchool(row: SchoolRow): School {
+export function toOrganization(row: OrganizationRow): Organization {
   return {
     id: row.id,
     name: row.name,
     registrationNumber: row.registration_number,
-    educationDepartment: row.education_department,
-    schoolType: row.school_type,
-    province: row.province,
-    district: row.district,
-    emisNumber: row.emis_number,
+    industry: row.industry,
     email: row.email,
     phone: row.phone,
     website: row.website,
     logoUrl: row.logo_url,
-    physicalAddress: row.physical_address,
-    postalAddress: row.postal_address,
-    principalName: row.principal_name,
+    address: row.address,
     timezone: row.timezone,
     currency: row.currency,
     language: row.language,
     status: row.status,
-    vatRegistered: row.vat_registered,
-    vatNumber: row.vat_number,
-    vatRate: row.vat_rate,
-    invoiceNumberPrefix: row.invoice_number_prefix,
-    receiptNumberPrefix: row.receipt_number_prefix,
-    invoiceDueDays: row.invoice_due_days,
-    invoiceFooterNote: row.invoice_footer_note,
-    bankingDetails: row.banking_details,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
-async function getSchoolById(id: string): Promise<School | null> {
-  const { data, error } = await supabase.from('schools').select('*').eq('id', id).maybeSingle();
+async function getOrganizationById(id: string): Promise<Organization | null> {
+  const { data, error } = await supabase.from('organizations').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
-  return data ? toSchool(data) : null;
+  return data ? toOrganization(data) : null;
 }
 
 /**
- * Schools visible to the caller for tenant switching. RLS is the actual
- * gate here — a tenant-scoped user gets back only their own school, a
- * platform admin gets every school. The client never decides this itself.
+ * Organizations visible to the caller for tenant switching. RLS is the
+ * actual gate here — a tenant-scoped user gets back only their own
+ * organization, a platform admin gets every organization.
  */
-async function listAvailableSchools(): Promise<School[]> {
+async function listAvailableOrganizations(): Promise<Organization[]> {
   const { data, error } = await supabase
-    .from('schools')
+    .from('organizations')
     .select('*')
     .order('name', { ascending: true });
   if (error) throw error;
-  return data.map(toSchool);
+  return data.map(toOrganization);
 }
 
-export interface CreateSchoolInput {
+export interface CreateOrganizationInput {
   name: string;
-  schoolType: SchoolType;
-  status: SchoolStatus;
-  province?: string | null;
+  industry?: string | null;
+  status: OrganizationStatus;
 }
 
 /**
- * Onboards a brand-new school (tenant root). RLS restricts this INSERT to
- * platform admins (see the schools_insert_by_platform_admin policy) — a
- * tenant-scoped role never has a reason to create a *new* school, since it
- * already belongs to one.
+ * Onboards a brand-new organization (tenant root). RLS restricts this
+ * INSERT to platform admins (organizations_insert_by_platform_admin policy).
  */
-async function createSchool(input: CreateSchoolInput): Promise<School> {
-  const payload: SchoolInsert = {
+async function createOrganization(input: CreateOrganizationInput): Promise<Organization> {
+  const payload: OrganizationInsert = {
     name: input.name,
-    school_type: input.schoolType,
+    industry: input.industry ?? null,
     status: input.status,
-    province: input.province ?? null,
   };
-  const { data, error } = await supabase.from('schools').insert(payload).select('*').single();
+  const { data, error } = await supabase.from('organizations').insert(payload).select('*').single();
   if (error) throw error;
-  return toSchool(data);
+  return toOrganization(data);
 }
 
 export const tenantService = {
-  getSchoolById,
-  listAvailableSchools,
-  createSchool,
+  getOrganizationById,
+  listAvailableOrganizations,
+  createOrganization,
 };

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { FullScreenSpinner } from '@/components/ui/FullScreenSpinner';
 import { FullScreenNotice } from '@/components/ui/FullScreenNotice';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useSchool } from '@/features/school/hooks/useSchool';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useEmployee } from '@/features/employees/hooks/useEmployee';
 import { useDepartments } from '@/features/employees/hooks/useDepartments';
 import { employeeService } from '@/features/employees/services/employeeService';
@@ -19,9 +19,9 @@ export function EmployeeProfilePage() {
   const navigate = useNavigate();
   const { can } = usePermissions();
   const canManage = can('employee.manage');
-  const { school } = useSchool();
+  const organization = useCurrentOrganization();
   const { employee, isLoading, error, refetch } = useEmployee(id);
-  const { departments } = useDepartments(school?.id);
+  const { departments } = useDepartments(organization?.id);
 
   const [manager, setManager] = useState<Employee | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -30,18 +30,18 @@ export function EmployeeProfilePage() {
   const [isProvisionOpen, setIsProvisionOpen] = useState(false);
 
   useEffect(() => {
-    if (!employee?.reportsToEmployeeId) {
+    if (!employee?.supervisorId) {
       setManager(null);
       return;
     }
     let cancelled = false;
-    void employeeService.getEmployee(employee.reportsToEmployeeId).then((result) => {
+    void employeeService.getEmployee(employee.supervisorId).then((result) => {
       if (!cancelled) setManager(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [employee?.reportsToEmployeeId]);
+  }, [employee?.supervisorId]);
 
   if (isLoading) {
     return <FullScreenSpinner label="Loading employee…" />;
@@ -88,9 +88,7 @@ export function EmployeeProfilePage() {
               <h1 className="text-xl font-bold text-content-primary">
                 {employee.firstName} {employee.lastName}
               </h1>
-              <p className="text-sm text-content-secondary">
-                {employee.employeeNumber} · {employee.jobTitle ?? 'No job title'}
-              </p>
+              <p className="text-sm text-content-secondary">{employee.employeeNumber}</p>
             </div>
           </div>
           <span className="inline-flex w-fit items-center rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium capitalize text-brand-700 dark:bg-brand-500/15 dark:text-brand-200">
@@ -110,37 +108,25 @@ export function EmployeeProfilePage() {
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Hire date</dt>
-            <dd className="mt-1 text-sm text-content-primary">{employee.hireDate}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Start date</dt>
+            <dd className="mt-1 text-sm text-content-primary">{employee.employmentStartDate}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Termination date</dt>
-            <dd className="mt-1 text-sm text-content-primary">{employee.terminationDate ?? '—'}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">End date</dt>
+            <dd className="mt-1 text-sm text-content-primary">{employee.employmentEndDate ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Work email</dt>
-            <dd className="mt-1 text-sm text-content-primary">{employee.workEmail ?? '—'}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Email</dt>
+            <dd className="mt-1 text-sm text-content-primary">{employee.email ?? '—'}</dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Work phone</dt>
-            <dd className="mt-1 text-sm text-content-primary">{employee.workPhone ?? '—'}</dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">ID number</dt>
-            <dd className="mt-1 text-sm text-content-primary">{employee.idNumber ?? '—'}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Phone</dt>
+            <dd className="mt-1 text-sm text-content-primary">{employee.phone ?? '—'}</dd>
           </div>
           <div>
             <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Reports to</dt>
             <dd className="mt-1 text-sm text-content-primary">
               {manager ? `${manager.firstName} ${manager.lastName}` : '—'}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Emergency contact</dt>
-            <dd className="mt-1 text-sm text-content-primary">
-              {employee.emergencyContactName
-                ? [employee.emergencyContactName, employee.emergencyContactPhone].filter(Boolean).join(' · ')
-                : '—'}
             </dd>
           </div>
         </dl>
@@ -176,11 +162,11 @@ export function EmployeeProfilePage() {
         )}
       </div>
 
-      {school && (
+      {organization && (
         <EmployeeFormModal
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
-          schoolId={school.id}
+          tenantId={organization.id}
           employee={employee}
           departments={departments}
           onSaved={() => void refetch()}

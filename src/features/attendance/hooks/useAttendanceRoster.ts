@@ -1,29 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
 import { attendanceService } from '@/features/attendance/services/attendanceService';
-import type { AttendanceRecord, RosterLearner } from '@/features/attendance/types/attendance.types';
+import type { AttendanceRecord, RosterEmployee } from '@/features/attendance/types/attendance.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
 export interface UseAttendanceRosterResult {
-  roster: RosterLearner[];
+  roster: RosterEmployee[];
   existingRecords: AttendanceRecord[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
 
-/** The class's current roster plus whatever attendance is already recorded for the given date, if the register has already been taken. */
-export function useAttendanceRoster(
-  classId: string | undefined,
-  academicYearId: string | undefined,
-  date: string,
-): UseAttendanceRosterResult {
-  const [roster, setRoster] = useState<RosterLearner[]>([]);
+/** The site's current roster (site_assignments) plus whatever attendance is already recorded for the given date. */
+export function useAttendanceRoster(siteId: string | undefined, date: string): UseAttendanceRosterResult {
+  const [roster, setRoster] = useState<RosterEmployee[]>([]);
   const [existingRecords, setExistingRecords] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!classId || !academicYearId) {
+    if (!siteId) {
       setRoster([]);
       setExistingRecords([]);
       setIsLoading(false);
@@ -33,17 +29,17 @@ export function useAttendanceRoster(
     setError(null);
     try {
       const [rosterResult, recordsResult] = await Promise.all([
-        attendanceService.getClassRoster(classId, academicYearId),
-        attendanceService.getAttendanceForClassDate(classId, date),
+        attendanceService.getSiteRoster(siteId),
+        attendanceService.getAttendanceForSiteDate(siteId, date),
       ]);
       setRoster(rosterResult);
       setExistingRecords(recordsResult);
     } catch (err) {
-      setError(getDbErrorMessage(err, 'Failed to load the class register.'));
+      setError(getDbErrorMessage(err, 'Failed to load the site roster.'));
     } finally {
       setIsLoading(false);
     }
-  }, [classId, academicYearId, date]);
+  }, [siteId, date]);
 
   useEffect(() => {
     void load();

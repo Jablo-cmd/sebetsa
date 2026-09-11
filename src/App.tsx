@@ -3,12 +3,9 @@ import { ToastProvider } from '@/components/ui/toast/ToastProvider';
 import { AuthProvider } from '@/features/auth/context/AuthProvider';
 import { ProfileProvider } from '@/features/profile/context/ProfileProvider';
 import { TenantProvider } from '@/features/tenant/context/TenantProvider';
-import { SchoolProvider } from '@/features/school/context/SchoolProvider';
-import { AcademicProvider } from '@/features/academic/context/AcademicProvider';
 import { AppRoutes } from '@/app/AppRoutes';
 
-// "/" locally, "/Funda360" on the GitHub Pages project site — Vite's
-// import.meta.env.BASE_URL, minus the trailing slash React Router doesn't want.
+// Vite's import.meta.env.BASE_URL, minus the trailing slash React Router doesn't want.
 const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 
 export function App() {
@@ -18,11 +15,7 @@ export function App() {
         <AuthProvider>
           <ProfileProvider>
             <TenantProvider>
-              <SchoolProvider>
-                <AcademicProvider>
-                  <AppRoutes />
-                </AcademicProvider>
-              </SchoolProvider>
+              <AppRoutes />
             </TenantProvider>
           </ProfileProvider>
         </AuthProvider>

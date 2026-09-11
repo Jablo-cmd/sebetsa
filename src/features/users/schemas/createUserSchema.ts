@@ -16,5 +16,5 @@ export const createUserDefaultValues: CreateUserFormValues = {
   lastName: '',
   email: '',
   phone: '',
-  role: 'teacher',
+  role: 'employee',
 };
