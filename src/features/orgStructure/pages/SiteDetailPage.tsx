@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FullScreenSpinner } from '@/components/ui/FullScreenSpinner';
 import { FullScreenNotice } from '@/components/ui/FullScreenNotice';
@@ -5,6 +6,10 @@ import { useSite } from '@/features/orgStructure/hooks/useSites';
 import { useClient } from '@/features/orgStructure/hooks/useClients';
 import { useRegion } from '@/features/orgStructure/hooks/useRegions';
 import { useContractsForSite } from '@/features/orgStructure/hooks/useContracts';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
+import { useSiteAssignmentsForSite } from '@/features/siteAssignments/hooks/useSiteAssignments';
+import { employeeService } from '@/features/employees/services/employeeService';
+import type { EmployeeCandidate } from '@/features/employees/services/employeeService';
 
 const CONTRACT_STATUS_CLASSES: Record<string, string> = {
   draft: 'text-content-tertiary',
@@ -16,10 +21,28 @@ const CONTRACT_STATUS_CLASSES: Record<string, string> = {
 export function SiteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const organization = useCurrentOrganization();
   const { site, isLoading, error } = useSite(id);
   const { client } = useClient(site?.clientId);
   const { region } = useRegion(site?.regionId ?? undefined);
   const { contracts, isLoading: contractsLoading } = useContractsForSite(id);
+  const { assignments: workforce, isLoading: workforceLoading } = useSiteAssignmentsForSite(organization?.id, id);
+  const [employees, setEmployees] = useState<Map<string, EmployeeCandidate>>(new Map());
+
+  useEffect(() => {
+    const ids = [...new Set(workforce.map((a) => a.employeeId))];
+    if (ids.length === 0) {
+      setEmployees(new Map());
+      return;
+    }
+    let cancelled = false;
+    void employeeService.getEmployeeCandidatesByIds(ids).then((results) => {
+      if (!cancelled) setEmployees(new Map(results.map((e) => [e.id, e])));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [workforce]);
 
   if (isLoading) {
     return <FullScreenSpinner label="Loading site…" />;
@@ -95,6 +118,40 @@ export function SiteDetailPage() {
           </div>
         </dl>
       </div>
+
+      <section className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-content-primary">Current Workforce</h2>
+          <Link to="/site-assignments" className="focus-ring rounded text-xs font-medium text-brand-600 hover:underline">
+            Manage assignments
+          </Link>
+        </div>
+        {workforceLoading ? (
+          <p className="text-sm text-content-tertiary">Loading workforce…</p>
+        ) : workforce.length === 0 ? (
+          <p className="rounded-card border border-border bg-surface-raised px-4 py-8 text-center text-sm text-content-tertiary">
+            No employees currently assigned to this site.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-border rounded-card border border-border bg-surface-raised">
+            {workforce.map((assignment) => {
+              const employee = employees.get(assignment.employeeId);
+              return (
+                <Link
+                  key={assignment.id}
+                  to={`/employees/${assignment.employeeId}`}
+                  className="focus-ring flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-surface-sunken"
+                >
+                  <span className="font-medium text-content-primary">
+                    {employee ? `${employee.firstName} ${employee.lastName}` : '—'}
+                  </span>
+                  {assignment.roleOnSite && <span className="text-xs text-content-tertiary">{assignment.roleOnSite}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">

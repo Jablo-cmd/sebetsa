@@ -42,21 +42,36 @@ describe('resolveNavForRole', () => {
   it('scopes the employee role to their own operational work only', () => {
     const l = labels('employee');
     expect(l).toEqual(expect.arrayContaining(['Attendance']));
-    for (const forbidden of ['Employees', 'Users & Roles', 'Organizations']) {
+    for (const forbidden of ['Employees', 'Teams', 'Departments', 'Positions', 'Site Assignments', 'Users & Roles', 'Organizations']) {
       expect(l).not.toContain(forbidden);
     }
   });
 
-  it('scopes HR to workforce functions only', () => {
+  it('scopes HR to workforce structure (not day-to-day operational assignment)', () => {
     const l = labels('hr_user');
-    expect(l).toEqual(expect.arrayContaining(['Employees', 'Departments', 'Users & Roles']));
+    expect(l).toEqual(expect.arrayContaining(['Employees', 'Departments', 'Positions', 'Users & Roles']));
     expect(l).not.toContain('Organizations');
+  });
+
+  it('gives operational-tier roles (regional/site manager, supervisor) the Teams and Site Assignments nav', () => {
+    for (const role of ['regional_manager', 'site_manager', 'supervisor'] as const) {
+      const l = labels(role);
+      expect(l).toEqual(expect.arrayContaining(['Teams', 'Site Assignments']));
+    }
   });
 
   it('gives the organization administrator workforce + attendance + admin navigation', () => {
     const l = labels('organization_administrator');
     expect(l).toEqual(
-      expect.arrayContaining(['Employees', 'Departments', 'Attendance', 'Users & Roles']),
+      expect.arrayContaining([
+        'Employees',
+        'Teams',
+        'Departments',
+        'Positions',
+        'Site Assignments',
+        'Attendance',
+        'Users & Roles',
+      ]),
     );
   });
 

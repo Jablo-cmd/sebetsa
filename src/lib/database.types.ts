@@ -699,6 +699,7 @@ export type Database = {
           created_at: string
           department_id: string | null
           id: string
+          status: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           title: string
           updated_at: string
@@ -707,6 +708,7 @@ export type Database = {
           created_at?: string
           department_id?: string | null
           id?: string
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           title: string
           updated_at?: string
@@ -715,6 +717,7 @@ export type Database = {
           created_at?: string
           department_id?: string | null
           id?: string
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id?: string
           title?: string
           updated_at?: string
@@ -1259,6 +1262,7 @@ export type Database = {
           lead_employee_id: string | null
           name: string
           site_id: string | null
+          status: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at: string
         }
@@ -1268,6 +1272,7 @@ export type Database = {
           lead_employee_id?: string | null
           name: string
           site_id?: string | null
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at?: string
         }
@@ -1277,6 +1282,7 @@ export type Database = {
           lead_employee_id?: string | null
           name?: string
           site_id?: string | null
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id?: string
           updated_at?: string
         }

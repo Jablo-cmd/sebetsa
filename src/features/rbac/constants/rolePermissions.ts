@@ -14,6 +14,17 @@ import type { Permission } from '@/features/rbac/types/permission.types';
  * tasks (enforced by RLS + app-level scoping, not by broader permissions
  * here), and client_user is a Phase 2 client-portal role with nothing to
  * grant yet.
+ *
+ * department.manage/position.manage mirror the DB's
+ * departments_write_by_manager/positions_write_by_manager RLS policies
+ * (can_manage_org_structure() OR hr_user — see
+ * 20260911101600_workforce_management.sql): organization_administrator,
+ * operations_manager, hr_user, platform_administrator. team.manage/
+ * site_assignment.manage mirror can_manage_operations() instead — the
+ * broader operational tier (regional_manager/site_manager/supervisor too,
+ * but not hr_user) — a site_manager builds their own site's team day to
+ * day; that isn't an HR function. Keep this file and those RLS policies in
+ * sync if either changes.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   platform_administrator: [
@@ -24,8 +35,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'profile.manage_any',
     'org_structure.view',
     'org_structure.manage',
+    'department.view',
+    'department.manage',
+    'position.view',
+    'position.manage',
     'employee.view',
     'employee.manage',
+    'team.view',
+    'team.manage',
+    'site_assignment.view',
+    'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
     'attendance.view',
@@ -45,8 +64,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'profile.manage_any',
     'org_structure.view',
     'org_structure.manage',
+    'department.view',
+    'department.manage',
+    'position.view',
+    'position.manage',
     'employee.view',
     'employee.manage',
+    'team.view',
+    'team.manage',
+    'site_assignment.view',
+    'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
     'attendance.view',
@@ -64,8 +91,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'profile.view_any',
     'org_structure.view',
     'org_structure.manage',
+    'department.view',
+    'department.manage',
+    'position.view',
+    'position.manage',
     'employee.view',
     'employee.manage',
+    'team.view',
+    'team.manage',
+    'site_assignment.view',
+    'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
     'attendance.view',
@@ -82,7 +117,13 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'organization.view',
     'profile.view_any',
     'org_structure.view',
+    'department.view',
+    'position.view',
     'employee.view',
+    'team.view',
+    'team.manage',
+    'site_assignment.view',
+    'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
     'attendance.view',
@@ -96,7 +137,13 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   site_manager: [
     'organization.view',
     'org_structure.view',
+    'department.view',
+    'position.view',
     'employee.view',
+    'team.view',
+    'team.manage',
+    'site_assignment.view',
+    'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
     'attendance.view',
@@ -108,7 +155,13 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   ],
   supervisor: [
     'organization.view',
+    'department.view',
+    'position.view',
     'employee.view',
+    'team.view',
+    'team.manage',
+    'site_assignment.view',
+    'site_assignment.manage',
     'scheduling.view',
     'attendance.view',
     'attendance.manage',
@@ -120,8 +173,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'organization.view',
     'profile.view_any',
     'profile.manage_any',
+    'department.view',
+    'department.manage',
+    'position.view',
+    'position.manage',
     'employee.view',
     'employee.manage',
+    'team.view',
+    'site_assignment.view',
     'leave.view',
     'leave.manage',
     'leave.approve',

@@ -43,6 +43,14 @@ async function searchEmployeeCandidates(tenantId: string, search = '', excludeId
   return data.map((row) => ({ id: row.id, firstName: row.first_name, lastName: row.last_name }));
 }
 
+/** Bulk name lookup for a known set of employee ids — used where a list of another entity (e.g. site assignments) needs to display employee names without a join. */
+async function getEmployeeCandidatesByIds(ids: string[]): Promise<EmployeeCandidate[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase.from('employees').select('id, first_name, last_name').in('id', ids);
+  if (error) throw error;
+  return data.map((row) => ({ id: row.id, firstName: row.first_name, lastName: row.last_name }));
+}
+
 /** Exported so other employee-adjacent services can reuse it instead of re-declaring their own mapper. */
 export function toEmployee(row: EmployeeRow): Employee {
   return {
@@ -88,6 +96,7 @@ async function getEmployees(
   }
   if (filters.employmentStatus) query = query.eq('employment_status', filters.employmentStatus);
   if (filters.departmentId) query = query.eq('department_id', filters.departmentId);
+  if (filters.positionId) query = query.eq('position_id', filters.positionId);
 
   const { data, error, count } = await query.order('last_name', { ascending: true }).range(from, to);
   if (error) throw error;
@@ -204,6 +213,7 @@ export const employeeService = {
   getEmployee,
   getMyEmployee,
   searchEmployeeCandidates,
+  getEmployeeCandidatesByIds,
   createEmployee,
   updateEmployee,
   terminate,

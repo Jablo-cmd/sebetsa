@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
-import { departmentService } from '@/features/employees/services/departmentService';
-import type { Department } from '@/features/employees/types/employee.types';
+import { positionService } from '@/features/employees/services/positionService';
+import type { Position } from '@/features/employees/types/employee.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
-export interface UseDepartmentsResult {
-  departments: Department[];
+export interface UsePositionsResult {
+  positions: Position[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
 
-export function useDepartments(tenantId: string | undefined): UseDepartmentsResult {
-  const [departments, setDepartments] = useState<Department[]>([]);
+export function usePositions(tenantId: string | undefined): UsePositionsResult {
+  const [positions, setPositions] = useState<Position[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,9 +23,9 @@ export function useDepartments(tenantId: string | undefined): UseDepartmentsResu
     setIsLoading(true);
     setError(null);
     try {
-      setDepartments(await departmentService.getDepartments(tenantId));
+      setPositions(await positionService.getPositions(tenantId));
     } catch (err) {
-      setError(getDbErrorMessage(err, 'Failed to load departments.'));
+      setError(getDbErrorMessage(err, 'Failed to load positions.'));
     } finally {
       setIsLoading(false);
     }
@@ -35,5 +35,5 @@ export function useDepartments(tenantId: string | undefined): UseDepartmentsResu
     void load();
   }, [load]);
 
-  return { departments, isLoading, error, refetch: load };
+  return { positions, isLoading, error, refetch: load };
 }

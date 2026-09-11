@@ -61,7 +61,10 @@ export const NAV_MODEL: NavGroupDef[] = [
     label: 'Workforce',
     items: [
       { label: 'Employees', path: '/employees', icon: BriefcaseIcon, permission: 'employee.view', end: true },
-      { label: 'Departments', path: '/employees/departments', icon: LayersIcon, permission: 'employee.view' },
+      { label: 'Teams', path: '/teams', icon: UsersIcon, permission: 'team.view' },
+      { label: 'Departments', path: '/employees/departments', icon: LayersIcon, permission: 'department.view' },
+      { label: 'Positions', path: '/employees/positions', icon: LayersIcon, permission: 'position.view' },
+      { label: 'Site Assignments', path: '/site-assignments', icon: ClipboardListIcon, permission: 'site_assignment.view' },
     ],
   },
   {

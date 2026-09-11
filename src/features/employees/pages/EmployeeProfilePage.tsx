@@ -7,11 +7,15 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useEmployee } from '@/features/employees/hooks/useEmployee';
 import { useDepartments } from '@/features/employees/hooks/useDepartments';
+import { usePositions } from '@/features/employees/hooks/usePositions';
 import { employeeService } from '@/features/employees/services/employeeService';
 import { EmployeeFormModal } from '@/features/employees/components/EmployeeFormModal';
 import { TerminateEmployeeDialog } from '@/features/employees/components/TerminateEmployeeDialog';
 import { ReactivateEmployeeDialog } from '@/features/employees/components/ReactivateEmployeeDialog';
 import { ProvisionLoginModal } from '@/features/employees/components/ProvisionLoginModal';
+import { useTeamsForEmployee } from '@/features/teams/hooks/useTeams';
+import { useSiteAssignmentsForEmployee } from '@/features/siteAssignments/hooks/useSiteAssignments';
+import { useAllSites } from '@/features/orgStructure/hooks/useSites';
 import type { Employee } from '@/features/employees/types/employee.types';
 
 export function EmployeeProfilePage() {
@@ -22,6 +26,10 @@ export function EmployeeProfilePage() {
   const organization = useCurrentOrganization();
   const { employee, isLoading, error, refetch } = useEmployee(id);
   const { departments } = useDepartments(organization?.id);
+  const { positions } = usePositions(organization?.id);
+  const { teams } = useTeamsForEmployee(id);
+  const { assignments: currentAssignments } = useSiteAssignmentsForEmployee(organization?.id, id);
+  const { sites } = useAllSites(organization?.id);
 
   const [manager, setManager] = useState<Employee | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -66,6 +74,8 @@ export function EmployeeProfilePage() {
   }
 
   const departmentName = departments.find((department) => department.id === employee.departmentId)?.name ?? '—';
+  const positionTitle = positions.find((position) => position.id === employee.positionId)?.title ?? '—';
+  const siteName = (siteId: string) => sites.find((s) => s.id === siteId)?.name ?? '—';
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -102,6 +112,10 @@ export function EmployeeProfilePage() {
             <dd className="mt-1 text-sm text-content-primary">{departmentName}</dd>
           </div>
           <div>
+            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Position</dt>
+            <dd className="mt-1 text-sm text-content-primary">{positionTitle}</dd>
+          </div>
+          <div>
             <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Employment type</dt>
             <dd className="mt-1 text-sm capitalize text-content-primary">
               {employee.employmentType?.replace(/_/g, ' ') ?? '—'}
@@ -128,6 +142,10 @@ export function EmployeeProfilePage() {
             <dd className="mt-1 text-sm text-content-primary">
               {manager ? `${manager.firstName} ${manager.lastName}` : '—'}
             </dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Application login</dt>
+            <dd className="mt-1 text-sm text-content-primary">{employee.profileId ? 'Linked' : 'None'}</dd>
           </div>
         </dl>
 
@@ -162,6 +180,49 @@ export function EmployeeProfilePage() {
         )}
       </div>
 
+      <section className="flex flex-col gap-3">
+        <h2 className="text-base font-semibold text-content-primary">Teams</h2>
+        {teams.length === 0 ? (
+          <p className="rounded-card border border-border bg-surface-raised px-4 py-8 text-center text-sm text-content-tertiary">
+            Not a member of any team yet.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-border rounded-card border border-border bg-surface-raised">
+            {teams.map((team) => (
+              <Link
+                key={team.id}
+                to={`/teams/${team.id}`}
+                className="focus-ring flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-surface-sunken"
+              >
+                <span className="font-medium text-content-primary">{team.name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-base font-semibold text-content-primary">Current Sites</h2>
+        {currentAssignments.length === 0 ? (
+          <p className="rounded-card border border-border bg-surface-raised px-4 py-8 text-center text-sm text-content-tertiary">
+            No current site assignments.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-border rounded-card border border-border bg-surface-raised">
+            {currentAssignments.map((assignment) => (
+              <Link
+                key={assignment.id}
+                to={`/sites/${assignment.siteId}`}
+                className="focus-ring flex items-center justify-between gap-3 px-4 py-3 text-sm transition-colors hover:bg-surface-sunken"
+              >
+                <span className="font-medium text-content-primary">{siteName(assignment.siteId)}</span>
+                {assignment.roleOnSite && <span className="text-xs text-content-tertiary">{assignment.roleOnSite}</span>}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
       {organization && (
         <EmployeeFormModal
           isOpen={isEditOpen}
@@ -169,6 +230,7 @@ export function EmployeeProfilePage() {
           tenantId={organization.id}
           employee={employee}
           departments={departments}
+          positions={positions}
           onSaved={() => void refetch()}
         />
       )}

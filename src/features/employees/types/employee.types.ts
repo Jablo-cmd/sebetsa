@@ -2,6 +2,7 @@ import type { Database } from '@/lib/database.types';
 
 export type EmploymentType = Database['public']['Enums']['employment_type'];
 export type EmploymentStatus = Database['public']['Enums']['employment_status'];
+export type EntityStatus = Database['public']['Enums']['entity_status'];
 
 /**
  * Roles provisionable through Employee Management's login-provisioning flow
@@ -49,6 +50,27 @@ export interface CreateDepartmentInput {
 
 export type UpdateDepartmentInput = Partial<CreateDepartmentInput>;
 
+export interface Position {
+  id: string;
+  tenantId: string;
+  departmentId: string | null;
+  title: string;
+  status: EntityStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePositionInput {
+  title: string;
+  departmentId?: string | null;
+}
+
+export interface UpdatePositionInput {
+  title?: string;
+  departmentId?: string | null;
+  status?: EntityStatus;
+}
+
 export interface Employee {
   id: string;
   tenantId: string;
@@ -91,6 +113,7 @@ export interface EmployeesListFilters {
   search?: string;
   employmentStatus?: EmploymentStatus;
   departmentId?: string;
+  positionId?: string;
 }
 
 export interface EmployeesListPage {

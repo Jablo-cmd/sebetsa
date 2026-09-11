@@ -10,6 +10,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useEmployeesList } from '@/features/employees/hooks/useEmployeesList';
 import { useDepartments } from '@/features/employees/hooks/useDepartments';
+import { usePositions } from '@/features/employees/hooks/usePositions';
 import { EmployeesFiltersBar } from '@/features/employees/components/EmployeesFiltersBar';
 import { EmployeesTable } from '@/features/employees/components/EmployeesTable';
 import { Pagination } from '@/components/ui/Pagination';
@@ -35,6 +36,7 @@ export function EmployeesPage() {
     refetch,
   } = useEmployeesList(organization?.id);
   const { departments } = useDepartments(organization?.id);
+  const { positions } = usePositions(organization?.id);
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -52,7 +54,13 @@ export function EmployeesPage() {
               to="/employees/departments"
               className="focus-ring flex h-11 items-center rounded-lg px-3.5 text-sm font-medium text-content-secondary hover:bg-surface-sunken hover:text-content-primary"
             >
-              Manage departments
+              Departments
+            </Link>
+            <Link
+              to="/employees/positions"
+              className="focus-ring flex h-11 items-center rounded-lg px-3.5 text-sm font-medium text-content-secondary hover:bg-surface-sunken hover:text-content-primary"
+            >
+              Positions
             </Link>
             {canManage && organization && (
               <div className="w-full sm:w-auto sm:min-w-[9rem]">
@@ -66,7 +74,7 @@ export function EmployeesPage() {
       />
 
       {organization && (
-        <EmployeesFiltersBar filters={filters} departments={departments} onChange={setFilters} />
+        <EmployeesFiltersBar filters={filters} departments={departments} positions={positions} onChange={setFilters} />
       )}
 
       <ErrorAlert message={error} />
@@ -80,6 +88,7 @@ export function EmployeesPage() {
           <EmployeesTable
             employees={employees}
             departments={departments}
+            positions={positions}
             canManage={canManage}
             onEdit={setEditingEmployee}
             onTerminate={setTerminatingEmployee}
@@ -95,6 +104,7 @@ export function EmployeesPage() {
           onClose={() => setIsCreateOpen(false)}
           tenantId={organization.id}
           departments={departments}
+          positions={positions}
           onSaved={() => void refetch()}
         />
       )}
@@ -106,6 +116,7 @@ export function EmployeesPage() {
           tenantId={organization.id}
           employee={editingEmployee}
           departments={departments}
+          positions={positions}
           onSaved={() => void refetch()}
         />
       )}

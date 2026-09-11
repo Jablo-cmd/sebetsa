@@ -37,13 +37,27 @@ export type ContractUpdate = TableUpdate<'contracts'>;
 export type ContractSiteRow = TableRow<'contract_sites'>;
 
 export type DepartmentRow = TableRow<'departments'>;
+export type DepartmentInsert = TableInsert<'departments'>;
+export type DepartmentUpdate = TableUpdate<'departments'>;
+
 export type PositionRow = TableRow<'positions'>;
+export type PositionInsert = TableInsert<'positions'>;
+export type PositionUpdate = TableUpdate<'positions'>;
+
 export type EmployeeRow = TableRow<'employees'>;
 export type EmployeeInsert = TableInsert<'employees'>;
 export type EmployeeUpdate = TableUpdate<'employees'>;
+
 export type TeamRow = TableRow<'teams'>;
+export type TeamInsert = TableInsert<'teams'>;
+export type TeamUpdate = TableUpdate<'teams'>;
+
 export type TeamMemberRow = TableRow<'team_members'>;
+export type TeamMemberInsert = TableInsert<'team_members'>;
+
 export type SiteAssignmentRow = TableRow<'site_assignments'>;
+export type SiteAssignmentInsert = TableInsert<'site_assignments'>;
+export type SiteAssignmentUpdate = TableUpdate<'site_assignments'>;
 
 export type ShiftRow = TableRow<'shifts'>;
 export type ShiftInsert = TableInsert<'shifts'>;

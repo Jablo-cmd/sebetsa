@@ -64,6 +64,16 @@ const DepartmentsPage = named(
   () => import('@/features/employees/pages/DepartmentsPage'),
   'DepartmentsPage',
 );
+const PositionsPage = named(
+  () => import('@/features/employees/pages/PositionsPage'),
+  'PositionsPage',
+);
+const TeamsPage = named(() => import('@/features/teams/pages/TeamsPage'), 'TeamsPage');
+const TeamDetailPage = named(() => import('@/features/teams/pages/TeamDetailPage'), 'TeamDetailPage');
+const SiteAssignmentsPage = named(
+  () => import('@/features/siteAssignments/pages/SiteAssignmentsPage'),
+  'SiteAssignmentsPage',
+);
 const AttendancePage = named(
   () => import('@/features/attendance/pages/AttendancePage'),
   'AttendancePage',
@@ -133,8 +143,24 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="employee.view" />}>
                 <Route path="/employees" element={<EmployeesPage />} />
-                <Route path="/employees/departments" element={<DepartmentsPage />} />
                 <Route path="/employees/:id" element={<EmployeeProfilePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="department.view" />}>
+                <Route path="/employees/departments" element={<DepartmentsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="position.view" />}>
+                <Route path="/employees/positions" element={<PositionsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="team.view" />}>
+                <Route path="/teams" element={<TeamsPage />} />
+                <Route path="/teams/:id" element={<TeamDetailPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="site_assignment.view" />}>
+                <Route path="/site-assignments" element={<SiteAssignmentsPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="attendance.view" />}>

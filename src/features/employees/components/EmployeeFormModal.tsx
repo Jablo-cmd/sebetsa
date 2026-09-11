@@ -12,7 +12,7 @@ import {
   employeeDefaultValues,
   type EmployeeFormValues,
 } from '@/features/employees/schemas/employeeSchema';
-import type { Employee, Department } from '@/features/employees/types/employee.types';
+import type { Employee, Department, Position } from '@/features/employees/types/employee.types';
 
 export interface EmployeeFormModalProps {
   isOpen: boolean;
@@ -20,10 +20,11 @@ export interface EmployeeFormModalProps {
   tenantId: string;
   employee?: Employee | null;
   departments: Department[];
+  positions: Position[];
   onSaved: (employee: Employee) => void;
 }
 
-export function EmployeeFormModal({ isOpen, onClose, tenantId, employee, departments, onSaved }: EmployeeFormModalProps) {
+export function EmployeeFormModal({ isOpen, onClose, tenantId, employee, departments, positions, onSaved }: EmployeeFormModalProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [managerSearch, setManagerSearch] = useState('');
   const [managerCandidates, setManagerCandidates] = useState<EmployeeCandidate[]>([]);
@@ -173,6 +174,25 @@ export function EmployeeFormModal({ isOpen, onClose, tenantId, employee, departm
               ))}
             </select>
           </div>
+          <div>
+            <label htmlFor="employee-position" className="mb-1.5 block text-sm font-medium text-content-primary">
+              Position
+            </label>
+            <select
+              id="employee-position"
+              className="focus-ring h-11 w-full rounded-lg border border-border-strong bg-surface-raised px-3.5 text-sm text-content-primary"
+              {...register('positionId')}
+            >
+              <option value="">Unassigned</option>
+              {positions.map((pos) => (
+                <option key={pos.id} value={pos.id}>
+                  {pos.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="employee-employment-type" className="mb-1.5 block text-sm font-medium text-content-primary">
               Employment type

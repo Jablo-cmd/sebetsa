@@ -8,41 +8,47 @@ import { LoadingBlock } from '@/components/ui/LoadingBlock';
 import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
+import { usePositions } from '@/features/employees/hooks/usePositions';
 import { useDepartments } from '@/features/employees/hooks/useDepartments';
-import { departmentService } from '@/features/employees/services/departmentService';
-import { DepartmentsTable } from '@/features/employees/components/DepartmentsTable';
-import { DepartmentFormModal } from '@/features/employees/components/DepartmentFormModal';
-import type { Department } from '@/features/employees/types/employee.types';
+import { positionService } from '@/features/employees/services/positionService';
+import { PositionsTable } from '@/features/employees/components/PositionsTable';
+import { PositionFormModal } from '@/features/employees/components/PositionFormModal';
+import type { Position } from '@/features/employees/types/employee.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
-export function DepartmentsPage() {
+export function PositionsPage() {
   const navigate = useNavigate();
   const { can } = usePermissions();
-  const canManage = can('department.manage');
+  const canManage = can('position.manage');
   const organization = useCurrentOrganization();
-  const { departments, isLoading, error, refetch } = useDepartments(organization?.id);
+  const { positions, isLoading, error, refetch } = usePositions(organization?.id);
+  const { departments } = useDepartments(organization?.id);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingPosition, setEditingPosition] = useState<Position | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const openCreate = () => {
-    setEditingDepartment(null);
+    setEditingPosition(null);
     setIsFormOpen(true);
   };
 
-  const openEdit = (department: Department) => {
-    setEditingDepartment(department);
+  const openEdit = (position: Position) => {
+    setEditingPosition(position);
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (department: Department) => {
+  const handleToggleActive = async (position: Position) => {
     setActionError(null);
     try {
-      await departmentService.deleteDepartment(department.id);
+      if (position.status === 'active') {
+        await positionService.archivePosition(position.id);
+      } else {
+        await positionService.restorePosition(position.id);
+      }
       await refetch();
     } catch (err) {
-      setActionError(getDbErrorMessage(err, 'Failed to delete department.'));
+      setActionError(getDbErrorMessage(err, 'Failed to update position.'));
     }
   };
 
@@ -57,14 +63,14 @@ export function DepartmentsPage() {
       </button>
 
       <PageHeader
-        title="Departments"
-        description="Manage the department catalogue for your organization."
+        title="Positions"
+        description="The job titles workforce members are assigned to, e.g. Cleaner, Site Supervisor."
         action={
           canManage &&
           organization && (
             <div className="w-full sm:w-auto sm:min-w-[9rem]">
               <Button type="button" onClick={openCreate}>
-                Add department
+                Add position
               </Button>
             </div>
           )
@@ -74,19 +80,26 @@ export function DepartmentsPage() {
       <ErrorAlert message={error ?? actionError} />
 
       {!organization ? (
-        <NoActiveOrganizationNotice resource="departments" />
+        <NoActiveOrganizationNotice resource="positions" />
       ) : isLoading ? (
-        <LoadingBlock label="Loading departments…" />
+        <LoadingBlock label="Loading positions…" />
       ) : (
-        <DepartmentsTable departments={departments} canManage={canManage} onEdit={openEdit} onDelete={(department) => void handleDelete(department)} />
+        <PositionsTable
+          positions={positions}
+          departments={departments}
+          canManage={canManage}
+          onEdit={openEdit}
+          onToggleActive={(position) => void handleToggleActive(position)}
+        />
       )}
 
       {organization && (
-        <DepartmentFormModal
+        <PositionFormModal
           isOpen={isFormOpen}
           onClose={() => setIsFormOpen(false)}
           tenantId={organization.id}
-          department={editingDepartment}
+          position={editingPosition}
+          departments={departments}
           onSaved={() => void refetch()}
         />
       )}

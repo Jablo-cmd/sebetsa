@@ -1,10 +1,11 @@
 import { TableScrollContainer } from '@/components/ui/TableScrollContainer';
 import { Link } from 'react-router-dom';
-import type { Employee, EmploymentStatus, Department } from '@/features/employees/types/employee.types';
+import type { Employee, EmploymentStatus, Department, Position } from '@/features/employees/types/employee.types';
 
 export interface EmployeesTableProps {
   employees: Employee[];
   departments: Department[];
+  positions: Position[];
   canManage: boolean;
   onEdit: (employee: Employee) => void;
   onTerminate: (employee: Employee) => void;
@@ -21,6 +22,7 @@ const STATUS_BADGE_CLASSES: Record<EmploymentStatus, string> = {
 export function EmployeesTable({
   employees,
   departments,
+  positions,
   canManage,
   onEdit,
   onTerminate,
@@ -36,6 +38,8 @@ export function EmployeesTable({
 
   const departmentName = (departmentId: string | null) =>
     departments.find((department) => department.id === departmentId)?.name ?? '—';
+  const positionTitle = (positionId: string | null) =>
+    positions.find((position) => position.id === positionId)?.title ?? '—';
 
   return (
     <TableScrollContainer>
@@ -47,6 +51,9 @@ export function EmployeesTable({
             </th>
             <th scope="col" className="px-4 py-3 font-medium">
               Department
+            </th>
+            <th scope="col" className="px-4 py-3 font-medium">
+              Position
             </th>
             <th scope="col" className="px-4 py-3 font-medium">
               Status
@@ -69,6 +76,7 @@ export function EmployeesTable({
                 <p className="text-content-tertiary">{employee.employeeNumber}</p>
               </td>
               <td className="px-4 py-3 text-content-secondary">{departmentName(employee.departmentId)}</td>
+              <td className="px-4 py-3 text-content-secondary">{positionTitle(employee.positionId)}</td>
               <td className="px-4 py-3">
                 <span
                   className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize ${STATUS_BADGE_CLASSES[employee.employmentStatus]}`}
