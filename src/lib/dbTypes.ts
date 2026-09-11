@@ -59,14 +59,30 @@ export type SiteAssignmentRow = TableRow<'site_assignments'>;
 export type SiteAssignmentInsert = TableInsert<'site_assignments'>;
 export type SiteAssignmentUpdate = TableUpdate<'site_assignments'>;
 
+export type ShiftDefinitionRow = TableRow<'shift_definitions'>;
+export type ShiftDefinitionInsert = TableInsert<'shift_definitions'>;
+export type ShiftDefinitionUpdate = TableUpdate<'shift_definitions'>;
+
 export type ShiftRow = TableRow<'shifts'>;
 export type ShiftInsert = TableInsert<'shifts'>;
+export type ShiftUpdate = TableUpdate<'shifts'>;
+
+export type ShiftSubstitutionRow = TableRow<'shift_substitutions'>;
+export type ShiftSubstitutionInsert = TableInsert<'shift_substitutions'>;
+
 export type AttendanceRecordRow = TableRow<'attendance_records'>;
 export type AttendanceRecordInsert = TableInsert<'attendance_records'>;
 export type AttendanceRecordUpdate = TableUpdate<'attendance_records'>;
 export type LeaveRequestRow = TableRow<'leave_requests'>;
 export type LeaveRequestInsert = TableInsert<'leave_requests'>;
 export type LeaveRequestUpdate = TableUpdate<'leave_requests'>;
+
+export type EmployeeAvailabilityRow = TableRow<'employee_availability'>;
+export type EmployeeAvailabilityInsert = TableInsert<'employee_availability'>;
+export type EmployeeAvailabilityUpdate = TableUpdate<'employee_availability'>;
+
+export type EmployeeAvailabilityExceptionRow = TableRow<'employee_availability_exceptions'>;
+export type EmployeeAvailabilityExceptionInsert = TableInsert<'employee_availability_exceptions'>;
 
 export type TaskRow = TableRow<'tasks'>;
 export type TaskInsert = TableInsert<'tasks'>;

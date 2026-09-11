@@ -41,8 +41,17 @@ describe('resolveNavForRole', () => {
 
   it('scopes the employee role to their own operational work only', () => {
     const l = labels('employee');
-    expect(l).toEqual(expect.arrayContaining(['Attendance']));
-    for (const forbidden of ['Employees', 'Teams', 'Departments', 'Positions', 'Site Assignments', 'Users & Roles', 'Organizations']) {
+    expect(l).toEqual(expect.arrayContaining(['Schedule', 'My Schedule', 'Availability', 'Attendance']));
+    for (const forbidden of [
+      'Employees',
+      'Teams',
+      'Departments',
+      'Positions',
+      'Site Assignments',
+      'Shift Definitions',
+      'Users & Roles',
+      'Organizations',
+    ]) {
       expect(l).not.toContain(forbidden);
     }
   });
@@ -60,7 +69,7 @@ describe('resolveNavForRole', () => {
     }
   });
 
-  it('gives the organization administrator workforce + attendance + admin navigation', () => {
+  it('gives the organization administrator workforce + scheduling + attendance + admin navigation', () => {
     const l = labels('organization_administrator');
     expect(l).toEqual(
       expect.arrayContaining([
@@ -69,10 +78,18 @@ describe('resolveNavForRole', () => {
         'Departments',
         'Positions',
         'Site Assignments',
+        'Schedule',
+        'My Schedule',
+        'Shift Definitions',
+        'Availability',
         'Attendance',
         'Users & Roles',
       ]),
     );
+  });
+
+  it('hides Shift Definitions (scheduling.manage) from hr_user', () => {
+    expect(labels('hr_user')).not.toContain('Shift Definitions');
   });
 
   it('gives org_structure.view holders the Regions/Clients/Sites/Contracts group', () => {
@@ -106,7 +123,9 @@ describe('resolveNavForRole', () => {
 
   it('gives a client_user a minimal honest nav', () => {
     const l = labels('client_user');
-    expect(l.sort()).toEqual(['Dashboard', 'Notifications', 'Notification Preferences', 'My Profile'].sort());
+    expect(l.sort()).toEqual(
+      ['Dashboard', 'My Schedule', 'Notifications', 'Notification Preferences', 'My Profile'].sort(),
+    );
   });
 
   it('every item in the model has a real destination path', () => {

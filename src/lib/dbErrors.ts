@@ -43,6 +43,7 @@ const SQLSTATE_MESSAGES: Record<string, string> = {
   '23505': 'This already exists — please check for a duplicate entry.',
   '23503': "This action can't be completed because it's linked to other records.",
   '23514': 'The information provided is not valid.',
+  '23P01': 'This employee already has a shift that overlaps this time.',
   '42501': "You don't have permission to perform this action.",
 };
 

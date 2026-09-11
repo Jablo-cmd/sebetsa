@@ -23,8 +23,14 @@ import type { Permission } from '@/features/rbac/types/permission.types';
  * site_assignment.manage mirror can_manage_operations() instead — the
  * broader operational tier (regional_manager/site_manager/supervisor too,
  * but not hr_user) — a site_manager builds their own site's team day to
- * day; that isn't an HR function. Keep this file and those RLS policies in
- * sync if either changes.
+ * day; that isn't an HR function. scheduling.manage/availability.manage
+ * follow the same can_manage_operations() tier (see
+ * 20260911101700_scheduling_and_availability.sql) — hr_user is deliberately
+ * excluded from all three, same reasoning. availability.view is additionally
+ * granted to `employee` even though it holds no `.manage` permission — an
+ * employee always manages their OWN availability via the RLS self-service
+ * carve-out regardless of permissions here (mirrors profile.update_own).
+ * Keep this file and those RLS policies in sync if either changes.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   platform_administrator: [
@@ -47,6 +53,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
+    'availability.view',
+    'availability.manage',
     'attendance.view',
     'attendance.manage',
     'leave.view',
@@ -76,6 +84,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
+    'availability.view',
+    'availability.manage',
     'attendance.view',
     'attendance.manage',
     'leave.view',
@@ -103,6 +113,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
+    'availability.view',
+    'availability.manage',
     'attendance.view',
     'attendance.manage',
     'leave.view',
@@ -126,6 +138,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
+    'availability.view',
+    'availability.manage',
     'attendance.view',
     'attendance.manage',
     'leave.view',
@@ -146,6 +160,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'site_assignment.manage',
     'scheduling.view',
     'scheduling.manage',
+    'availability.view',
+    'availability.manage',
     'attendance.view',
     'attendance.manage',
     'leave.view',
@@ -163,6 +179,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'site_assignment.view',
     'site_assignment.manage',
     'scheduling.view',
+    'scheduling.manage',
+    'availability.view',
+    'availability.manage',
     'attendance.view',
     'attendance.manage',
     'task.view',
@@ -187,6 +206,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'reports.view',
     'reports.export',
   ],
-  employee: ['scheduling.view', 'attendance.view', 'task.view', 'leave.view'],
+  employee: ['scheduling.view', 'availability.view', 'attendance.view', 'task.view', 'leave.view'],
   client_user: [],
 };

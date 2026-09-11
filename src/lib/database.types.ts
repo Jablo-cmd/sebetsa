@@ -362,6 +362,105 @@ export type Database = {
           },
         ]
       }
+      employee_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          employee_id: string
+          end_time: string
+          id: string
+          start_time: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          employee_id: string
+          end_time: string
+          id?: string
+          start_time: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          employee_id?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_availability_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_availability_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_availability_exceptions: {
+        Row: {
+          created_at: string
+          employee_id: string
+          end_time: string | null
+          exception_date: string
+          id: string
+          is_available: boolean
+          reason: string | null
+          start_time: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          end_time?: string | null
+          exception_date: string
+          id?: string
+          is_available: boolean
+          reason?: string | null
+          start_time?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          end_time?: string | null
+          exception_date?: string
+          id?: string
+          is_available?: boolean
+          reason?: string | null
+          start_time?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_availability_exceptions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_availability_exceptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string
@@ -827,6 +926,53 @@ export type Database = {
           },
         ]
       }
+      shift_definitions: {
+        Row: {
+          break_minutes: number
+          created_at: string
+          end_time: string
+          id: string
+          is_overnight: boolean
+          name: string
+          start_time: string
+          status: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          break_minutes?: number
+          created_at?: string
+          end_time: string
+          id?: string
+          is_overnight?: boolean
+          name: string
+          start_time: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          break_minutes?: number
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_overnight?: boolean
+          name?: string
+          start_time?: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_definitions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shift_substitutions: {
         Row: {
           created_at: string
@@ -893,6 +1039,7 @@ export type Database = {
           ends_at: string
           id: string
           notes: string | null
+          shift_definition_id: string | null
           site_id: string
           starts_at: string
           status: Database["public"]["Enums"]["shift_status"]
@@ -906,6 +1053,7 @@ export type Database = {
           ends_at: string
           id?: string
           notes?: string | null
+          shift_definition_id?: string | null
           site_id: string
           starts_at: string
           status?: Database["public"]["Enums"]["shift_status"]
@@ -919,6 +1067,7 @@ export type Database = {
           ends_at?: string
           id?: string
           notes?: string | null
+          shift_definition_id?: string | null
           site_id?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["shift_status"]
@@ -932,6 +1081,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shifts_shift_definition_id_fkey"
+            columns: ["shift_definition_id"]
+            isOneToOne: false
+            referencedRelation: "shift_definitions"
             referencedColumns: ["id"]
           },
           {

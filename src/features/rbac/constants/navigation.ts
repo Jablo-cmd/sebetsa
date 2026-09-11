@@ -5,6 +5,7 @@ import { hasAnyPermission } from '@/features/rbac/utils/permissionHelpers';
 import {
   BriefcaseIcon,
   BuildingIcon,
+  CalendarIcon,
   CheckIcon,
   ChatIcon,
   ClipboardListIcon,
@@ -38,10 +39,11 @@ export interface NavGroupDef {
 /**
  * The single source of truth for the sidebar. `DashboardSidebar` filters
  * this per role and drops any group left empty — see `resolveNavForRole`.
- * Only modules with a real, routed page are modelled here — scheduling,
- * leave and tasks have schema + RLS (see supabase/migrations) but no UI
- * yet, so they are deliberately absent rather than linking to a page that
- * doesn't exist.
+ * Only modules with a real, routed page are modelled here — leave and tasks
+ * still have schema + RLS only (see supabase/migrations) but no UI yet, so
+ * they are deliberately absent rather than linking to a page that doesn't
+ * exist. Scheduling gained a real UI in Phase G (Schedule, My Schedule,
+ * Shift Definitions, Availability).
  */
 export const NAV_MODEL: NavGroupDef[] = [
   {
@@ -69,7 +71,13 @@ export const NAV_MODEL: NavGroupDef[] = [
   },
   {
     label: 'Operations',
-    items: [{ label: 'Attendance', path: '/attendance', icon: CheckIcon, permission: 'attendance.view' }],
+    items: [
+      { label: 'Schedule', path: '/schedule', icon: CalendarIcon, permission: 'scheduling.view', end: true },
+      { label: 'My Schedule', path: '/schedule/mine', icon: CalendarIcon },
+      { label: 'Shift Definitions', path: '/schedule/definitions', icon: ClipboardListIcon, permission: 'scheduling.manage' },
+      { label: 'Availability', path: '/schedule/availability', icon: CheckIcon, permission: 'availability.view' },
+      { label: 'Attendance', path: '/attendance', icon: CheckIcon, permission: 'attendance.view' },
+    ],
   },
   {
     label: 'Communication',

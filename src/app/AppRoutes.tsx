@@ -78,6 +78,19 @@ const AttendancePage = named(
   () => import('@/features/attendance/pages/AttendancePage'),
   'AttendancePage',
 );
+const SchedulePage = named(() => import('@/features/scheduling/pages/SchedulePage'), 'SchedulePage');
+const MySchedulePage = named(
+  () => import('@/features/scheduling/pages/MySchedulePage'),
+  'MySchedulePage',
+);
+const ShiftDefinitionsPage = named(
+  () => import('@/features/scheduling/pages/ShiftDefinitionsPage'),
+  'ShiftDefinitionsPage',
+);
+const AvailabilityPage = named(
+  () => import('@/features/availability/pages/AvailabilityPage'),
+  'AvailabilityPage',
+);
 const NotificationsPage = named(
   () => import('@/features/notifications/pages/NotificationsPage'),
   'NotificationsPage',
@@ -128,6 +141,10 @@ export function AppRoutes() {
               <Route path="/my-profile" element={<MyProfilePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/notifications/settings" element={<NotificationSettingsPage />} />
+              {/* My Schedule: an employee's own upcoming shifts. Same "no
+                  guard needed" shape as Dashboard/My Profile — it is
+                  inherently self-scoped, not a permission-gated module. */}
+              <Route path="/schedule/mine" element={<MySchedulePage />} />
 
               <Route element={<RequirePermission permission="tenant.switch" />}>
                 <Route path="/organizations" element={<OrganizationsPage />} />
@@ -161,6 +178,18 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="site_assignment.view" />}>
                 <Route path="/site-assignments" element={<SiteAssignmentsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="scheduling.view" />}>
+                <Route path="/schedule" element={<SchedulePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="scheduling.manage" />}>
+                <Route path="/schedule/definitions" element={<ShiftDefinitionsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="availability.view" />}>
+                <Route path="/schedule/availability" element={<AvailabilityPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="attendance.view" />}>

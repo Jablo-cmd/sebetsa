@@ -24,6 +24,8 @@ export type Permission =
   | 'site_assignment.manage'
   | 'scheduling.view'
   | 'scheduling.manage'
+  | 'availability.view'
+  | 'availability.manage'
   | 'attendance.view'
   | 'attendance.manage'
   | 'leave.view'
