@@ -70,6 +70,10 @@ const PositionsPage = named(
 );
 const TeamsPage = named(() => import('@/features/teams/pages/TeamsPage'), 'TeamsPage');
 const TeamDetailPage = named(() => import('@/features/teams/pages/TeamDetailPage'), 'TeamDetailPage');
+const SiteOperationsPage = named(
+  () => import('@/features/siteOperations/pages/SiteOperationsPage'),
+  'SiteOperationsPage',
+);
 const SiteAssignmentsPage = named(
   () => import('@/features/siteAssignments/pages/SiteAssignmentsPage'),
   'SiteAssignmentsPage',
@@ -196,6 +200,7 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="site_assignment.view" />}>
                 <Route path="/site-assignments" element={<SiteAssignmentsPage />} />
+                <Route path="/site-operations" element={<SiteOperationsPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="scheduling.view" />}>

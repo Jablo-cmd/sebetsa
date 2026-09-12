@@ -113,6 +113,10 @@ export type AttendanceCorrectionRow = TableRow<'attendance_corrections'>;
 export type AttendanceCorrectionFieldEnum = Database['public']['Enums']['attendance_correction_field'];
 export type AttendanceCorrectionStatusEnum = Database['public']['Enums']['attendance_correction_status'];
 
+export type SiteStaffingRequirementRow = TableRow<'site_staffing_requirements'>;
+export type SiteStaffingRequirementInsert = TableInsert<'site_staffing_requirements'>;
+export type SiteStaffingRequirementUpdate = TableUpdate<'site_staffing_requirements'>;
+
 export type NotificationRow = TableRow<'notifications'>;
 export type AuditLogRow = TableRow<'audit_log'>;
 

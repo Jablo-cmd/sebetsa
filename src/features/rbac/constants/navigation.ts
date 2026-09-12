@@ -67,6 +67,7 @@ export const NAV_MODEL: NavGroupDef[] = [
       { label: 'Departments', path: '/employees/departments', icon: LayersIcon, permission: 'department.view' },
       { label: 'Positions', path: '/employees/positions', icon: LayersIcon, permission: 'position.view' },
       { label: 'Site Assignments', path: '/site-assignments', icon: ClipboardListIcon, permission: 'site_assignment.view' },
+      { label: 'Site Operations', path: '/site-operations', icon: BuildingIcon, permission: 'site_assignment.view' },
     ],
   },
   {
