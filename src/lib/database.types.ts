@@ -2972,6 +2972,264 @@ export type Database = {
           },
         ]
       }
+      skills: {
+        Row: { category: string; created_at: string; id: string; name: string; tenant_id: string; updated_at: string }
+        Insert: { category: string; created_at?: string; id?: string; name: string; tenant_id: string; updated_at?: string }
+        Update: { category?: string; created_at?: string; id?: string; name?: string; tenant_id?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "skills_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
+        ]
+      }
+      employee_skills: {
+        Row: {
+          created_at: string
+          employee_id: string
+          evidence_document_id: string | null
+          id: string
+          proficiency_level: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          evidence_document_id?: string | null
+          id?: string
+          proficiency_level?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          tenant_id: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          evidence_document_id?: string | null
+          id?: string
+          proficiency_level?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id?: string
+          tenant_id?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: "employee_skills_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
+          { foreignKeyName: "employee_skills_skill_id_fkey"; columns: ["skill_id"]; isOneToOne: false; referencedRelation: "skills"; referencedColumns: ["id"] },
+        ]
+      }
+      employee_qualifications: {
+        Row: {
+          created_at: string
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          name: string
+          status: Database["public"]["Enums"]["credential_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["credential_status"]
+          tenant_id: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          credential_type?: Database["public"]["Enums"]["credential_type"]
+          employee_id?: string
+          evidence_document_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["credential_status"]
+          tenant_id?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: "employee_qualifications_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
+        ]
+      }
+      training_programs: {
+        Row: { category: string; created_at: string; description: string | null; id: string; is_active: boolean; name: string; tenant_id: string; updated_at: string }
+        Insert: { category: string; created_at?: string; description?: string | null; id?: string; is_active?: boolean; name: string; tenant_id: string; updated_at?: string }
+        Update: { category?: string; created_at?: string; description?: string | null; id?: string; is_active?: boolean; name?: string; tenant_id?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "training_programs_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
+        ]
+      }
+      training_requirements: {
+        Row: { created_at: string; id: string; is_active: boolean; required_for_role: Database["public"]["Enums"]["user_role"] | null; required_for_site_id: string | null; tenant_id: string; training_program_id: string }
+        Insert: { created_at?: string; id?: string; is_active?: boolean; required_for_role?: Database["public"]["Enums"]["user_role"] | null; required_for_site_id?: string | null; tenant_id: string; training_program_id: string }
+        Update: { created_at?: string; id?: string; is_active?: boolean; required_for_role?: Database["public"]["Enums"]["user_role"] | null; required_for_site_id?: string | null; tenant_id?: string; training_program_id?: string }
+        Relationships: [
+          { foreignKeyName: "training_requirements_program_id_fkey"; columns: ["training_program_id"]; isOneToOne: false; referencedRelation: "training_programs"; referencedColumns: ["id"] },
+        ]
+      }
+      training_enrollments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          enrolled_at: string
+          id: string
+          result: string | null
+          resulting_qualification_id: string | null
+          status: Database["public"]["Enums"]["training_enrollment_status"]
+          tenant_id: string
+          training_program_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id: string
+          enrolled_at?: string
+          id?: string
+          result?: string | null
+          resulting_qualification_id?: string | null
+          status?: Database["public"]["Enums"]["training_enrollment_status"]
+          tenant_id: string
+          training_program_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          enrolled_at?: string
+          id?: string
+          result?: string | null
+          resulting_qualification_id?: string | null
+          status?: Database["public"]["Enums"]["training_enrollment_status"]
+          tenant_id?: string
+          training_program_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "training_enrollments_program_id_fkey"; columns: ["training_program_id"]; isOneToOne: false; referencedRelation: "training_programs"; referencedColumns: ["id"] },
+          { foreignKeyName: "training_enrollments_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
+        ]
+      }
+      performance_reviews: {
+        Row: {
+          created_at: string
+          employee_id: string
+          employee_comments: string | null
+          finalized_at: string | null
+          id: string
+          manager_comments: string | null
+          overall_rating: number | null
+          review_period_end: string
+          review_period_start: string
+          reviewer_profile_id: string | null
+          status: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          employee_comments?: string | null
+          finalized_at?: string | null
+          id?: string
+          manager_comments?: string | null
+          overall_rating?: number | null
+          review_period_end: string
+          review_period_start: string
+          reviewer_profile_id?: string | null
+          status?: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          employee_comments?: string | null
+          finalized_at?: string | null
+          id?: string
+          manager_comments?: string | null
+          overall_rating?: number | null
+          review_period_end?: string
+          review_period_start?: string
+          reviewer_profile_id?: string | null
+          status?: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "performance_reviews_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
+        ]
+      }
+      development_actions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          goal: string
+          id: string
+          owner_profile_id: string | null
+          review_id: string | null
+          status: string
+          target_date: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id: string
+          goal: string
+          id?: string
+          owner_profile_id?: string | null
+          review_id?: string | null
+          status?: string
+          target_date?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          goal?: string
+          id?: string
+          owner_profile_id?: string | null
+          review_id?: string | null
+          status?: string
+          target_date?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "development_actions_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
+        ]
+      }
       teams: {
         Row: {
           created_at: string
@@ -3249,6 +3507,65 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      set_employee_skill: {
+        Args: { p_employee_id: string; p_skill_id: string; p_proficiency_level: Database["public"]["Enums"]["proficiency_level"] }
+        Returns: Database["public"]["Tables"]["employee_skills"]["Row"]
+      }
+      verify_employee_skill: {
+        Args: { p_employee_skill_id: string }
+        Returns: Database["public"]["Tables"]["employee_skills"]["Row"]
+      }
+      upsert_employee_qualification: {
+        Args: {
+          p_id: string | null
+          p_employee_id: string
+          p_credential_type: Database["public"]["Enums"]["credential_type"]
+          p_name: string
+          p_issuing_organization?: string | null
+          p_issue_date?: string | null
+          p_expiry_date?: string | null
+          p_evidence_document_id?: string | null
+        }
+        Returns: Database["public"]["Tables"]["employee_qualifications"]["Row"]
+      }
+      verify_employee_qualification: {
+        Args: { p_id: string; p_approve: boolean }
+        Returns: Database["public"]["Tables"]["employee_qualifications"]["Row"]
+      }
+      sync_expired_qualifications: {
+        Args: { p_tenant_id: string }
+        Returns: Database["public"]["Tables"]["employee_qualifications"]["Row"][]
+      }
+      enroll_employee_training: {
+        Args: { p_training_program_id: string; p_employee_id: string }
+        Returns: Database["public"]["Tables"]["training_enrollments"]["Row"]
+      }
+      complete_employee_training: {
+        Args: { p_enrollment_id: string; p_status: Database["public"]["Enums"]["training_enrollment_status"]; p_result?: string | null }
+        Returns: Database["public"]["Tables"]["training_enrollments"]["Row"]
+      }
+      create_performance_review: {
+        Args: { p_employee_id: string; p_reviewer_profile_id: string; p_review_period_start: string; p_review_period_end: string }
+        Returns: Database["public"]["Tables"]["performance_reviews"]["Row"]
+      }
+      advance_performance_review: {
+        Args: {
+          p_review_id: string
+          p_new_status: Database["public"]["Enums"]["performance_review_status"]
+          p_manager_comments?: string | null
+          p_employee_comments?: string | null
+          p_overall_rating?: number | null
+        }
+        Returns: Database["public"]["Tables"]["performance_reviews"]["Row"]
+      }
+      add_development_action: {
+        Args: { p_employee_id: string; p_goal: string; p_owner_profile_id?: string | null; p_target_date?: string | null; p_review_id?: string | null }
+        Returns: Database["public"]["Tables"]["development_actions"]["Row"]
+      }
+      update_development_action_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: Database["public"]["Tables"]["development_actions"]["Row"]
       }
       compute_sla_measurement: {
         Args: { p_sla_definition_id: string; p_period_start: string; p_period_end: string }
@@ -4008,6 +4325,11 @@ export type Database = {
         | "retired"
         | "disposed"
       attendance_correction_status: "pending" | "approved" | "rejected"
+      credential_type: "qualification" | "certification"
+      credential_status: "pending_verification" | "verified" | "expired" | "revoked"
+      proficiency_level: "beginner" | "intermediate" | "advanced" | "expert"
+      training_enrollment_status: "scheduled" | "in_progress" | "completed" | "failed" | "cancelled"
+      performance_review_status: "draft" | "manager_review" | "employee_review" | "acknowledgement" | "finalized"
       compliance_status:
         | "pending"
         | "in_progress"

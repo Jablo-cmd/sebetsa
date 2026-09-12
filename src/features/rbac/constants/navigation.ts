@@ -10,6 +10,7 @@ import {
   ChatIcon,
   ClipboardListIcon,
   GearIcon,
+  GraduationCapIcon,
   GridIcon,
   LayersIcon,
   UsersIcon,
@@ -118,6 +119,13 @@ export const NAV_MODEL: NavGroupDef[] = [
       { label: 'Assets', path: '/assets', icon: BriefcaseIcon, permission: 'asset.view', end: true },
       { label: 'Inventory', path: '/inventory', icon: LayersIcon, permission: 'inventory.view', end: true },
       { label: 'Procurement', path: '/procurement', icon: ClipboardListIcon, permission: 'procurement.view', end: true },
+    ],
+  },
+  {
+    label: 'Development',
+    items: [
+      { label: 'My Development', path: '/development', icon: GraduationCapIcon, permission: 'development.view', end: true },
+      { label: 'Workforce Development', path: '/development/manage', icon: GraduationCapIcon, permission: 'development.manage', end: true },
     ],
   },
   {

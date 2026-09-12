@@ -46,4 +46,6 @@ export type Permission =
   | 'inventory.view'
   | 'inventory.manage'
   | 'procurement.view'
-  | 'procurement.manage';
+  | 'procurement.manage'
+  | 'development.view'
+  | 'development.manage';

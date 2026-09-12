@@ -131,6 +131,14 @@ const ProcurementPage = named(
   () => import('@/features/assets/pages/ProcurementPage'),
   'ProcurementPage',
 );
+const MyDevelopmentPage = named(
+  () => import('@/features/workforceDevelopment/pages/MyDevelopmentPage'),
+  'MyDevelopmentPage',
+);
+const WorkforceDevelopmentPage = named(
+  () => import('@/features/workforceDevelopment/pages/WorkforceDevelopmentPage'),
+  'WorkforceDevelopmentPage',
+);
 const TeamLeavePage = named(() => import('@/features/leave/pages/TeamLeavePage'), 'TeamLeavePage');
 const LeaveManagementPage = named(
   () => import('@/features/leave/pages/LeaveManagementPage'),
@@ -298,6 +306,14 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="procurement.view" />}>
                 <Route path="/procurement" element={<ProcurementPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="development.view" />}>
+                <Route path="/development" element={<MyDevelopmentPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="development.manage" />}>
+                <Route path="/development/manage" element={<WorkforceDevelopmentPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="org_structure.view" />}>

@@ -146,6 +146,25 @@ export type SlaMetricTypeEnum = Database['public']['Enums']['sla_metric_type'];
 
 export type SlaMeasurementRow = TableRow<'sla_measurements'>;
 
+export type SkillRow = TableRow<'skills'>;
+export type SkillInsert = TableInsert<'skills'>;
+
+export type EmployeeSkillRow = TableRow<'employee_skills'>;
+export type ProficiencyLevelEnum = Database['public']['Enums']['proficiency_level'];
+
+export type EmployeeQualificationRow = TableRow<'employee_qualifications'>;
+export type CredentialTypeEnum = Database['public']['Enums']['credential_type'];
+export type CredentialStatusEnum = Database['public']['Enums']['credential_status'];
+
+export type TrainingProgramRow = TableRow<'training_programs'>;
+export type TrainingEnrollmentRow = TableRow<'training_enrollments'>;
+export type TrainingEnrollmentStatusEnum = Database['public']['Enums']['training_enrollment_status'];
+
+export type PerformanceReviewRow = TableRow<'performance_reviews'>;
+export type PerformanceReviewStatusEnum = Database['public']['Enums']['performance_review_status'];
+
+export type DevelopmentActionRow = TableRow<'development_actions'>;
+
 export type LeavePolicyRow = TableRow<'leave_policies'>;
 export type LeavePolicyInsert = TableInsert<'leave_policies'>;
 export type LeavePolicyUpdate = TableUpdate<'leave_policies'>;

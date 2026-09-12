@@ -366,6 +366,45 @@ export function buildProcurementRequestRow(overrides: Partial<Record<string, unk
   };
 }
 
+export function buildSkillRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return { id: 'skill-1', tenant_id: SEBETSA_TENANT_ID, name: 'First Aid', category: 'safety', created_at: '2026-09-17T08:00:00Z', updated_at: '2026-09-17T08:00:00Z', ...overrides };
+}
+
+export function buildEmployeeSkillRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'employee-skill-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    employee_id: 'employee-1',
+    skill_id: 'skill-1',
+    proficiency_level: 'intermediate',
+    evidence_document_id: null,
+    verified_by: null,
+    verified_at: null,
+    created_at: '2026-09-17T08:00:00Z',
+    updated_at: '2026-09-17T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildPerformanceReviewRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'review-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    employee_id: 'employee-1',
+    reviewer_profile_id: SEBETSA_USER_ID,
+    review_period_start: '2026-01-01',
+    review_period_end: '2026-06-30',
+    status: 'employee_review',
+    overall_rating: 4,
+    manager_comments: 'Solid performance this period.',
+    employee_comments: null,
+    finalized_at: null,
+    created_at: '2026-09-17T08:00:00Z',
+    updated_at: '2026-09-17T08:00:00Z',
+    ...overrides,
+  };
+}
+
 /** Mocks a Storage upload (POST .../storage/v1/object/{bucket}/{path}) — storage-js expects {Id, Key} back. */
 export async function installStorageUploadMock(page: Page, bucket: string) {
   await page.route(`**/storage/v1/object/${bucket}/**`, async (route: Route) => {
@@ -404,6 +443,11 @@ export interface SebetsaMockState {
   assets?: ReturnType<typeof buildAssetRow>[];
   inventoryItems?: ReturnType<typeof buildInventoryItemRow>[];
   procurementRequests?: ReturnType<typeof buildProcurementRequestRow>[];
+  employeeSkills?: ReturnType<typeof buildEmployeeSkillRow>[];
+  qualifications?: Record<string, unknown>[];
+  trainingEnrollments?: Record<string, unknown>[];
+  performanceReviews?: ReturnType<typeof buildPerformanceReviewRow>[];
+  developmentActions?: Record<string, unknown>[];
   /** Called for any `rpc/<fnName>` POST not covered by the generic table handlers above — return true if handled. */
   onRpc?: (fnName: string, payload: Record<string, unknown>, route: Route) => Promise<boolean>;
 }
@@ -438,6 +482,11 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     assets: [],
     inventoryItems: [],
     procurementRequests: [],
+    employeeSkills: [],
+    qualifications: [],
+    trainingEnrollments: [],
+    performanceReviews: [],
+    developmentActions: [],
     ...initial,
   };
 
@@ -636,6 +685,14 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     if (path.endsWith('/procurement_requests')) {
       return fulfillJson(route, state.procurementRequests ?? []);
     }
+
+    if (path.endsWith('/skills')) return fulfillJson(route, []);
+    if (path.endsWith('/employee_skills')) return fulfillJson(route, state.employeeSkills ?? []);
+    if (path.endsWith('/employee_qualifications')) return fulfillJson(route, state.qualifications ?? []);
+    if (path.endsWith('/training_programs')) return fulfillJson(route, []);
+    if (path.endsWith('/training_enrollments')) return fulfillJson(route, state.trainingEnrollments ?? []);
+    if (path.endsWith('/performance_reviews')) return fulfillJson(route, state.performanceReviews ?? []);
+    if (path.endsWith('/development_actions')) return fulfillJson(route, state.developmentActions ?? []);
 
     if (path.includes('/rpc/')) {
       const fnName = path.split('/rpc/')[1] ?? '';
