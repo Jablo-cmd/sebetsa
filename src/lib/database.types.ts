@@ -728,6 +728,294 @@ export type Database = {
           },
         ]
       }
+      compliance_requirements: {
+        Row: {
+          applies_to_scope: string
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          recurrence_interval_days: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          applies_to_scope: string
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          recurrence_interval_days?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          applies_to_scope?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          recurrence_interval_days?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_requirements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_records: {
+        Row: {
+          client_id: string | null
+          completed_date: string | null
+          contract_id: string | null
+          created_at: string
+          due_date: string | null
+          evidence_storage_path: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          requirement_id: string
+          responsible_profile_id: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["compliance_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          completed_date?: string | null
+          contract_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          evidence_storage_path?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          requirement_id: string
+          responsible_profile_id?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["compliance_status"]
+          tenant_id: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          completed_date?: string | null
+          contract_id?: string | null
+          created_at?: string
+          due_date?: string | null
+          evidence_storage_path?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          requirement_id?: string
+          responsible_profile_id?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["compliance_status"]
+          tenant_id?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_records_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          category: Database["public"]["Enums"]["incident_category"]
+          closed_at: string | null
+          closed_by: string | null
+          contract_id: string | null
+          corrective_action_summary: string | null
+          created_at: string
+          description: string
+          id: string
+          investigation_notes: string | null
+          occurred_at: string
+          reference_number: string
+          reported_by: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["incident_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["incident_category"]
+          closed_at?: string | null
+          closed_by?: string | null
+          contract_id?: string | null
+          corrective_action_summary?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          investigation_notes?: string | null
+          occurred_at: string
+          reference_number?: string
+          reported_by?: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["incident_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["incident_category"]
+          closed_at?: string | null
+          closed_by?: string | null
+          contract_id?: string | null
+          corrective_action_summary?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          investigation_notes?: string | null
+          occurred_at?: string
+          reference_number?: string
+          reported_by?: string | null
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["incident_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_affected_employees: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          incident_id: string
+          involvement: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          incident_id: string
+          involvement?: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          incident_id?: string
+          involvement?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_affected_employees_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_affected_employees_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_actions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          incident_id: string
+          owner_profile_id: string | null
+          status: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          incident_id: string
+          owner_profile_id?: string | null
+          status?: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          incident_id?: string
+          owner_profile_id?: string | null
+          status?: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_actions_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string
@@ -2462,6 +2750,70 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      report_incident: {
+        Args: {
+          p_tenant_id: string
+          p_category: Database["public"]["Enums"]["incident_category"]
+          p_severity: Database["public"]["Enums"]["incident_severity"]
+          p_occurred_at: string
+          p_description: string
+          p_site_id?: string | null
+          p_contract_id?: string | null
+        }
+        Returns: Database["public"]["Tables"]["incidents"]["Row"]
+      }
+      link_incident_employee: {
+        Args: { p_incident_id: string; p_employee_id: string; p_involvement?: string }
+        Returns: Database["public"]["Tables"]["incident_affected_employees"]["Row"]
+      }
+      transition_incident_status: {
+        Args: {
+          p_incident_id: string
+          p_new_status: Database["public"]["Enums"]["incident_status"]
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["incidents"]["Row"]
+      }
+      add_incident_action: {
+        Args: {
+          p_incident_id: string
+          p_description: string
+          p_owner_profile_id?: string | null
+          p_due_date?: string | null
+        }
+        Returns: Database["public"]["Tables"]["incident_actions"]["Row"]
+      }
+      complete_incident_action: {
+        Args: { p_action_id: string }
+        Returns: Database["public"]["Tables"]["incident_actions"]["Row"]
+      }
+      verify_incident_action: {
+        Args: { p_action_id: string }
+        Returns: Database["public"]["Tables"]["incident_actions"]["Row"]
+      }
+      upsert_compliance_record: {
+        Args: {
+          p_id: string | null
+          p_requirement_id: string
+          p_site_id?: string | null
+          p_client_id?: string | null
+          p_contract_id?: string | null
+          p_responsible_profile_id?: string | null
+          p_due_date?: string | null
+          p_expiry_date?: string | null
+          p_evidence_storage_path?: string | null
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["compliance_records"]["Row"]
+      }
+      verify_compliance_record: {
+        Args: { p_id: string; p_approve: boolean }
+        Returns: Database["public"]["Tables"]["compliance_records"]["Row"]
+      }
+      sync_expired_compliance_records: {
+        Args: { p_tenant_id: string }
+        Returns: Database["public"]["Tables"]["compliance_records"]["Row"][]
+      }
       complete_task: {
         Args: { p_task_id: string }
         Returns: {
@@ -3070,6 +3422,13 @@ export type Database = {
         | "unconfirmed"
       attendance_correction_field: "clock_in_at" | "clock_out_at" | "status"
       attendance_correction_status: "pending" | "approved" | "rejected"
+      compliance_status:
+        | "pending"
+        | "in_progress"
+        | "compliant"
+        | "non_compliant"
+        | "expired"
+        | "waived"
       contract_status: "draft" | "active" | "expired" | "terminated"
       document_status:
         | "uploaded"
@@ -3090,6 +3449,22 @@ export type Database = {
       employment_status: "active" | "on_leave" | "suspended" | "terminated"
       employment_type: "full_time" | "part_time" | "contract" | "temporary"
       entity_status: "active" | "inactive" | "onboarding" | "offboarded"
+      incident_action_status: "open" | "in_progress" | "completed" | "verified"
+      incident_category:
+        | "workplace_safety"
+        | "property_damage"
+        | "client_incident"
+        | "near_miss"
+        | "security"
+        | "operational_other"
+      incident_severity: "low" | "medium" | "high" | "critical"
+      incident_status:
+        | "reported"
+        | "acknowledged"
+        | "investigating"
+        | "corrective_action"
+        | "pending_closure"
+        | "closed"
       leave_status: "pending" | "approved" | "rejected" | "cancelled" | "revoked"
       notification_email_status: "not_sent" | "sent" | "failed"
       organization_status: "pending" | "active" | "inactive" | "suspended"

@@ -36,4 +36,8 @@ export type Permission =
   | 'document.view'
   | 'document.manage'
   | 'reports.view'
-  | 'reports.export';
+  | 'reports.export'
+  | 'incident.view'
+  | 'incident.manage'
+  | 'compliance.view'
+  | 'compliance.manage';

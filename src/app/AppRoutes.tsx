@@ -117,6 +117,14 @@ const EmployeeDocumentsPage = named(
   () => import('@/features/documents/pages/EmployeeDocumentsPage'),
   'EmployeeDocumentsPage',
 );
+const IncidentsPage = named(
+  () => import('@/features/compliance/pages/IncidentsPage'),
+  'IncidentsPage',
+);
+const CompliancePage = named(
+  () => import('@/features/compliance/pages/CompliancePage'),
+  'CompliancePage',
+);
 const TeamLeavePage = named(() => import('@/features/leave/pages/TeamLeavePage'), 'TeamLeavePage');
 const LeaveManagementPage = named(
   () => import('@/features/leave/pages/LeaveManagementPage'),
@@ -264,6 +272,14 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="document.manage" />}>
                 <Route path="/documents/manage" element={<EmployeeDocumentsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="incident.view" />}>
+                <Route path="/incidents" element={<IncidentsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="compliance.view" />}>
+                <Route path="/compliance" element={<CompliancePage />} />
               </Route>
 
               <Route element={<RequirePermission permission="org_structure.view" />}>

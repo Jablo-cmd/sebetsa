@@ -269,6 +269,47 @@ export function buildEmployeeDocumentRow(overrides: Partial<Record<string, unkno
   };
 }
 
+export function buildIncidentRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'incident-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    reference_number: 'INC-2026-000001',
+    site_id: null,
+    contract_id: null,
+    category: 'workplace_safety',
+    severity: 'medium',
+    status: 'reported',
+    occurred_at: '2026-09-14T08:00:00Z',
+    reported_by: SEBETSA_USER_ID,
+    description: 'Slip near the loading bay entrance.',
+    investigation_notes: null,
+    corrective_action_summary: null,
+    closed_by: null,
+    closed_at: null,
+    created_at: '2026-09-14T08:00:00Z',
+    updated_at: '2026-09-14T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildIncidentActionRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'incident-action-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    incident_id: 'incident-1',
+    description: 'Place wet floor signage',
+    owner_profile_id: SEBETSA_USER_ID,
+    due_date: '2026-09-16',
+    status: 'open',
+    completed_at: null,
+    verified_by: null,
+    verified_at: null,
+    created_at: '2026-09-14T08:05:00Z',
+    updated_at: '2026-09-14T08:05:00Z',
+    ...overrides,
+  };
+}
+
 /** Mocks a Storage upload (POST .../storage/v1/object/{bucket}/{path}) — storage-js expects {Id, Key} back. */
 export async function installStorageUploadMock(page: Page, bucket: string) {
   await page.route(`**/storage/v1/object/${bucket}/**`, async (route: Route) => {
@@ -302,6 +343,8 @@ export interface SebetsaMockState {
   taskChecklistItems?: ReturnType<typeof buildTaskChecklistItemRow>[];
   taskEvidence?: Record<string, unknown>[];
   employeeDocuments?: ReturnType<typeof buildEmployeeDocumentRow>[];
+  incidents?: ReturnType<typeof buildIncidentRow>[];
+  incidentActions?: ReturnType<typeof buildIncidentActionRow>[];
   /** Called for any `rpc/<fnName>` POST not covered by the generic table handlers above — return true if handled. */
   onRpc?: (fnName: string, payload: Record<string, unknown>, route: Route) => Promise<boolean>;
 }
@@ -331,6 +374,8 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     taskChecklistItems: [],
     taskEvidence: [],
     employeeDocuments: [],
+    incidents: [],
+    incidentActions: [],
     ...initial,
   };
 
@@ -482,6 +527,36 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
 
     if (path.endsWith('/notifications')) {
       return fulfillJson(route, state.notifications ?? []);
+    }
+
+    if (path.endsWith('/incidents')) {
+      let rows = state.incidents ?? [];
+      const statusFilter = url.searchParams.get('status');
+      if (statusFilter?.startsWith('eq.')) {
+        rows = rows.filter((row) => (row as { status: string }).status === statusFilter.slice(3));
+      }
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/incident_actions')) {
+      let rows = state.incidentActions ?? [];
+      const incidentFilter = url.searchParams.get('incident_id');
+      if (incidentFilter?.startsWith('eq.')) {
+        rows = rows.filter((row) => (row as { incident_id: string }).incident_id === incidentFilter.slice(3));
+      }
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/incident_affected_employees')) {
+      return fulfillJson(route, []);
+    }
+
+    if (path.endsWith('/compliance_requirements')) {
+      return fulfillJson(route, []);
+    }
+
+    if (path.endsWith('/compliance_records')) {
+      return fulfillJson(route, []);
     }
 
     if (path.includes('/rpc/')) {

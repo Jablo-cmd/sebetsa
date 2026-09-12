@@ -66,6 +66,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'document.manage',
     'reports.view',
     'reports.export',
+    'incident.view',
+    'incident.manage',
+    'compliance.view',
+    'compliance.manage',
   ],
   organization_administrator: [
     'organization.view',
@@ -99,6 +103,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'document.manage',
     'reports.view',
     'reports.export',
+    'incident.view',
+    'incident.manage',
+    'compliance.view',
+    'compliance.manage',
   ],
   operations_manager: [
     'organization.view',
@@ -130,6 +138,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'document.manage',
     'reports.view',
     'reports.export',
+    'incident.view',
+    'incident.manage',
+    'compliance.view',
+    'compliance.manage',
   ],
   regional_manager: [
     'organization.view',
@@ -153,6 +165,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'task.view',
     'task.manage',
     'reports.view',
+    'incident.view',
+    'incident.manage',
+    'compliance.view',
+    'compliance.manage',
   ],
   site_manager: [
     'organization.view',
@@ -174,6 +190,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'task.view',
     'task.manage',
     'reports.view',
+    'incident.view',
+    'incident.manage',
+    'compliance.view',
+    'compliance.manage',
   ],
   supervisor: [
     'organization.view',
@@ -193,6 +213,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'task.view',
     'task.manage',
     'reports.view',
+    'incident.view',
+    'incident.manage',
+    'compliance.view',
+    'compliance.manage',
   ],
   hr_user: [
     'organization.view',
@@ -214,6 +238,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'reports.view',
     'reports.export',
   ],
-  employee: ['scheduling.view', 'availability.view', 'attendance.view', 'task.view', 'leave.view', 'document.view'],
+  employee: ['scheduling.view', 'availability.view', 'attendance.view', 'task.view', 'leave.view', 'document.view', 'incident.view'],
   client_user: [],
 };

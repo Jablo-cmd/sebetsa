@@ -105,6 +105,22 @@ export type LeaveTypeRow = TableRow<'leave_types'>;
 export type LeaveTypeInsert = TableInsert<'leave_types'>;
 export type LeaveTypeUpdate = TableUpdate<'leave_types'>;
 
+export type ComplianceRequirementRow = TableRow<'compliance_requirements'>;
+export type ComplianceRequirementInsert = TableInsert<'compliance_requirements'>;
+
+export type ComplianceRecordRow = TableRow<'compliance_records'>;
+export type ComplianceStatusEnum = Database['public']['Enums']['compliance_status'];
+
+export type IncidentRow = TableRow<'incidents'>;
+export type IncidentCategoryEnum = Database['public']['Enums']['incident_category'];
+export type IncidentSeverityEnum = Database['public']['Enums']['incident_severity'];
+export type IncidentStatusEnum = Database['public']['Enums']['incident_status'];
+
+export type IncidentAffectedEmployeeRow = TableRow<'incident_affected_employees'>;
+
+export type IncidentActionRow = TableRow<'incident_actions'>;
+export type IncidentActionStatusEnum = Database['public']['Enums']['incident_action_status'];
+
 export type LeavePolicyRow = TableRow<'leave_policies'>;
 export type LeavePolicyInsert = TableInsert<'leave_policies'>;
 export type LeavePolicyUpdate = TableUpdate<'leave_policies'>;

@@ -106,6 +106,13 @@ export const NAV_MODEL: NavGroupDef[] = [
     ],
   },
   {
+    label: 'Compliance & Safety',
+    items: [
+      { label: 'Incidents', path: '/incidents', icon: ClipboardListIcon, permission: 'incident.view', end: true },
+      { label: 'Compliance', path: '/compliance', icon: CheckIcon, permission: 'compliance.view', end: true },
+    ],
+  },
+  {
     label: 'Communication',
     items: [
       { label: 'Notifications', path: '/notifications', icon: ChatIcon, end: true },
