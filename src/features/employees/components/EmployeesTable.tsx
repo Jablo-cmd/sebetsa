@@ -1,4 +1,5 @@
 import { TableScrollContainer } from '@/components/ui/TableScrollContainer';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import { Link } from 'react-router-dom';
 import type { Employee, EmploymentStatus, Department, Position } from '@/features/employees/types/employee.types';
 
@@ -12,11 +13,11 @@ export interface EmployeesTableProps {
   onReactivate: (employee: Employee) => void;
 }
 
-const STATUS_BADGE_CLASSES: Record<EmploymentStatus, string> = {
-  active: 'bg-success-500/10 text-success-500',
-  on_leave: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200',
-  suspended: 'bg-danger-50 text-danger-600',
-  terminated: 'bg-surface-sunken text-content-tertiary',
+const STATUS_TONES: Record<EmploymentStatus, StatusTone> = {
+  active: 'success',
+  on_leave: 'info',
+  suspended: 'danger',
+  terminated: 'neutral',
 };
 
 export function EmployeesTable({
@@ -78,11 +79,7 @@ export function EmployeesTable({
               <td className="px-4 py-3 text-content-secondary">{departmentName(employee.departmentId)}</td>
               <td className="px-4 py-3 text-content-secondary">{positionTitle(employee.positionId)}</td>
               <td className="px-4 py-3">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize ${STATUS_BADGE_CLASSES[employee.employmentStatus]}`}
-                >
-                  {employee.employmentStatus.replace(/_/g, ' ')}
-                </span>
+                <StatusBadge label={employee.employmentStatus.replace(/_/g, ' ')} tone={STATUS_TONES[employee.employmentStatus]} />
               </td>
               <td className="px-4 py-3">
                 <div className="flex justify-end gap-1.5">

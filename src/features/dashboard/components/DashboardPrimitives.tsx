@@ -2,15 +2,28 @@ import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { Link } from 'react-router-dom';
 import { BuildingIcon } from '@/components/ui/icons';
 
+export type StatPanelTone = 'neutral' | 'success' | 'warning' | 'danger';
+
+const STAT_VALUE_TONE_CLASSES: Record<StatPanelTone, string> = {
+  neutral: 'text-content-primary',
+  success: 'text-success-500',
+  warning: 'text-warning-600 dark:text-warning-500',
+  danger: 'text-danger-600 dark:text-danger-500',
+};
+
 interface StatPanelProps {
   label: string;
   value: ReactNode;
   caption: string;
   to: string;
   isLoading?: boolean;
+  /** Colors the value only — an exception metric (e.g. overdue tasks > 0)
+   * should draw the eye without turning the whole card into a colored
+   * block. Defaults to neutral so existing usage is unaffected. */
+  tone?: StatPanelTone;
 }
 
-export function StatPanel({ label, value, caption, to, isLoading }: StatPanelProps) {
+export function StatPanel({ label, value, caption, to, isLoading, tone = 'neutral' }: StatPanelProps) {
   return (
     <Link
       to={to}
@@ -20,7 +33,7 @@ export function StatPanel({ label, value, caption, to, isLoading }: StatPanelPro
       {isLoading ? (
         <span className="block h-7 w-20 animate-pulse rounded bg-surface-sunken" aria-hidden="true" />
       ) : (
-        <span className="font-mono text-2xl font-semibold leading-none text-content-primary">{value}</span>
+        <span className={`font-mono text-2xl font-semibold leading-none ${STAT_VALUE_TONE_CLASSES[tone]}`}>{value}</span>
       )}
       <span className="text-xs text-content-tertiary">{caption}</span>
     </Link>

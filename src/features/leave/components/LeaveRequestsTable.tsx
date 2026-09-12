@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import type { LeaveRequest, LeaveRequestSummary, LeaveType } from '@/features/leave/types/leave.types';
+import type { LeaveStatusEnum } from '@/lib/dbTypes';
 
 const STATUS_LABEL: Record<string, string> = {
   pending: 'Pending',
@@ -9,12 +11,12 @@ const STATUS_LABEL: Record<string, string> = {
   revoked: 'Revoked',
 };
 
-const STATUS_CLASSES: Record<string, string> = {
-  pending: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-200',
-  approved: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-200',
-  rejected: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
-  cancelled: 'bg-surface-sunken text-content-secondary',
-  revoked: 'bg-surface-sunken text-content-secondary',
+const STATUS_TONES: Record<LeaveStatusEnum, StatusTone> = {
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'danger',
+  cancelled: 'neutral',
+  revoked: 'neutral',
 };
 
 export interface LeaveRequestsTableProps {
@@ -68,9 +70,7 @@ export function LeaveRequestsTable({
               </td>
               <td className="px-3 py-2.5">{request.isHalfDay ? `Half day (${request.halfDayPeriod?.toUpperCase()})` : 'Full day'}</td>
               <td className="px-3 py-2.5">
-                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[request.status] ?? ''}`}>
-                  {STATUS_LABEL[request.status] ?? request.status}
-                </span>
+                <StatusBadge label={STATUS_LABEL[request.status] ?? request.status} tone={STATUS_TONES[request.status]} />
               </td>
               {showSensitiveColumns && <td className="px-3 py-2.5 text-content-secondary">{'reason' in request ? request.reason ?? '—' : '—'}</td>}
               {renderActions && <td className="px-3 py-2.5 text-right">{renderActions(request)}</td>}

@@ -8,11 +8,9 @@ export interface CardProps {
 }
 
 /**
- * The section/summary card wrapper Learner 360 is built from — every
- * DashboardPage panel already used this exact markup independently
- * (rounded-card border bg-surface-raised p-4 + uppercase label heading);
- * extracted here since Learner 360 needs the same shape ~8 times on one
- * page instead of once.
+ * The section/summary card wrapper shared across Sebetsa's detail and
+ * dashboard pages — rounded-card border bg-surface-raised p-4 with an
+ * uppercase label heading, extracted once instead of repeated markup.
  */
 export function Card({ title, action, children }: CardProps) {
   return (

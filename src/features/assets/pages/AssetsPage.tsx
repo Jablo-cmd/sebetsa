@@ -5,20 +5,22 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { assetService } from '@/features/assets/services/assetService';
 import { ASSET_STATUS_LABELS } from '@/features/assets/types/assets.types';
 import type { Asset } from '@/features/assets/types/assets.types';
+import type { AssetStatusEnum } from '@/lib/dbTypes';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
-const STATUS_CLASSES: Record<string, string> = {
-  available: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-200',
-  assigned: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200',
-  maintenance: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-200',
-  lost: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
-  damaged: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
-  retired: 'bg-surface-sunken text-content-tertiary',
-  disposed: 'bg-surface-sunken text-content-tertiary',
+const STATUS_TONES: Record<AssetStatusEnum, StatusTone> = {
+  available: 'success',
+  assigned: 'info',
+  maintenance: 'warning',
+  lost: 'danger',
+  damaged: 'danger',
+  retired: 'neutral',
+  disposed: 'neutral',
 };
 
 /** Asset register: create, view lifecycle status. Assignment/return happen
@@ -119,7 +121,7 @@ export function AssetsPage() {
                   <td className="px-3 py-2.5">{asset.assetNumber} — {asset.name}</td>
                   <td className="px-3 py-2.5">{asset.category}</td>
                   <td className="px-3 py-2.5">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[asset.status] ?? ''}`}>{ASSET_STATUS_LABELS[asset.status]}</span>
+                    <StatusBadge label={ASSET_STATUS_LABELS[asset.status]} tone={STATUS_TONES[asset.status]} />
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     {asset.status === 'available' && (

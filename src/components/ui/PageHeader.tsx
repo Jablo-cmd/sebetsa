@@ -10,7 +10,7 @@ export interface PageHeaderProps {
 /**
  * The title + description + primary-action row every list/overview page
  * already rendered independently. Not used by detail/profile pages, which
- * have their own bespoke identity headers (learner, employee, user).
+ * have their own bespoke identity headers (employee, client, contract).
  */
 export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (

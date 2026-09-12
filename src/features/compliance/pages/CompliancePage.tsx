@@ -5,18 +5,20 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { complianceService } from '@/features/compliance/services/complianceService';
 import type { ComplianceRecord, ComplianceRequirement } from '@/features/compliance/types/compliance.types';
+import type { ComplianceStatusEnum } from '@/lib/dbTypes';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
-const STATUS_CLASSES: Record<string, string> = {
-  pending: 'bg-surface-sunken text-content-secondary',
-  in_progress: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200',
-  compliant: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-200',
-  non_compliant: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
-  expired: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
-  waived: 'bg-surface-sunken text-content-tertiary',
+const STATUS_TONES: Record<ComplianceStatusEnum, StatusTone> = {
+  pending: 'neutral',
+  in_progress: 'info',
+  compliant: 'success',
+  non_compliant: 'danger',
+  expired: 'danger',
+  waived: 'neutral',
 };
 
 /** Compliance requirement catalogue (tenant-configurable) and the tracked
@@ -156,7 +158,7 @@ export function CompliancePage() {
                 <tr key={record.id} className="border-b border-border last:border-0">
                   <td className="px-3 py-2.5">{requirementName(record.requirementId)}</td>
                   <td className="px-3 py-2.5">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[record.status] ?? ''}`}>{record.status}</span>
+                    <StatusBadge label={record.status.replace(/_/g, ' ')} tone={STATUS_TONES[record.status]} />
                   </td>
                   <td className="px-3 py-2.5">{record.dueDate ? new Date(record.dueDate).toLocaleDateString() : '—'}</td>
                   <td className="px-3 py-2.5">{record.expiryDate ? new Date(record.expiryDate).toLocaleDateString() : '—'}</td>

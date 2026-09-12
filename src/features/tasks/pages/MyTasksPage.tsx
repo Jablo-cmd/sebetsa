@@ -3,10 +3,12 @@ import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import { useMyEmployee } from '@/features/employees/hooks/useMyEmployee';
 import { useTasks } from '@/features/tasks/hooks/useTasks';
 import { TaskDetailModal } from '@/features/tasks/components/TaskDetailModal';
 import type { Task } from '@/features/tasks/types/task.types';
+import type { TaskStatusEnum } from '@/lib/dbTypes';
 
 const STATUS_LABEL: Record<string, string> = {
   open: 'Open',
@@ -17,13 +19,13 @@ const STATUS_LABEL: Record<string, string> = {
   escalated: 'Escalated',
 };
 
-const STATUS_CLASSES: Record<string, string> = {
-  open: 'bg-surface-sunken text-content-secondary',
-  in_progress: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200',
-  completed: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-200',
-  verified: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-200',
-  cancelled: 'bg-surface-sunken text-content-tertiary',
-  escalated: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
+const STATUS_TONES: Record<TaskStatusEnum, StatusTone> = {
+  open: 'neutral',
+  in_progress: 'info',
+  completed: 'success',
+  verified: 'success',
+  cancelled: 'neutral',
+  escalated: 'danger',
 };
 
 /** Employee self-service: tasks assigned to me, due-today/overdue first (sorted by due_at). */
@@ -56,9 +58,7 @@ export function MyTasksPage() {
                 <p className="text-sm font-medium text-content-primary">{task.title}</p>
                 {task.dueAt && <p className="text-xs text-content-tertiary">Due {new Date(task.dueAt).toLocaleString()}</p>}
               </div>
-              <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[task.status] ?? ''}`}>
-                {STATUS_LABEL[task.status] ?? task.status}
-              </span>
+              <StatusBadge label={STATUS_LABEL[task.status] ?? task.status} tone={STATUS_TONES[task.status]} />
             </button>
           ))}
         </div>

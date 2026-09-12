@@ -5,6 +5,7 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useAuth } from '@/features/auth/context/authContext';
 import { hasPermission } from '@/features/rbac';
@@ -15,11 +16,11 @@ import { INCIDENT_CATEGORY_LABELS, INCIDENT_SEVERITY_LABELS, INCIDENT_STATUS_LAB
 import type { IncidentCategoryEnum, IncidentSeverityEnum } from '@/lib/dbTypes';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
-const SEVERITY_CLASSES: Record<string, string> = {
-  low: 'bg-surface-sunken text-content-secondary',
-  medium: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200',
-  high: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-200',
-  critical: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
+const SEVERITY_TONES: Record<IncidentSeverityEnum, StatusTone> = {
+  low: 'neutral',
+  medium: 'info',
+  high: 'warning',
+  critical: 'danger',
 };
 
 /** Incident register: any employee can report; can_manage_operations() tier
@@ -115,9 +116,7 @@ export function IncidentsPage() {
                 <p className="text-sm font-medium text-content-primary">{incident.referenceNumber} — {INCIDENT_CATEGORY_LABELS[incident.category]}</p>
                 <p className="text-xs text-content-tertiary">{new Date(incident.occurredAt).toLocaleString()} · {INCIDENT_STATUS_LABELS[incident.status]}</p>
               </div>
-              <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${SEVERITY_CLASSES[incident.severity] ?? ''}`}>
-                {INCIDENT_SEVERITY_LABELS[incident.severity]}
-              </span>
+              <StatusBadge label={INCIDENT_SEVERITY_LABELS[incident.severity]} tone={SEVERITY_TONES[incident.severity]} />
             </button>
           ))}
         </div>

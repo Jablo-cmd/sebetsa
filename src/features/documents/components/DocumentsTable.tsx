@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import { documentService } from '@/features/documents/services/documentService';
 import type { EmployeeDocument } from '@/features/documents/types/document.types';
+import type { DocumentStatusEnum } from '@/lib/dbTypes';
 
 const STATUS_LABEL: Record<string, string> = {
   uploaded: 'Uploaded',
@@ -12,13 +14,13 @@ const STATUS_LABEL: Record<string, string> = {
   archived: 'Archived',
 };
 
-const STATUS_CLASSES: Record<string, string> = {
-  uploaded: 'bg-surface-sunken text-content-secondary',
-  pending_review: 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-200',
-  verified: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-200',
-  rejected: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
-  expired: 'bg-danger-50 text-danger-700 dark:bg-danger-500/15 dark:text-danger-200',
-  archived: 'bg-surface-sunken text-content-tertiary',
+const STATUS_TONES: Record<DocumentStatusEnum, StatusTone> = {
+  uploaded: 'neutral',
+  pending_review: 'warning',
+  verified: 'success',
+  rejected: 'danger',
+  expired: 'danger',
+  archived: 'neutral',
 };
 
 export interface DocumentsTableProps {
@@ -69,9 +71,7 @@ export function DocumentsTable({ documents, canVerify = false, onChanged }: Docu
               <td className="px-3 py-2.5 capitalize">{doc.documentType.replace('_', ' ')}</td>
               <td className="px-3 py-2.5">v{doc.version}</td>
               <td className="px-3 py-2.5">
-                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_CLASSES[doc.status] ?? ''}`}>
-                  {STATUS_LABEL[doc.status] ?? doc.status}
-                </span>
+                <StatusBadge label={STATUS_LABEL[doc.status] ?? doc.status} tone={STATUS_TONES[doc.status]} />
               </td>
               <td className="px-3 py-2.5">{doc.expiryDate ?? '—'}</td>
               <td className="px-3 py-2.5 text-right">

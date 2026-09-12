@@ -1,4 +1,5 @@
 import { TableScrollContainer } from '@/components/ui/TableScrollContainer';
+import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
 import { Link } from 'react-router-dom';
 import { canManageUser } from '@/features/users/utils/userPermissions';
 import type { UserRole } from '@/features/auth/types/auth.types';
@@ -12,10 +13,10 @@ export interface UsersTableProps {
   onDeactivate: (user: Profile) => void;
 }
 
-const STATUS_BADGE_CLASSES: Record<ProfileStatus, string> = {
-  active: 'bg-success-500/10 text-success-500',
-  inactive: 'bg-surface-sunken text-content-tertiary',
-  suspended: 'bg-danger-50 text-danger-600',
+const STATUS_TONES: Record<ProfileStatus, StatusTone> = {
+  active: 'success',
+  inactive: 'neutral',
+  suspended: 'danger',
 };
 
 export function UsersTable({ users, actorRole, onEdit, onChangeRole, onDeactivate }: UsersTableProps) {
@@ -64,11 +65,7 @@ export function UsersTable({ users, actorRole, onEdit, onChangeRole, onDeactivat
                   {user.role ? user.role.replace(/_/g, ' ') : '—'}
                 </td>
                 <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize ${STATUS_BADGE_CLASSES[user.status]}`}
-                  >
-                    {user.status}
-                  </span>
+                  <StatusBadge label={user.status} tone={STATUS_TONES[user.status]} />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex justify-end gap-1.5">

@@ -1,9 +1,9 @@
 {
-  "name": "funda360",
+  "name": "sebetsa",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Funda360 — Enterprise Multi-Tenant School Management Platform",
+  "description": "Sebetsa — Enterprise Multi-Tenant Workforce & Operations Platform",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
