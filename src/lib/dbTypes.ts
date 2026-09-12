@@ -121,6 +121,21 @@ export type IncidentAffectedEmployeeRow = TableRow<'incident_affected_employees'
 export type IncidentActionRow = TableRow<'incident_actions'>;
 export type IncidentActionStatusEnum = Database['public']['Enums']['incident_action_status'];
 
+export type AssetRow = TableRow<'assets'>;
+export type AssetStatusEnum = Database['public']['Enums']['asset_status'];
+
+export type AssetAssignmentRow = TableRow<'asset_assignments'>;
+export type AssetMaintenanceRecordRow = TableRow<'asset_maintenance_records'>;
+
+export type InventoryItemRow = TableRow<'inventory_items'>;
+export type InventoryItemInsert = TableInsert<'inventory_items'>;
+
+export type InventoryMovementRow = TableRow<'inventory_movements'>;
+export type InventoryMovementTypeEnum = Database['public']['Enums']['inventory_movement_type'];
+
+export type ProcurementRequestRow = TableRow<'procurement_requests'>;
+export type ProcurementStatusEnum = Database['public']['Enums']['procurement_status'];
+
 export type LeavePolicyRow = TableRow<'leave_policies'>;
 export type LeavePolicyInsert = TableInsert<'leave_policies'>;
 export type LeavePolicyUpdate = TableUpdate<'leave_policies'>;

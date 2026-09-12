@@ -125,6 +125,12 @@ const CompliancePage = named(
   () => import('@/features/compliance/pages/CompliancePage'),
   'CompliancePage',
 );
+const AssetsPage = named(() => import('@/features/assets/pages/AssetsPage'), 'AssetsPage');
+const InventoryPage = named(() => import('@/features/assets/pages/InventoryPage'), 'InventoryPage');
+const ProcurementPage = named(
+  () => import('@/features/assets/pages/ProcurementPage'),
+  'ProcurementPage',
+);
 const TeamLeavePage = named(() => import('@/features/leave/pages/TeamLeavePage'), 'TeamLeavePage');
 const LeaveManagementPage = named(
   () => import('@/features/leave/pages/LeaveManagementPage'),
@@ -280,6 +286,18 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="compliance.view" />}>
                 <Route path="/compliance" element={<CompliancePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="asset.view" />}>
+                <Route path="/assets" element={<AssetsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="inventory.view" />}>
+                <Route path="/inventory" element={<InventoryPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="procurement.view" />}>
+                <Route path="/procurement" element={<ProcurementPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="org_structure.view" />}>

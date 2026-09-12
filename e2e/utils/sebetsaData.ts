@@ -310,6 +310,62 @@ export function buildIncidentActionRow(overrides: Partial<Record<string, unknown
   };
 }
 
+export function buildAssetRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'asset-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    asset_number: 'AST-001',
+    name: 'Floor Buffer',
+    category: 'equipment',
+    serial_number: null,
+    site_id: 'site-1',
+    custodian_employee_id: null,
+    status: 'available',
+    condition: 'good',
+    acquisition_date: null,
+    acquisition_cost: null,
+    notes: null,
+    created_at: '2026-09-15T08:00:00Z',
+    updated_at: '2026-09-15T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildInventoryItemRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'item-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    sku: 'SKU-001',
+    name: 'Disinfectant 5L',
+    category: 'consumables',
+    unit: 'each',
+    reorder_threshold: 5,
+    is_active: true,
+    created_at: '2026-09-15T08:00:00Z',
+    updated_at: '2026-09-15T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildProcurementRequestRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'proc-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    requested_by: SEBETSA_USER_ID,
+    site_id: null,
+    item_description: 'Replacement mop heads',
+    quantity: 10,
+    estimated_cost: 150,
+    status: 'submitted',
+    approved_by: null,
+    approved_at: null,
+    rejected_reason: null,
+    created_at: '2026-09-15T08:00:00Z',
+    updated_at: '2026-09-15T08:00:00Z',
+    ...overrides,
+  };
+}
+
 /** Mocks a Storage upload (POST .../storage/v1/object/{bucket}/{path}) — storage-js expects {Id, Key} back. */
 export async function installStorageUploadMock(page: Page, bucket: string) {
   await page.route(`**/storage/v1/object/${bucket}/**`, async (route: Route) => {
@@ -345,6 +401,9 @@ export interface SebetsaMockState {
   employeeDocuments?: ReturnType<typeof buildEmployeeDocumentRow>[];
   incidents?: ReturnType<typeof buildIncidentRow>[];
   incidentActions?: ReturnType<typeof buildIncidentActionRow>[];
+  assets?: ReturnType<typeof buildAssetRow>[];
+  inventoryItems?: ReturnType<typeof buildInventoryItemRow>[];
+  procurementRequests?: ReturnType<typeof buildProcurementRequestRow>[];
   /** Called for any `rpc/<fnName>` POST not covered by the generic table handlers above — return true if handled. */
   onRpc?: (fnName: string, payload: Record<string, unknown>, route: Route) => Promise<boolean>;
 }
@@ -376,6 +435,9 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     employeeDocuments: [],
     incidents: [],
     incidentActions: [],
+    assets: [],
+    inventoryItems: [],
+    procurementRequests: [],
     ...initial,
   };
 
@@ -557,6 +619,22 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
 
     if (path.endsWith('/compliance_records')) {
       return fulfillJson(route, []);
+    }
+
+    if (path.endsWith('/assets')) {
+      return fulfillJson(route, state.assets ?? []);
+    }
+
+    if (path.endsWith('/inventory_items')) {
+      return fulfillJson(route, state.inventoryItems ?? []);
+    }
+
+    if (path.endsWith('/inventory_movements')) {
+      return fulfillJson(route, []);
+    }
+
+    if (path.endsWith('/procurement_requests')) {
+      return fulfillJson(route, state.procurementRequests ?? []);
     }
 
     if (path.includes('/rpc/')) {

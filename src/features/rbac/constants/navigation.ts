@@ -113,6 +113,14 @@ export const NAV_MODEL: NavGroupDef[] = [
     ],
   },
   {
+    label: 'Resources',
+    items: [
+      { label: 'Assets', path: '/assets', icon: BriefcaseIcon, permission: 'asset.view', end: true },
+      { label: 'Inventory', path: '/inventory', icon: LayersIcon, permission: 'inventory.view', end: true },
+      { label: 'Procurement', path: '/procurement', icon: ClipboardListIcon, permission: 'procurement.view', end: true },
+    ],
+  },
+  {
     label: 'Communication',
     items: [
       { label: 'Notifications', path: '/notifications', icon: ChatIcon, end: true },

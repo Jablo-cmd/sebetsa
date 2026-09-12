@@ -40,4 +40,10 @@ export type Permission =
   | 'incident.view'
   | 'incident.manage'
   | 'compliance.view'
-  | 'compliance.manage';
+  | 'compliance.manage'
+  | 'asset.view'
+  | 'asset.manage'
+  | 'inventory.view'
+  | 'inventory.manage'
+  | 'procurement.view'
+  | 'procurement.manage';

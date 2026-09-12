@@ -2472,6 +2472,312 @@ export type Database = {
           },
         ]
       }
+      assets: {
+        Row: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
+          asset_number: string
+          category: string
+          condition: string | null
+          created_at: string
+          custodian_employee_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          serial_number: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acquisition_cost?: number | null
+          acquisition_date?: string | null
+          asset_number: string
+          category: string
+          condition?: string | null
+          created_at?: string
+          custodian_employee_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acquisition_cost?: number | null
+          acquisition_date?: string | null
+          asset_number?: string
+          category?: string
+          condition?: string | null
+          created_at?: string
+          custodian_employee_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          assigned_to_employee_id: string | null
+          assigned_to_site_id: string | null
+          assigned_to_team_id: string | null
+          asset_id: string
+          condition_at_assignment: string | null
+          condition_at_return: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          returned_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assigned_to_employee_id?: string | null
+          assigned_to_site_id?: string | null
+          assigned_to_team_id?: string | null
+          asset_id: string
+          condition_at_assignment?: string | null
+          condition_at_return?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          returned_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          assigned_to_employee_id?: string | null
+          assigned_to_site_id?: string | null
+          assigned_to_team_id?: string | null
+          asset_id?: string
+          condition_at_assignment?: string | null
+          condition_at_return?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          returned_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_assignments_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_maintenance_records: {
+        Row: {
+          asset_id: string
+          cost: number | null
+          created_at: string
+          description: string
+          id: string
+          performed_at: string
+          performed_by: string | null
+          tenant_id: string
+        }
+        Insert: {
+          asset_id: string
+          cost?: number | null
+          created_at?: string
+          description: string
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          tenant_id: string
+        }
+        Update: {
+          asset_id?: string
+          cost?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_records_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          reorder_threshold: number | null
+          sku: string
+          tenant_id: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          reorder_threshold?: number | null
+          sku: string
+          tenant_id: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          reorder_threshold?: number | null
+          sku?: string
+          tenant_id?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          movement_type: Database["public"]["Enums"]["inventory_movement_type"]
+          performed_by: string | null
+          quantity: number
+          reference: string | null
+          site_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          movement_type: Database["public"]["Enums"]["inventory_movement_type"]
+          performed_by?: string | null
+          quantity: number
+          reference?: string | null
+          site_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          movement_type?: Database["public"]["Enums"]["inventory_movement_type"]
+          performed_by?: string | null
+          quantity?: number
+          reference?: string | null
+          site_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          item_description: string
+          quantity: number
+          rejected_reason: string | null
+          requested_by: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["procurement_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          item_description: string
+          quantity: number
+          rejected_reason?: string | null
+          requested_by?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["procurement_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          item_description?: string
+          quantity?: number
+          rejected_reason?: string | null
+          requested_by?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["procurement_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string
@@ -2749,6 +3055,71 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      assign_asset: {
+        Args: {
+          p_asset_id: string
+          p_assigned_to_employee_id?: string | null
+          p_assigned_to_team_id?: string | null
+          p_assigned_to_site_id?: string | null
+          p_condition?: string | null
+          p_reason?: string | null
+        }
+        Returns: Database["public"]["Tables"]["assets"]["Row"]
+      }
+      return_asset: {
+        Args: {
+          p_asset_id: string
+          p_condition_at_return?: string | null
+          p_new_status?: Database["public"]["Enums"]["asset_status"]
+        }
+        Returns: Database["public"]["Tables"]["assets"]["Row"]
+      }
+      transition_asset_status: {
+        Args: { p_asset_id: string; p_new_status: Database["public"]["Enums"]["asset_status"] }
+        Returns: Database["public"]["Tables"]["assets"]["Row"]
+      }
+      record_asset_maintenance: {
+        Args: {
+          p_asset_id: string
+          p_description: string
+          p_cost?: number | null
+          p_performed_at?: string
+        }
+        Returns: Database["public"]["Tables"]["asset_maintenance_records"]["Row"]
+      }
+      record_inventory_movement: {
+        Args: {
+          p_item_id: string
+          p_site_id: string
+          p_movement_type: Database["public"]["Enums"]["inventory_movement_type"]
+          p_quantity: number
+          p_reference?: string | null
+          p_allow_negative?: boolean
+        }
+        Returns: Database["public"]["Tables"]["inventory_movements"]["Row"]
+      }
+      get_inventory_balance: {
+        Args: { p_item_id: string; p_site_id: string }
+        Returns: number
+      }
+      submit_procurement_request: {
+        Args: {
+          p_tenant_id: string
+          p_item_description: string
+          p_quantity: number
+          p_site_id?: string | null
+          p_estimated_cost?: number | null
+        }
+        Returns: Database["public"]["Tables"]["procurement_requests"]["Row"]
+      }
+      decide_procurement_request: {
+        Args: { p_request_id: string; p_approve: boolean; p_rejected_reason?: string | null }
+        Returns: Database["public"]["Tables"]["procurement_requests"]["Row"]
+      }
+      advance_procurement_request: {
+        Args: { p_request_id: string; p_new_status: Database["public"]["Enums"]["procurement_status"] }
+        Returns: Database["public"]["Tables"]["procurement_requests"]["Row"]
       }
       report_incident: {
         Args: {
@@ -3421,6 +3792,14 @@ export type Database = {
         | "excused"
         | "unconfirmed"
       attendance_correction_field: "clock_in_at" | "clock_out_at" | "status"
+      asset_status:
+        | "available"
+        | "assigned"
+        | "maintenance"
+        | "lost"
+        | "damaged"
+        | "retired"
+        | "disposed"
       attendance_correction_status: "pending" | "approved" | "rejected"
       compliance_status:
         | "pending"
@@ -3458,6 +3837,13 @@ export type Database = {
         | "security"
         | "operational_other"
       incident_severity: "low" | "medium" | "high" | "critical"
+      inventory_movement_type:
+        | "receipt"
+        | "issue"
+        | "transfer_in"
+        | "transfer_out"
+        | "adjustment"
+        | "return"
       incident_status:
         | "reported"
         | "acknowledged"
@@ -3468,6 +3854,15 @@ export type Database = {
       leave_status: "pending" | "approved" | "rejected" | "cancelled" | "revoked"
       notification_email_status: "not_sent" | "sent" | "failed"
       organization_status: "pending" | "active" | "inactive" | "suspended"
+      procurement_status:
+        | "requested"
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "ordered"
+        | "received"
+        | "completed"
+        | "cancelled"
       profile_status: "active" | "inactive" | "suspended"
       shift_status: "scheduled" | "confirmed" | "cancelled" | "completed"
       task_evidence_kind: "note" | "confirmation"
