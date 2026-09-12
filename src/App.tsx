@@ -10,7 +10,7 @@ const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 
 export function App() {
   return (
-    <BrowserRouter basename={routerBasename}>
+    <BrowserRouter basename={routerBasename} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastProvider>
         <AuthProvider>
           <ProfileProvider>
