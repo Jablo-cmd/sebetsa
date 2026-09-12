@@ -1786,15 +1786,18 @@ export type Database = {
         Row: {
           assignee_id: string | null
           completed_at: string | null
+          completed_by: string | null
           created_at: string
           created_by: string | null
           description: string | null
           due_at: string | null
           id: string
           priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
           site_id: string
           status: Database["public"]["Enums"]["task_status"]
           supervisor_id: string | null
+          team_id: string | null
           tenant_id: string
           title: string
           updated_at: string
@@ -1802,15 +1805,18 @@ export type Database = {
         Insert: {
           assignee_id?: string | null
           completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           due_at?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          requires_evidence?: boolean
           site_id: string
           status?: Database["public"]["Enums"]["task_status"]
           supervisor_id?: string | null
+          team_id?: string | null
           tenant_id: string
           title: string
           updated_at?: string
@@ -1818,15 +1824,18 @@ export type Database = {
         Update: {
           assignee_id?: string | null
           completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           due_at?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          requires_evidence?: boolean
           site_id?: string
           status?: Database["public"]["Enums"]["task_status"]
           supervisor_id?: string | null
+          team_id?: string | null
           tenant_id?: string
           title?: string
           updated_at?: string
@@ -1861,7 +1870,185 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_checklist_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          label: string
+          notes: string | null
+          sort_order: number
+          task_id: string
+          tenant_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          label: string
+          notes?: string | null
+          sort_order?: number
+          task_id: string
+          tenant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          label?: string
+          notes?: string | null
+          sort_order?: number
+          task_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_checklist_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_checklist_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_evidence: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["task_evidence_kind"]
+          note: string | null
+          submitted_by: string | null
+          task_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["task_evidence_kind"]
+          note?: string | null
+          submitted_by?: string | null
+          task_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["task_evidence_kind"]
+          note?: string | null
+          submitted_by?: string | null
+          task_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_evidence_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_evidence_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_templates: {
+        Row: {
+          created_at: string
+          default_assignee_id: string | null
+          default_team_id: string | null
+          description: string | null
+          expected_duration_minutes: number | null
+          id: string
+          instructions: string | null
+          last_generated_on: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          recurrence_frequency: string | null
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_assignee_id?: string | null
+          default_team_id?: string | null
+          description?: string | null
+          expected_duration_minutes?: number | null
+          id?: string
+          instructions?: string | null
+          last_generated_on?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence_frequency?: string | null
+          requires_evidence?: boolean
+          site_id: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_assignee_id?: string | null
+          default_team_id?: string | null
+          description?: string | null
+          expected_duration_minutes?: number | null
+          id?: string
+          instructions?: string | null
+          last_generated_on?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence_frequency?: string | null
+          requires_evidence?: boolean
+          site_id?: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_templates_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_templates_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2189,6 +2376,121 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      complete_task: {
+        Args: { p_task_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: true; isSetofReturn: false }
+      }
+      verify_task: {
+        Args: { p_task_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: true; isSetofReturn: false }
+      }
+      reassign_task: {
+        Args: { p_new_assignee_id: string; p_reason?: string; p_task_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: true; isSetofReturn: false }
+      }
+      generate_recurring_tasks: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: false; isSetofReturn: true }
+      }
+      escalate_overdue_tasks: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: false; isSetofReturn: true }
       }
       can_approve_leave: {
         Args: { target_tenant_id: string }
@@ -2583,6 +2885,7 @@ export type Database = {
       organization_status: "pending" | "active" | "inactive" | "suspended"
       profile_status: "active" | "inactive" | "suspended"
       shift_status: "scheduled" | "confirmed" | "cancelled" | "completed"
+      task_evidence_kind: "note" | "confirmation"
       task_priority: "low" | "normal" | "high" | "urgent"
       task_status:
         | "open"
@@ -2590,6 +2893,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "escalated"
+        | "verified"
       user_role:
         | "platform_administrator"
         | "organization_administrator"
@@ -2748,6 +3052,7 @@ export const Constants = {
       organization_status: ["pending", "active", "inactive", "suspended"],
       profile_status: ["active", "inactive", "suspended"],
       shift_status: ["scheduled", "confirmed", "cancelled", "completed"],
+      task_evidence_kind: ["note", "confirmation"],
       task_priority: ["low", "normal", "high", "urgent"],
       task_status: [
         "open",
@@ -2755,6 +3060,7 @@ export const Constants = {
         "completed",
         "cancelled",
         "escalated",
+        "verified",
       ],
       user_role: [
         "platform_administrator",

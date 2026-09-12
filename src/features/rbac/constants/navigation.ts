@@ -99,6 +99,8 @@ export const NAV_MODEL: NavGroupDef[] = [
       },
       { label: 'Leave Management', path: '/leave/management', icon: ClipboardListIcon, permission: 'leave.approve' },
       { label: 'Leave Configuration', path: '/leave/configuration', icon: GearIcon, permission: 'leave.manage' },
+      { label: 'My Tasks', path: '/tasks', icon: ClipboardListIcon, permission: 'task.view', end: true },
+      { label: 'Task Management', path: '/tasks/management', icon: ClipboardListIcon, permission: 'task.manage' },
     ],
   },
   {

@@ -88,6 +88,18 @@ export type TaskRow = TableRow<'tasks'>;
 export type TaskInsert = TableInsert<'tasks'>;
 export type TaskUpdate = TableUpdate<'tasks'>;
 export type TaskCommentRow = TableRow<'task_comments'>;
+export type TaskStatusEnum = Database['public']['Enums']['task_status'];
+export type TaskPriorityEnum = Database['public']['Enums']['task_priority'];
+
+export type TaskChecklistItemRow = TableRow<'task_checklist_items'>;
+export type TaskChecklistItemInsert = TableInsert<'task_checklist_items'>;
+
+export type TaskEvidenceRow = TableRow<'task_evidence'>;
+export type TaskEvidenceInsert = TableInsert<'task_evidence'>;
+
+export type TaskTemplateRow = TableRow<'task_templates'>;
+export type TaskTemplateInsert = TableInsert<'task_templates'>;
+export type TaskTemplateUpdate = TableUpdate<'task_templates'>;
 
 export type LeaveTypeRow = TableRow<'leave_types'>;
 export type LeaveTypeInsert = TableInsert<'leave_types'>;

@@ -206,6 +206,45 @@ export function buildAttendanceCorrectionRow(overrides: Partial<Record<string, u
   };
 }
 
+export function buildTaskRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'task-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    site_id: 'site-1',
+    assignee_id: 'employee-1',
+    team_id: null,
+    supervisor_id: null,
+    title: 'Inspect fire extinguishers',
+    description: 'Check pressure and expiry on all site extinguishers.',
+    priority: 'normal',
+    status: 'open',
+    due_at: null,
+    completed_at: null,
+    completed_by: null,
+    requires_evidence: false,
+    created_by: null,
+    created_at: '2026-09-12T08:00:00Z',
+    updated_at: '2026-09-12T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildTaskChecklistItemRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'checklist-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    task_id: 'task-1',
+    label: 'Check pressure gauges',
+    sort_order: 1,
+    is_completed: false,
+    completed_by: null,
+    completed_at: null,
+    notes: null,
+    created_at: '2026-09-12T08:00:00Z',
+    ...overrides,
+  };
+}
+
 export interface SebetsaMockState {
   organization?: ReturnType<typeof buildOrganizationRow> | null;
   profile?: ReturnType<typeof buildProfileRow> | null;
@@ -219,6 +258,9 @@ export interface SebetsaMockState {
   attendanceRecords?: ReturnType<typeof buildAttendanceRecordRow>[];
   attendanceBreaks?: Record<string, unknown>[];
   attendanceCorrections?: ReturnType<typeof buildAttendanceCorrectionRow>[];
+  tasks?: ReturnType<typeof buildTaskRow>[];
+  taskChecklistItems?: ReturnType<typeof buildTaskChecklistItemRow>[];
+  taskEvidence?: Record<string, unknown>[];
   /** Called for any `rpc/<fnName>` POST not covered by the generic table handlers above — return true if handled. */
   onRpc?: (fnName: string, payload: Record<string, unknown>, route: Route) => Promise<boolean>;
 }
@@ -244,6 +286,9 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     attendanceRecords: [],
     attendanceBreaks: [],
     attendanceCorrections: [],
+    tasks: [],
+    taskChecklistItems: [],
+    taskEvidence: [],
     ...initial,
   };
 
@@ -353,6 +398,35 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
 
     if (path.endsWith('/attendance_policies')) {
       return fulfillJson(route, null);
+    }
+
+    if (path.endsWith('/tasks')) {
+      let rows = state.tasks ?? [];
+      const assigneeFilter = url.searchParams.get('assignee_id');
+      if (assigneeFilter?.startsWith('eq.')) {
+        rows = rows.filter((row) => (row as { assignee_id: string }).assignee_id === assigneeFilter.slice(3));
+      }
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/task_checklist_items')) {
+      const rows = state.taskChecklistItems ?? [];
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/task_evidence')) {
+      if (method === 'POST') {
+        let payload: Record<string, unknown> = {};
+        try {
+          payload = JSON.parse(route.request().postData() ?? '{}');
+        } catch {
+          payload = {};
+        }
+        const created = { id: `evidence-${(state.taskEvidence?.length ?? 0) + 1}`, tenant_id: SEBETSA_TENANT_ID, submitted_by: SEBETSA_USER_ID, created_at: new Date().toISOString(), ...payload };
+        state.taskEvidence = [created, ...(state.taskEvidence ?? [])];
+        return fulfillJson(route, created);
+      }
+      return fulfillJson(route, state.taskEvidence ?? []);
     }
 
     if (path.endsWith('/notifications')) {
