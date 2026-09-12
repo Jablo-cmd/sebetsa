@@ -77,6 +77,8 @@ export const NAV_MODEL: NavGroupDef[] = [
       { label: 'Shift Definitions', path: '/schedule/definitions', icon: ClipboardListIcon, permission: 'scheduling.manage' },
       { label: 'Availability', path: '/schedule/availability', icon: CheckIcon, permission: 'availability.view' },
       { label: 'Attendance', path: '/attendance', icon: CheckIcon, permission: 'attendance.view' },
+      { label: 'My Attendance', path: '/attendance/mine', icon: CheckIcon, permission: 'attendance.view', end: true },
+      { label: 'Attendance Corrections', path: '/attendance/corrections', icon: ClipboardListIcon, permission: 'attendance.manage' },
       { label: 'My Leave', path: '/leave', icon: CalendarIcon, permission: 'leave.view', end: true },
       {
         label: 'Team Leave',

@@ -78,6 +78,14 @@ const AttendancePage = named(
   () => import('@/features/attendance/pages/AttendancePage'),
   'AttendancePage',
 );
+const MyAttendancePage = named(
+  () => import('@/features/attendance/pages/MyAttendancePage'),
+  'MyAttendancePage',
+);
+const AttendanceCorrectionsPage = named(
+  () => import('@/features/attendance/pages/AttendanceCorrectionsPage'),
+  'AttendanceCorrectionsPage',
+);
 const SchedulePage = named(() => import('@/features/scheduling/pages/SchedulePage'), 'SchedulePage');
 const MySchedulePage = named(
   () => import('@/features/scheduling/pages/MySchedulePage'),
@@ -204,6 +212,11 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="attendance.view" />}>
                 <Route path="/attendance" element={<AttendancePage />} />
+                <Route path="/attendance/mine" element={<MyAttendancePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="attendance.manage" />}>
+                <Route path="/attendance/corrections" element={<AttendanceCorrectionsPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="leave.view" />}>

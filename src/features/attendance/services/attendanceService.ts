@@ -1,11 +1,15 @@
 import { supabase } from '@/lib/supabase';
 import { fetchAllRows } from '@/lib/pagination';
-import type { AttendanceRecordRow, AttendanceRecordInsert } from '@/lib/dbTypes';
+import type { AttendanceRecordRow, AttendanceRecordInsert, AttendanceBreakRow, AttendanceCorrectionRow, AttendancePolicyRow } from '@/lib/dbTypes';
 import type {
   AttendanceRecord,
   AttendanceEntry,
   AttendanceStatusCounts,
   RosterEmployee,
+  AttendanceBreak,
+  AttendanceCorrection,
+  AttendanceCorrectionField,
+  AttendancePolicy,
 } from '@/features/attendance/types/attendance.types';
 import { tallyStatusCounts } from '@/features/attendance/utils/calculations';
 
@@ -19,10 +23,161 @@ function toAttendanceRecord(row: AttendanceRecordRow): AttendanceRecord {
     status: row.status,
     clockInAt: row.clock_in_at,
     clockOutAt: row.clock_out_at,
+    lateMinutes: row.late_minutes,
+    earlyDepartureMinutes: row.early_departure_minutes,
+    workedMinutes: row.worked_minutes,
+    overtimeMinutes: row.overtime_minutes,
     notes: row.notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function toAttendanceBreak(row: AttendanceBreakRow): AttendanceBreak {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    attendanceRecordId: row.attendance_record_id,
+    breakStart: row.break_start,
+    breakEnd: row.break_end,
+  };
+}
+
+function toAttendanceCorrection(row: AttendanceCorrectionRow): AttendanceCorrection {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    attendanceRecordId: row.attendance_record_id,
+    field: row.field,
+    previousValue: row.previous_value,
+    newValue: row.new_value,
+    reason: row.reason,
+    status: row.status,
+    requestedBy: row.requested_by,
+    reviewedBy: row.reviewed_by,
+    reviewedAt: row.reviewed_at,
+    reviewNotes: row.review_notes,
+    createdAt: row.created_at,
+  };
+}
+
+function toAttendancePolicy(row: AttendancePolicyRow): AttendancePolicy {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    gracePeriodMinutes: row.grace_period_minutes,
+    earlyDepartureThresholdMinutes: row.early_departure_threshold_minutes,
+    overtimeThresholdMinutes: row.overtime_threshold_minutes,
+  };
+}
+
+/** The caller's own open (clocked-in, not clocked-out) attendance record, if any. */
+async function getOpenAttendanceForEmployee(employeeId: string): Promise<AttendanceRecord | null> {
+  const { data, error } = await supabase
+    .from('attendance_records')
+    .select('*')
+    .eq('employee_id', employeeId)
+    .not('clock_in_at', 'is', null)
+    .is('clock_out_at', null)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toAttendanceRecord(data) : null;
+}
+
+async function clockIn(employeeId: string, siteId: string, shiftId?: string): Promise<AttendanceRecord> {
+  const { data, error } = await supabase.rpc('clock_in', { p_employee_id: employeeId, p_site_id: siteId, p_shift_id: shiftId });
+  if (error) throw error;
+  return toAttendanceRecord(data);
+}
+
+async function clockOut(attendanceRecordId: string): Promise<AttendanceRecord> {
+  const { data, error } = await supabase.rpc('clock_out', { p_attendance_record_id: attendanceRecordId });
+  if (error) throw error;
+  return toAttendanceRecord(data);
+}
+
+async function startBreak(attendanceRecordId: string): Promise<AttendanceBreak> {
+  const { data, error } = await supabase.rpc('start_break', { p_attendance_record_id: attendanceRecordId });
+  if (error) throw error;
+  return toAttendanceBreak(data);
+}
+
+async function endBreak(attendanceRecordId: string): Promise<AttendanceBreak> {
+  const { data, error } = await supabase.rpc('end_break', { p_attendance_record_id: attendanceRecordId });
+  if (error) throw error;
+  return toAttendanceBreak(data);
+}
+
+async function getOpenBreak(attendanceRecordId: string): Promise<AttendanceBreak | null> {
+  const { data, error } = await supabase
+    .from('attendance_breaks')
+    .select('*')
+    .eq('attendance_record_id', attendanceRecordId)
+    .is('break_end', null)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toAttendanceBreak(data) : null;
+}
+
+async function requestCorrection(
+  attendanceRecordId: string,
+  field: AttendanceCorrectionField,
+  newValue: string,
+  reason: string,
+): Promise<AttendanceCorrection> {
+  const { data, error } = await supabase.rpc('request_attendance_correction', {
+    p_attendance_record_id: attendanceRecordId,
+    p_field: field,
+    p_new_value: newValue,
+    p_reason: reason,
+  });
+  if (error) throw error;
+  return toAttendanceCorrection(data);
+}
+
+async function decideCorrection(correctionId: string, approve: boolean, reviewNotes?: string): Promise<AttendanceCorrection> {
+  const { data, error } = await supabase.rpc('decide_attendance_correction', {
+    p_correction_id: correctionId,
+    p_approve: approve,
+    p_review_notes: reviewNotes,
+  });
+  if (error) throw error;
+  return toAttendanceCorrection(data);
+}
+
+async function getCorrections(tenantId: string, status?: AttendanceCorrection['status']): Promise<AttendanceCorrection[]> {
+  let query = supabase.from('attendance_corrections').select('*').eq('tenant_id', tenantId);
+  if (status) query = query.eq('status', status);
+  const { data, error } = await query.order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(toAttendanceCorrection);
+}
+
+async function getPolicy(tenantId: string): Promise<AttendancePolicy | null> {
+  const { data, error } = await supabase.from('attendance_policies').select('*').eq('tenant_id', tenantId).maybeSingle();
+  if (error) throw error;
+  return data ? toAttendancePolicy(data) : null;
+}
+
+async function upsertPolicy(
+  tenantId: string,
+  input: { gracePeriodMinutes: number; earlyDepartureThresholdMinutes: number; overtimeThresholdMinutes: number },
+): Promise<AttendancePolicy> {
+  const { data, error } = await supabase
+    .from('attendance_policies')
+    .upsert(
+      {
+        tenant_id: tenantId,
+        grace_period_minutes: input.gracePeriodMinutes,
+        early_departure_threshold_minutes: input.earlyDepartureThresholdMinutes,
+        overtime_threshold_minutes: input.overtimeThresholdMinutes,
+      },
+      { onConflict: 'tenant_id' },
+    )
+    .select('*')
+    .single();
+  if (error) throw error;
+  return toAttendancePolicy(data);
 }
 
 /** Employees assigned to a site (via site_assignments) — the roster a supervisor marks attendance against. */
@@ -134,4 +289,15 @@ export const attendanceService = {
   getSiteAttendanceSummary,
   getAttendanceInRange,
   getAttendanceForEmployee,
+  getOpenAttendanceForEmployee,
+  clockIn,
+  clockOut,
+  startBreak,
+  endBreak,
+  getOpenBreak,
+  requestCorrection,
+  decideCorrection,
+  getCorrections,
+  getPolicy,
+  upsertPolicy,
 };

@@ -39,43 +39,55 @@ export type Database = {
           clock_in_at: string | null
           clock_out_at: string | null
           created_at: string
+          early_departure_minutes: number | null
           employee_id: string
           id: string
+          late_minutes: number | null
           notes: string | null
+          overtime_minutes: number | null
           recorded_by: string | null
           shift_id: string | null
           site_id: string
           status: Database["public"]["Enums"]["attendance_status"]
           tenant_id: string
           updated_at: string
+          worked_minutes: number | null
         }
         Insert: {
           clock_in_at?: string | null
           clock_out_at?: string | null
           created_at?: string
+          early_departure_minutes?: number | null
           employee_id: string
           id?: string
+          late_minutes?: number | null
           notes?: string | null
+          overtime_minutes?: number | null
           recorded_by?: string | null
           shift_id?: string | null
           site_id: string
           status?: Database["public"]["Enums"]["attendance_status"]
           tenant_id: string
           updated_at?: string
+          worked_minutes?: number | null
         }
         Update: {
           clock_in_at?: string | null
           clock_out_at?: string | null
           created_at?: string
+          early_departure_minutes?: number | null
           employee_id?: string
           id?: string
+          late_minutes?: number | null
           notes?: string | null
+          overtime_minutes?: number | null
           recorded_by?: string | null
           shift_id?: string | null
           site_id?: string
           status?: Database["public"]["Enums"]["attendance_status"]
           tenant_id?: string
           updated_at?: string
+          worked_minutes?: number | null
         }
         Relationships: [
           {
@@ -108,6 +120,166 @@ export type Database = {
           },
           {
             foreignKeyName: "attendance_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_policies: {
+        Row: {
+          created_at: string
+          early_departure_threshold_minutes: number
+          grace_period_minutes: number
+          id: string
+          overtime_threshold_minutes: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          early_departure_threshold_minutes?: number
+          grace_period_minutes?: number
+          id?: string
+          overtime_threshold_minutes?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          early_departure_threshold_minutes?: number
+          grace_period_minutes?: number
+          id?: string
+          overtime_threshold_minutes?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_policies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_breaks: {
+        Row: {
+          attendance_record_id: string
+          break_end: string | null
+          break_start: string
+          created_at: string
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          attendance_record_id: string
+          break_end?: string | null
+          break_start?: string
+          created_at?: string
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          attendance_record_id?: string
+          break_end?: string | null
+          break_start?: string
+          created_at?: string
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_breaks_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_breaks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_corrections: {
+        Row: {
+          attendance_record_id: string
+          created_at: string
+          field: Database["public"]["Enums"]["attendance_correction_field"]
+          id: string
+          new_value: string
+          previous_value: string | null
+          reason: string
+          requested_by: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_record_id: string
+          created_at?: string
+          field: Database["public"]["Enums"]["attendance_correction_field"]
+          id?: string
+          new_value: string
+          previous_value?: string | null
+          reason: string
+          requested_by?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_record_id?: string
+          created_at?: string
+          field?: Database["public"]["Enums"]["attendance_correction_field"]
+          id?: string
+          new_value?: string
+          previous_value?: string | null
+          reason?: string
+          requested_by?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_corrections_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1799,6 +1971,180 @@ export type Database = {
         Args: { target_tenant_id: string }
         Returns: boolean
       }
+      compute_attendance_metrics: {
+        Args: { p_attendance_record_id: string }
+        Returns: {
+          clock_in_at: string | null
+          clock_out_at: string | null
+          created_at: string
+          early_departure_minutes: number | null
+          employee_id: string
+          id: string
+          late_minutes: number | null
+          notes: string | null
+          overtime_minutes: number | null
+          recorded_by: string | null
+          shift_id: string | null
+          site_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          tenant_id: string
+          updated_at: string
+          worked_minutes: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clock_in: {
+        Args: { p_employee_id: string; p_shift_id?: string; p_site_id: string }
+        Returns: {
+          clock_in_at: string | null
+          clock_out_at: string | null
+          created_at: string
+          early_departure_minutes: number | null
+          employee_id: string
+          id: string
+          late_minutes: number | null
+          notes: string | null
+          overtime_minutes: number | null
+          recorded_by: string | null
+          shift_id: string | null
+          site_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          tenant_id: string
+          updated_at: string
+          worked_minutes: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      clock_out: {
+        Args: { p_attendance_record_id: string }
+        Returns: {
+          clock_in_at: string | null
+          clock_out_at: string | null
+          created_at: string
+          early_departure_minutes: number | null
+          employee_id: string
+          id: string
+          late_minutes: number | null
+          notes: string | null
+          overtime_minutes: number | null
+          recorded_by: string | null
+          shift_id: string | null
+          site_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          tenant_id: string
+          updated_at: string
+          worked_minutes: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      start_break: {
+        Args: { p_attendance_record_id: string }
+        Returns: {
+          attendance_record_id: string
+          break_end: string | null
+          break_start: string
+          created_at: string
+          id: string
+          tenant_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_breaks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      end_break: {
+        Args: { p_attendance_record_id: string }
+        Returns: {
+          attendance_record_id: string
+          break_end: string | null
+          break_start: string
+          created_at: string
+          id: string
+          tenant_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_breaks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      request_attendance_correction: {
+        Args: {
+          p_attendance_record_id: string
+          p_field: Database["public"]["Enums"]["attendance_correction_field"]
+          p_new_value: string
+          p_reason: string
+        }
+        Returns: {
+          attendance_record_id: string
+          created_at: string
+          field: Database["public"]["Enums"]["attendance_correction_field"]
+          id: string
+          new_value: string
+          previous_value: string | null
+          reason: string
+          requested_by: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_corrections"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      decide_attendance_correction: {
+        Args: {
+          p_approve: boolean
+          p_correction_id: string
+          p_review_notes?: string
+        }
+        Returns: {
+          attendance_record_id: string
+          created_at: string
+          field: Database["public"]["Enums"]["attendance_correction_field"]
+          id: string
+          new_value: string
+          previous_value: string | null
+          reason: string
+          requested_by: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_corrections"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       can_approve_leave: {
         Args: { target_tenant_id: string }
         Returns: boolean
@@ -2181,6 +2527,8 @@ export type Database = {
         | "absent"
         | "excused"
         | "unconfirmed"
+      attendance_correction_field: "clock_in_at" | "clock_out_at" | "status"
+      attendance_correction_status: "pending" | "approved" | "rejected"
       contract_status: "draft" | "active" | "expired" | "terminated"
       employment_status: "active" | "on_leave" | "suspended" | "terminated"
       employment_type: "full_time" | "part_time" | "contract" | "temporary"
@@ -2344,6 +2692,8 @@ export const Constants = {
         "excused",
         "unconfirmed",
       ],
+      attendance_correction_field: ["clock_in_at", "clock_out_at", "status"],
+      attendance_correction_status: ["pending", "approved", "rejected"],
       contract_status: ["draft", "active", "expired", "terminated"],
       employment_status: ["active", "on_leave", "suspended", "terminated"],
       employment_type: ["full_time", "part_time", "contract", "temporary"],

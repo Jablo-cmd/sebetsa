@@ -141,6 +141,71 @@ export function buildLeaveBalanceRow(overrides: Partial<Record<string, unknown>>
   };
 }
 
+export function buildShiftRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(8, 0, 0, 0);
+  const end = new Date(now);
+  end.setHours(17, 0, 0, 0);
+  return {
+    id: 'shift-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    site_id: 'site-1',
+    employee_id: 'employee-1',
+    supervisor_id: null,
+    shift_definition_id: null,
+    starts_at: start.toISOString(),
+    ends_at: end.toISOString(),
+    status: 'scheduled',
+    notes: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildAttendanceRecordRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'attendance-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    shift_id: 'shift-1',
+    site_id: 'site-1',
+    employee_id: 'employee-1',
+    status: 'unconfirmed',
+    clock_in_at: null,
+    clock_out_at: null,
+    late_minutes: null,
+    early_departure_minutes: null,
+    worked_minutes: null,
+    overtime_minutes: null,
+    recorded_by: null,
+    notes: null,
+    created_at: '2026-09-12T08:00:00Z',
+    updated_at: '2026-09-12T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildAttendanceCorrectionRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'correction-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    attendance_record_id: 'attendance-1',
+    field: 'clock_in_at',
+    previous_value: '2026-09-12T08:15:00Z',
+    new_value: '2026-09-12T08:00:00Z',
+    reason: 'Forgot to clock in on time',
+    status: 'pending',
+    requested_by: SEBETSA_USER_ID,
+    reviewed_by: null,
+    reviewed_at: null,
+    review_notes: null,
+    created_at: '2026-09-12T08:20:00Z',
+    updated_at: '2026-09-12T08:20:00Z',
+    ...overrides,
+  };
+}
+
 export interface SebetsaMockState {
   organization?: ReturnType<typeof buildOrganizationRow> | null;
   profile?: ReturnType<typeof buildProfileRow> | null;
@@ -150,6 +215,10 @@ export interface SebetsaMockState {
   leaveBalances?: ReturnType<typeof buildLeaveBalanceRow>[];
   affectedShifts?: unknown[];
   notifications?: unknown[];
+  shifts?: ReturnType<typeof buildShiftRow>[];
+  attendanceRecords?: ReturnType<typeof buildAttendanceRecordRow>[];
+  attendanceBreaks?: Record<string, unknown>[];
+  attendanceCorrections?: ReturnType<typeof buildAttendanceCorrectionRow>[];
   /** Called for any `rpc/<fnName>` POST not covered by the generic table handlers above — return true if handled. */
   onRpc?: (fnName: string, payload: Record<string, unknown>, route: Route) => Promise<boolean>;
 }
@@ -171,6 +240,10 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     leaveBalances: [buildLeaveBalanceRow()],
     affectedShifts: [],
     notifications: [],
+    shifts: [],
+    attendanceRecords: [],
+    attendanceBreaks: [],
+    attendanceCorrections: [],
     ...initial,
   };
 
@@ -228,6 +301,58 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
 
     if (path.endsWith('/leave_balance_transactions')) {
       return fulfillJson(route, []);
+    }
+
+    if (path.endsWith('/shifts')) {
+      return fulfillJson(route, state.shifts ?? []);
+    }
+
+    if (path.endsWith('/attendance_records')) {
+      let rows = state.attendanceRecords ?? [];
+      const employeeFilter = url.searchParams.get('employee_id');
+      if (employeeFilter?.startsWith('eq.')) {
+        rows = rows.filter((row) => (row as { employee_id: string }).employee_id === employeeFilter.slice(3));
+      }
+      const clockOutIsNull = url.searchParams.get('clock_out_at') === 'is.null';
+      if (clockOutIsNull) {
+        rows = rows.filter((row) => (row as { clock_out_at: string | null }).clock_out_at === null);
+      }
+      // .maybeSingle() callers (getOpenAttendanceForEmployee) expect a
+      // single object or null, not an array — mirror PostgREST's
+      // Accept: single-object header behavior used by supabase-js.
+      if (route.request().headers()['accept']?.includes('vnd.pgrst.object')) {
+        return fulfillJson(route, rows[0] ?? null);
+      }
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/attendance_breaks')) {
+      let rows = state.attendanceBreaks ?? [];
+      const attendanceIdFilter = url.searchParams.get('attendance_record_id');
+      if (attendanceIdFilter?.startsWith('eq.')) {
+        rows = rows.filter((row) => (row as { attendance_record_id: string }).attendance_record_id === attendanceIdFilter.slice(3));
+      }
+      const breakEndIsNull = url.searchParams.get('break_end') === 'is.null';
+      if (breakEndIsNull) {
+        rows = rows.filter((row) => (row as { break_end: string | null }).break_end === null);
+      }
+      if (route.request().headers()['accept']?.includes('vnd.pgrst.object')) {
+        return fulfillJson(route, rows[0] ?? null);
+      }
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/attendance_corrections')) {
+      let rows = state.attendanceCorrections ?? [];
+      const statusFilter = url.searchParams.get('status');
+      if (statusFilter?.startsWith('eq.')) {
+        rows = rows.filter((row) => (row as { status: string }).status === statusFilter.slice(3));
+      }
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/attendance_policies')) {
+      return fulfillJson(route, null);
     }
 
     if (path.endsWith('/notifications')) {

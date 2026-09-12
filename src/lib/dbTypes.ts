@@ -103,6 +103,16 @@ export type LeaveBalanceTransactionRow = TableRow<'leave_balance_transactions'>;
 
 export type LeaveStatusEnum = Database['public']['Enums']['leave_status'];
 
+export type AttendancePolicyRow = TableRow<'attendance_policies'>;
+export type AttendancePolicyInsert = TableInsert<'attendance_policies'>;
+export type AttendancePolicyUpdate = TableUpdate<'attendance_policies'>;
+
+export type AttendanceBreakRow = TableRow<'attendance_breaks'>;
+
+export type AttendanceCorrectionRow = TableRow<'attendance_corrections'>;
+export type AttendanceCorrectionFieldEnum = Database['public']['Enums']['attendance_correction_field'];
+export type AttendanceCorrectionStatusEnum = Database['public']['Enums']['attendance_correction_status'];
+
 export type NotificationRow = TableRow<'notifications'>;
 export type AuditLogRow = TableRow<'audit_log'>;
 
