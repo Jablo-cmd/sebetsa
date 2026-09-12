@@ -6,6 +6,7 @@ import {
   BriefcaseIcon,
   BuildingIcon,
   CalendarIcon,
+  ChartIcon,
   CheckIcon,
   ChatIcon,
   ClipboardListIcon,
@@ -127,6 +128,10 @@ export const NAV_MODEL: NavGroupDef[] = [
       { label: 'My Development', path: '/development', icon: GraduationCapIcon, permission: 'development.view', end: true },
       { label: 'Workforce Development', path: '/development/manage', icon: GraduationCapIcon, permission: 'development.manage', end: true },
     ],
+  },
+  {
+    label: 'Insights',
+    items: [{ label: 'Reports', path: '/reports', icon: ChartIcon, permission: 'reports.view', end: true }],
   },
   {
     label: 'Communication',

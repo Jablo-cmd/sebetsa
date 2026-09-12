@@ -3508,6 +3508,26 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_operational_metrics: {
+        Args: { p_tenant_id: string; p_period_start: string; p_period_end: string }
+        Returns: {
+          active_employee_count: number
+          attendance_rate_pct: number
+          late_attendance_count: number
+          pending_leave_requests: number
+          approved_leave_days: number
+          task_completion_rate_pct: number
+          overdue_task_count: number
+          open_incident_count: number
+          critical_incident_count: number
+          active_asset_count: number
+          assets_in_maintenance_count: number
+          active_contract_count: number
+          contracts_expiring_count: number
+          qualifications_expiring_count: number
+          trainings_completed_count: number
+        }[]
+      }
       set_employee_skill: {
         Args: { p_employee_id: string; p_skill_id: string; p_proficiency_level: Database["public"]["Enums"]["proficiency_level"] }
         Returns: Database["public"]["Tables"]["employee_skills"]["Row"]

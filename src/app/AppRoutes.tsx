@@ -139,6 +139,7 @@ const WorkforceDevelopmentPage = named(
   () => import('@/features/workforceDevelopment/pages/WorkforceDevelopmentPage'),
   'WorkforceDevelopmentPage',
 );
+const ReportsPage = named(() => import('@/features/reports/pages/ReportsPage'), 'ReportsPage');
 const TeamLeavePage = named(() => import('@/features/leave/pages/TeamLeavePage'), 'TeamLeavePage');
 const LeaveManagementPage = named(
   () => import('@/features/leave/pages/LeaveManagementPage'),
@@ -314,6 +315,10 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="development.manage" />}>
                 <Route path="/development/manage" element={<WorkforceDevelopmentPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="reports.view" />}>
+                <Route path="/reports" element={<ReportsPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="org_structure.view" />}>

@@ -1,140 +1,107 @@
 import { test, expect } from '@playwright/test';
-import { seedAuthenticatedSession } from './utils/mockAuth';
-import {
-  buildMockSchoolRow,
-  buildMockProfileRow,
-  buildMockLearnerRow,
-  buildMockEmployeeRow,
-  buildMockDepartmentRow,
-  buildMockAcademicYearRow,
-  buildMockGradeRow,
-  buildMockClassRow,
-  buildMockSubjectRow,
-  buildMockTermRow,
-  installDataMocks,
-  installDepartmentsListMock,
-  installAcademicListMock,
-  installReportRowsMock,
-} from './utils/mockData';
+import AxeBuilder from '@axe-core/playwright';
+import { seedSebetsaSession } from './utils/sebetsaAuth';
+import { SEBETSA_TENANT_ID, buildOrganizationRow, buildProfileRow, fulfillJson } from './utils/sebetsaData';
 
-test('reports overview loads and links to each report a principal can view', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
+async function expectNoSeriousViolations(page: import('@playwright/test').Page) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+  if (serious.length > 0) console.log(JSON.stringify(serious, null, 2));
+  expect(serious, `${serious.length} serious/critical accessibility violation(s) — see console output`).toEqual([]);
+}
+
+const METRICS_ROW = {
+  active_employee_count: 12,
+  attendance_rate_pct: 92.5,
+  late_attendance_count: 3,
+  pending_leave_requests: 2,
+  approved_leave_days: 15,
+  task_completion_rate_pct: 88.2,
+  overdue_task_count: 4,
+  open_incident_count: 1,
+  critical_incident_count: 0,
+  active_asset_count: 20,
+  assets_in_maintenance_count: 2,
+  active_contract_count: 5,
+  contracts_expiring_count: 1,
+  qualifications_expiring_count: 3,
+  trainings_completed_count: 7,
+};
+
+/** Genuine Sebetsa Phase R — Analytics, Reporting & Management
+ * Intelligence E2E coverage. Real UI, mocked RPC — database-internal
+ * security (the SECURITY-INVOKER role/tenant scoping proof) lives in
+ * supabase/rls-tests/analytics_reporting.sql. */
+
+test('organization_administrator sees real operational metrics and can export them', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'organization_administrator' });
+
+  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
+  await page.route('**/rest/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow());
+    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'organization_administrator' }));
+    if (path.includes('/rpc/get_operational_metrics')) return fulfillJson(route, [METRICS_ROW]);
+    if (route.request().method() === 'GET') return fulfillJson(route, []);
+    return fulfillJson(route, {});
+  });
 
   await page.goto('/reports');
-  const main = page.getByRole('main');
-  await expect(main.getByRole('heading', { name: 'Reports' })).toBeVisible();
-  await expect(main.getByRole('link', { name: 'Learners' })).toBeVisible();
-  await expect(main.getByRole('link', { name: 'Employees' })).toBeVisible();
-  await expect(main.getByRole('link', { name: 'Academic' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
+  await expect(page.getByText('12', { exact: true })).toBeVisible();
+  await expect(page.getByText('92.5%')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Export CSV' })).toBeVisible();
 });
 
-test('learner report renders enrollment counts by status', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installReportRowsMock(page, 'learners', [
-    buildMockLearnerRow({ id: 'learner-1', status: 'active' }),
-    buildMockLearnerRow({ id: 'learner-2', status: 'active' }),
-    buildMockLearnerRow({ id: 'learner-3', status: 'graduated' }),
-  ]);
+test('site_manager sees Reports but no export action (view-only, no reports.export)', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'site_manager' });
 
-  await page.goto('/reports/learners');
-  await expect(page.getByRole('heading', { name: 'Learner report' })).toBeVisible();
-  await expect(page.getByText('Total learners')).toBeVisible();
-  await expect(page.getByText('3', { exact: true })).toBeVisible();
-  await expect(page.getByText('active', { exact: true })).toBeVisible();
-  await expect(page.getByText('graduated', { exact: true })).toBeVisible();
-});
-
-test('employee report renders counts by department and employment status', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installDepartmentsListMock(page, [buildMockDepartmentRow()]);
-  await installReportRowsMock(page, 'employees', [
-    buildMockEmployeeRow({ id: 'employee-1', employmentStatus: 'active' }),
-    buildMockEmployeeRow({ id: 'employee-2', employmentStatus: 'on_leave' }),
-  ]);
-
-  await page.goto('/reports/employees');
-  await expect(page.getByRole('heading', { name: 'Employee report' })).toBeVisible();
-  await expect(page.getByText('Total employees')).toBeVisible();
-  await expect(page.getByText('Human Resources')).toBeVisible();
-  await expect(page.getByText('on leave')).toBeVisible();
-});
-
-test('academic report renders active vs. archived counts', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow({ isActive: true })],
+  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
+  await page.route('**/rest/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow());
+    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'site_manager' }));
+    if (path.includes('/rpc/get_operational_metrics')) return fulfillJson(route, [{ ...METRICS_ROW, active_employee_count: 4 }]);
+    if (route.request().method() === 'GET') return fulfillJson(route, []);
+    return fulfillJson(route, {});
   });
-  await installAcademicListMock(page, 'grades', [
-    buildMockGradeRow({ id: 'grade-8', active: true }),
-    buildMockGradeRow({ id: 'grade-9', active: false }),
-  ]);
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAcademicListMock(page, 'subjects', [buildMockSubjectRow()]);
-  await installAcademicListMock(page, 'terms', [buildMockTermRow()]);
-
-  await page.goto('/reports/academic');
-  const main = page.getByRole('main');
-  await expect(main.getByRole('heading', { name: 'Academic report' })).toBeVisible();
-  await expect(main.getByText('2026 Academic Year')).toBeVisible();
-  // Scoped to main: the sidebar also has a "Grades" nav link.
-  await expect(main.getByText('Grades', { exact: true })).toBeVisible();
-});
-
-test('reports.view is required to access any report route', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'finance_manager' });
-  await installDataMocks(page, { profile: buildMockProfileRow({ role: 'finance_manager' }), school: buildMockSchoolRow() });
 
   await page.goto('/reports');
-  await expect(page).toHaveURL('http://localhost:5173/dashboard');
-  await expect(page.getByRole('link', { name: 'Reports' })).toHaveCount(0);
-});
-
-test('a role with reports.view but without employee.view cannot view the Employee report', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'admissions_officer' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow({ role: 'admissions_officer' }),
-    school: buildMockSchoolRow(),
-  });
-
-  await page.goto('/reports/employees');
-  await expect(page.getByText("You don't have permission to view this report.")).toBeVisible();
-  await expect(page.getByText('Total employees')).toHaveCount(0);
-});
-
-test('export button is hidden for a role without reports.export', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'teacher' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow({ role: 'teacher' }),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow({ isActive: true })],
-  });
-  await installAcademicListMock(page, 'grades', [buildMockGradeRow()]);
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAcademicListMock(page, 'subjects', [buildMockSubjectRow()]);
-  await installAcademicListMock(page, 'terms', [buildMockTermRow()]);
-
-  await page.goto('/reports/academic');
-  await expect(page.getByRole('heading', { name: 'Academic report' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
+  await expect(page.getByText('4', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export CSV' })).toHaveCount(0);
 });
 
-test('export button is visible for a role with reports.export', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow({ isActive: true })],
-  });
-  await installAcademicListMock(page, 'grades', [buildMockGradeRow()]);
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAcademicListMock(page, 'subjects', [buildMockSubjectRow()]);
-  await installAcademicListMock(page, 'terms', [buildMockTermRow()]);
+test('an employee is blocked from Reports', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'employee' });
 
-  await page.goto('/reports/academic');
-  await expect(page.getByRole('button', { name: 'Export CSV' })).toBeVisible();
+  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
+  await page.route('**/rest/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow());
+    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'employee' }));
+    if (route.request().method() === 'GET') return fulfillJson(route, []);
+    return fulfillJson(route, {});
+  });
+
+  await page.goto('/reports');
+  await expect(page).toHaveURL('http://localhost:5173/dashboard');
+});
+
+test('Reports has no serious/critical accessibility violations', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'hr_user' });
+
+  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
+  await page.route('**/rest/v1/**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow({ tenant_id: SEBETSA_TENANT_ID }));
+    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'hr_user' }));
+    if (path.includes('/rpc/get_operational_metrics')) return fulfillJson(route, [METRICS_ROW]);
+    if (route.request().method() === 'GET') return fulfillJson(route, []);
+    return fulfillJson(route, {});
+  });
+
+  await page.goto('/reports');
+  await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
+  await expectNoSeriousViolations(page);
 });
