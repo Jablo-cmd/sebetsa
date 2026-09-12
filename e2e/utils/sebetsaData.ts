@@ -245,6 +245,46 @@ export function buildTaskChecklistItemRow(overrides: Partial<Record<string, unkn
   };
 }
 
+export function buildEmployeeDocumentRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'document-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    employee_id: 'employee-1',
+    document_type: 'certificate',
+    file_name: 'first-aid.pdf',
+    mime_type: 'application/pdf',
+    file_size_bytes: 500000,
+    storage_path: `${SEBETSA_TENANT_ID}/employee-1/document-1-first-aid.pdf`,
+    version: 1,
+    supersedes_document_id: null,
+    status: 'uploaded',
+    expiry_date: null,
+    uploaded_by: SEBETSA_USER_ID,
+    verified_by: null,
+    verified_at: null,
+    review_notes: null,
+    created_at: '2026-09-12T08:00:00Z',
+    updated_at: '2026-09-12T08:00:00Z',
+    ...overrides,
+  };
+}
+
+/** Mocks a Storage upload (POST .../storage/v1/object/{bucket}/{path}) — storage-js expects {Id, Key} back. */
+export async function installStorageUploadMock(page: Page, bucket: string) {
+  await page.route(`**/storage/v1/object/${bucket}/**`, async (route: Route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    await fulfillJson(route, { Id: 'mock-object-id', Key: `${bucket}/mock-path` });
+  });
+}
+
+/** Mocks a Storage signed-URL request (POST .../storage/v1/object/sign/{bucket}/{path}). */
+export async function installStorageSignedUrlMock(page: Page, bucket: string) {
+  await page.route(`**/storage/v1/object/sign/${bucket}/**`, async (route: Route) => {
+    if (route.request().method() !== 'POST') return route.fallback();
+    await fulfillJson(route, { signedURL: `/object/sign/${bucket}/mock-path?token=mock-token` });
+  });
+}
+
 export interface SebetsaMockState {
   organization?: ReturnType<typeof buildOrganizationRow> | null;
   profile?: ReturnType<typeof buildProfileRow> | null;
@@ -261,6 +301,7 @@ export interface SebetsaMockState {
   tasks?: ReturnType<typeof buildTaskRow>[];
   taskChecklistItems?: ReturnType<typeof buildTaskChecklistItemRow>[];
   taskEvidence?: Record<string, unknown>[];
+  employeeDocuments?: ReturnType<typeof buildEmployeeDocumentRow>[];
   /** Called for any `rpc/<fnName>` POST not covered by the generic table handlers above — return true if handled. */
   onRpc?: (fnName: string, payload: Record<string, unknown>, route: Route) => Promise<boolean>;
 }
@@ -289,6 +330,7 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     tasks: [],
     taskChecklistItems: [],
     taskEvidence: [],
+    employeeDocuments: [],
     ...initial,
   };
 
@@ -427,6 +469,15 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
         return fulfillJson(route, created);
       }
       return fulfillJson(route, state.taskEvidence ?? []);
+    }
+
+    if (path.endsWith('/employee_documents')) {
+      let rows = state.employeeDocuments ?? [];
+      const employeeFilter = url.searchParams.get('employee_id');
+      if (employeeFilter?.startsWith('eq.')) {
+        rows = rows.filter((row) => (row as { employee_id: string }).employee_id === employeeFilter.slice(3));
+      }
+      return fulfillJson(route, rows);
     }
 
     if (path.endsWith('/notifications')) {

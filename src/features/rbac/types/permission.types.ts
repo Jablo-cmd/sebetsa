@@ -33,5 +33,7 @@ export type Permission =
   | 'leave.approve'
   | 'task.view'
   | 'task.manage'
+  | 'document.view'
+  | 'document.manage'
   | 'reports.view'
   | 'reports.export';

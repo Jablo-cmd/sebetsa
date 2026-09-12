@@ -109,6 +109,14 @@ const TaskManagementPage = named(
   () => import('@/features/tasks/pages/TaskManagementPage'),
   'TaskManagementPage',
 );
+const MyDocumentsPage = named(
+  () => import('@/features/documents/pages/MyDocumentsPage'),
+  'MyDocumentsPage',
+);
+const EmployeeDocumentsPage = named(
+  () => import('@/features/documents/pages/EmployeeDocumentsPage'),
+  'EmployeeDocumentsPage',
+);
 const TeamLeavePage = named(() => import('@/features/leave/pages/TeamLeavePage'), 'TeamLeavePage');
 const LeaveManagementPage = named(
   () => import('@/features/leave/pages/LeaveManagementPage'),
@@ -248,6 +256,14 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="task.manage" />}>
                 <Route path="/tasks/management" element={<TaskManagementPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="document.view" />}>
+                <Route path="/documents" element={<MyDocumentsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="document.manage" />}>
+                <Route path="/documents/manage" element={<EmployeeDocumentsPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="org_structure.view" />}>

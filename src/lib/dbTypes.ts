@@ -129,6 +129,10 @@ export type SiteStaffingRequirementRow = TableRow<'site_staffing_requirements'>;
 export type SiteStaffingRequirementInsert = TableInsert<'site_staffing_requirements'>;
 export type SiteStaffingRequirementUpdate = TableUpdate<'site_staffing_requirements'>;
 
+export type EmployeeDocumentRow = TableRow<'employee_documents'>;
+export type DocumentTypeEnum = Database['public']['Enums']['document_type'];
+export type DocumentStatusEnum = Database['public']['Enums']['document_status'];
+
 export type NotificationRow = TableRow<'notifications'>;
 export type AuditLogRow = TableRow<'audit_log'>;
 

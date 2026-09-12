@@ -643,6 +643,91 @@ export type Database = {
           },
         ]
       }
+      employee_documents: {
+        Row: {
+          created_at: string
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          expiry_date?: string | null
+          file_name: string
+          file_size_bytes: number
+          id?: string
+          mime_type: string
+          review_notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          supersedes_document_id?: string | null
+          tenant_id: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          expiry_date?: string | null
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string
+          review_notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          storage_path?: string
+          supersedes_document_id?: string | null
+          tenant_id?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_supersedes_document_id_fkey"
+            columns: ["supersedes_document_id"]
+            isOneToOne: false
+            referencedRelation: "employee_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string
@@ -2492,6 +2577,115 @@ export type Database = {
         }[]
         SetofOptions: { from: "*"; to: "tasks"; isOneToOne: false; isSetofReturn: true }
       }
+      create_document_upload_slot: {
+        Args: {
+          p_document_type: Database["public"]["Enums"]["document_type"]
+          p_employee_id: string
+          p_expiry_date?: string
+          p_file_name: string
+          p_file_size_bytes: number
+          p_mime_type: string
+        }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: true; isSetofReturn: false }
+      }
+      verify_document: {
+        Args: { p_approve: boolean; p_document_id: string; p_review_notes?: string }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: true; isSetofReturn: false }
+      }
+      replace_document: {
+        Args: {
+          p_expiry_date?: string
+          p_file_name: string
+          p_file_size_bytes: number
+          p_mime_type: string
+          p_old_document_id: string
+        }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: true; isSetofReturn: false }
+      }
+      sync_expired_documents: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }[]
+        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: false; isSetofReturn: true }
+      }
       can_approve_leave: {
         Args: { target_tenant_id: string }
         Returns: boolean
@@ -2877,6 +3071,22 @@ export type Database = {
       attendance_correction_field: "clock_in_at" | "clock_out_at" | "status"
       attendance_correction_status: "pending" | "approved" | "rejected"
       contract_status: "draft" | "active" | "expired" | "terminated"
+      document_status:
+        | "uploaded"
+        | "pending_review"
+        | "verified"
+        | "rejected"
+        | "expired"
+        | "archived"
+      document_type:
+        | "id_document"
+        | "qualification"
+        | "contract"
+        | "certificate"
+        | "training_record"
+        | "medical"
+        | "disciplinary"
+        | "other"
       employment_status: "active" | "on_leave" | "suspended" | "terminated"
       employment_type: "full_time" | "part_time" | "contract" | "temporary"
       entity_status: "active" | "inactive" | "onboarding" | "offboarded"
@@ -3044,6 +3254,24 @@ export const Constants = {
       attendance_correction_field: ["clock_in_at", "clock_out_at", "status"],
       attendance_correction_status: ["pending", "approved", "rejected"],
       contract_status: ["draft", "active", "expired", "terminated"],
+      document_status: [
+        "uploaded",
+        "pending_review",
+        "verified",
+        "rejected",
+        "expired",
+        "archived",
+      ],
+      document_type: [
+        "id_document",
+        "qualification",
+        "contract",
+        "certificate",
+        "training_record",
+        "medical",
+        "disciplinary",
+        "other",
+      ],
       employment_status: ["active", "on_leave", "suspended", "terminated"],
       employment_type: ["full_time", "part_time", "contract", "temporary"],
       entity_status: ["active", "inactive", "onboarding", "offboarded"],
