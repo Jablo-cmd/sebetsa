@@ -418,6 +418,7 @@ export type Database = {
           exception_date: string
           id: string
           is_available: boolean
+          leave_request_id: string | null
           reason: string | null
           start_time: string | null
           tenant_id: string
@@ -429,6 +430,7 @@ export type Database = {
           exception_date: string
           id?: string
           is_available: boolean
+          leave_request_id?: string | null
           reason?: string | null
           start_time?: string | null
           tenant_id: string
@@ -440,6 +442,7 @@ export type Database = {
           exception_date?: string
           id?: string
           is_available?: boolean
+          leave_request_id?: string | null
           reason?: string | null
           start_time?: string | null
           tenant_id?: string
@@ -450,6 +453,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_availability_exceptions_leave_request_id_fkey"
+            columns: ["leave_request_id"]
+            isOneToOne: false
+            referencedRelation: "leave_requests"
             referencedColumns: ["id"]
           },
           {
@@ -579,45 +589,73 @@ export type Database = {
       }
       leave_requests: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           decided_at: string | null
           decided_by: string | null
+          decision_notes: string | null
           employee_id: string
           end_date: string
+          half_day_period: string | null
           id: string
+          is_half_day: boolean
+          leave_type_id: string
           reason: string | null
           start_date: string
           status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
           tenant_id: string
           updated_at: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
+          decision_notes?: string | null
           employee_id: string
           end_date: string
+          half_day_period?: string | null
           id?: string
+          is_half_day?: boolean
+          leave_type_id: string
           reason?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref?: string | null
           tenant_id: string
           updated_at?: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
+          decision_notes?: string | null
           employee_id?: string
           end_date?: string
+          half_day_period?: string | null
           id?: string
+          is_half_day?: boolean
+          leave_type_id?: string
           reason?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref?: string | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "leave_requests_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leave_requests_decided_by_fkey"
             columns: ["decided_by"]
@@ -633,7 +671,253 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leave_requests_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leave_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_types: {
+        Row: {
+          created_at: string
+          default_annual_days: number | null
+          id: string
+          is_paid: boolean
+          name: string
+          requires_documentation: boolean
+          status: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_annual_days?: number | null
+          id?: string
+          is_paid?: boolean
+          name: string
+          requires_documentation?: boolean
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_annual_days?: number | null
+          id?: string
+          is_paid?: boolean
+          name?: string
+          requires_documentation?: boolean
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_policies: {
+        Row: {
+          created_at: string
+          default_annual_days: number | null
+          id: string
+          leave_type_id: string
+          max_carry_over_days: number | null
+          max_consecutive_days: number | null
+          min_notice_days: number
+          requires_documentation: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_annual_days?: number | null
+          id?: string
+          leave_type_id: string
+          max_carry_over_days?: number | null
+          max_consecutive_days?: number | null
+          min_notice_days?: number
+          requires_documentation?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_annual_days?: number | null
+          id?: string
+          leave_type_id?: string
+          max_carry_over_days?: number | null
+          max_consecutive_days?: number | null
+          min_notice_days?: number
+          requires_documentation?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_policies_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_policies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_balances: {
+        Row: {
+          accrued: number
+          adjustment: number
+          carried_over: number
+          created_at: string
+          employee_id: string
+          id: string
+          leave_type_id: string
+          opening_balance: number
+          pending: number
+          period_year: number
+          remaining: number
+          tenant_id: string
+          updated_at: string
+          used: number
+        }
+        Insert: {
+          accrued?: number
+          adjustment?: number
+          carried_over?: number
+          created_at?: string
+          employee_id: string
+          id?: string
+          leave_type_id: string
+          opening_balance?: number
+          pending?: number
+          period_year: number
+          remaining?: number
+          tenant_id: string
+          updated_at?: string
+          used?: number
+        }
+        Update: {
+          accrued?: number
+          adjustment?: number
+          carried_over?: number
+          created_at?: string
+          employee_id?: string
+          id?: string
+          leave_type_id?: string
+          opening_balance?: number
+          pending?: number
+          period_year?: number
+          remaining?: number
+          tenant_id?: string
+          updated_at?: string
+          used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balances_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_balance_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          id: string
+          leave_request_id: string | null
+          leave_type_id: string
+          period_year: number
+          tenant_id: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          id?: string
+          leave_request_id?: string | null
+          leave_type_id: string
+          period_year: number
+          tenant_id: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          id?: string
+          leave_request_id?: string | null
+          leave_type_id?: string
+          period_year?: number
+          tenant_id?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balance_transactions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_transactions_leave_request_id_fkey"
+            columns: ["leave_request_id"]
+            isOneToOne: false
+            referencedRelation: "leave_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_transactions_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_transactions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1515,6 +1799,263 @@ export type Database = {
         Args: { target_tenant_id: string }
         Returns: boolean
       }
+      can_approve_leave: {
+        Args: { target_tenant_id: string }
+        Returns: boolean
+      }
+      can_manage_leave: {
+        Args: { target_tenant_id: string }
+        Returns: boolean
+      }
+      can_view_leave_broad: {
+        Args: { target_tenant_id: string }
+        Returns: boolean
+      }
+      leave_request_duration_days: {
+        Args: {
+          p_end_date: string
+          p_is_half_day: boolean
+          p_start_date: string
+        }
+        Returns: number
+      }
+      submit_leave_request: {
+        Args: {
+          p_employee_id: string
+          p_end_date: string
+          p_half_day_period?: string
+          p_is_half_day?: boolean
+          p_leave_type_id: string
+          p_reason?: string
+          p_start_date: string
+          p_supporting_document_ref?: string
+        }
+        Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      cancel_leave_request: {
+        Args: { p_leave_request_id: string }
+        Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      approve_leave_request: {
+        Args: { p_decision_notes?: string; p_leave_request_id: string }
+        Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      reject_leave_request: {
+        Args: { p_decision_notes?: string; p_leave_request_id: string }
+        Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      revoke_leave_request: {
+        Args: { p_decision_notes?: string; p_leave_request_id: string }
+        Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      adjust_leave_balance: {
+        Args: {
+          p_amount: number
+          p_employee_id: string
+          p_leave_type_id: string
+          p_note?: string
+          p_period_year: number
+        }
+        Returns: {
+          accrued: number
+          adjustment: number
+          carried_over: number
+          created_at: string
+          employee_id: string
+          id: string
+          leave_type_id: string
+          opening_balance: number
+          pending: number
+          period_year: number
+          remaining: number
+          tenant_id: string
+          updated_at: string
+          used: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_balances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      recompute_leave_balance: {
+        Args: {
+          p_employee_id: string
+          p_leave_type_id: string
+          p_period_year: number
+        }
+        Returns: {
+          accrued: number
+          adjustment: number
+          carried_over: number
+          created_at: string
+          employee_id: string
+          id: string
+          leave_type_id: string
+          opening_balance: number
+          pending: number
+          period_year: number
+          remaining: number
+          tenant_id: string
+          updated_at: string
+          used: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_balances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_leave_affected_shifts: {
+        Args: { p_leave_request_id: string }
+        Returns: {
+          created_at: string
+          employee_id: string
+          ends_at: string
+          id: string
+          notes: string | null
+          shift_definition_id: string | null
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_status"]
+          supervisor_id: string | null
+          tenant_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "shifts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       create_notification: {
         Args: {
           p_body: string
@@ -1644,7 +2185,7 @@ export type Database = {
       employment_status: "active" | "on_leave" | "suspended" | "terminated"
       employment_type: "full_time" | "part_time" | "contract" | "temporary"
       entity_status: "active" | "inactive" | "onboarding" | "offboarded"
-      leave_status: "pending" | "approved" | "rejected" | "cancelled"
+      leave_status: "pending" | "approved" | "rejected" | "cancelled" | "revoked"
       notification_email_status: "not_sent" | "sent" | "failed"
       organization_status: "pending" | "active" | "inactive" | "suspended"
       profile_status: "active" | "inactive" | "suspended"
@@ -1807,7 +2348,7 @@ export const Constants = {
       employment_status: ["active", "on_leave", "suspended", "terminated"],
       employment_type: ["full_time", "part_time", "contract", "temporary"],
       entity_status: ["active", "inactive", "onboarding", "offboarded"],
-      leave_status: ["pending", "approved", "rejected", "cancelled"],
+      leave_status: ["pending", "approved", "rejected", "cancelled", "revoked"],
       notification_email_status: ["not_sent", "sent", "failed"],
       organization_status: ["pending", "active", "inactive", "suspended"],
       profile_status: ["active", "inactive", "suspended"],

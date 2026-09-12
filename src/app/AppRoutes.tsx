@@ -91,6 +91,16 @@ const AvailabilityPage = named(
   () => import('@/features/availability/pages/AvailabilityPage'),
   'AvailabilityPage',
 );
+const MyLeavePage = named(() => import('@/features/leave/pages/MyLeavePage'), 'MyLeavePage');
+const TeamLeavePage = named(() => import('@/features/leave/pages/TeamLeavePage'), 'TeamLeavePage');
+const LeaveManagementPage = named(
+  () => import('@/features/leave/pages/LeaveManagementPage'),
+  'LeaveManagementPage',
+);
+const LeaveConfigurationPage = named(
+  () => import('@/features/leave/pages/LeaveConfigurationPage'),
+  'LeaveConfigurationPage',
+);
 const NotificationsPage = named(
   () => import('@/features/notifications/pages/NotificationsPage'),
   'NotificationsPage',
@@ -194,6 +204,19 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="attendance.view" />}>
                 <Route path="/attendance" element={<AttendancePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="leave.view" />}>
+                <Route path="/leave" element={<MyLeavePage />} />
+                <Route path="/leave/team" element={<TeamLeavePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="leave.approve" />}>
+                <Route path="/leave/management" element={<LeaveManagementPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="leave.manage" />}>
+                <Route path="/leave/configuration" element={<LeaveConfigurationPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="org_structure.view" />}>

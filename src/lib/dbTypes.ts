@@ -89,6 +89,20 @@ export type TaskInsert = TableInsert<'tasks'>;
 export type TaskUpdate = TableUpdate<'tasks'>;
 export type TaskCommentRow = TableRow<'task_comments'>;
 
+export type LeaveTypeRow = TableRow<'leave_types'>;
+export type LeaveTypeInsert = TableInsert<'leave_types'>;
+export type LeaveTypeUpdate = TableUpdate<'leave_types'>;
+
+export type LeavePolicyRow = TableRow<'leave_policies'>;
+export type LeavePolicyInsert = TableInsert<'leave_policies'>;
+export type LeavePolicyUpdate = TableUpdate<'leave_policies'>;
+
+export type LeaveBalanceRow = TableRow<'leave_balances'>;
+
+export type LeaveBalanceTransactionRow = TableRow<'leave_balance_transactions'>;
+
+export type LeaveStatusEnum = Database['public']['Enums']['leave_status'];
+
 export type NotificationRow = TableRow<'notifications'>;
 export type AuditLogRow = TableRow<'audit_log'>;
 

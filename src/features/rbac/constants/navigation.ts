@@ -77,6 +77,25 @@ export const NAV_MODEL: NavGroupDef[] = [
       { label: 'Shift Definitions', path: '/schedule/definitions', icon: ClipboardListIcon, permission: 'scheduling.manage' },
       { label: 'Availability', path: '/schedule/availability', icon: CheckIcon, permission: 'availability.view' },
       { label: 'Attendance', path: '/attendance', icon: CheckIcon, permission: 'attendance.view' },
+      { label: 'My Leave', path: '/leave', icon: CalendarIcon, permission: 'leave.view', end: true },
+      {
+        label: 'Team Leave',
+        path: '/leave/team',
+        icon: CalendarIcon,
+        // leave.view, same as My Leave and RequirePermission's route guard
+        // below — an employee also holds leave.view, so they can reach this
+        // link too (it shows their own request read-only, redundant with My
+        // Leave but not broken). A narrower gate (e.g. team.view) would hide
+        // this from `employee` but RequirePermission would then redirect
+        // supervisor (team.view, no leave permission at all) straight to
+        // /dashboard on click — a dead nav link, which the Phase H spec
+        // explicitly forbids. Matching the route guard exactly guarantees
+        // every visible link works, at the cost of one redundant entry for
+        // employee/hr_user-tier roles.
+        permission: 'leave.view',
+      },
+      { label: 'Leave Management', path: '/leave/management', icon: ClipboardListIcon, permission: 'leave.approve' },
+      { label: 'Leave Configuration', path: '/leave/configuration', icon: GearIcon, permission: 'leave.manage' },
     ],
   },
   {

@@ -219,22 +219,31 @@ values ('00000000-0000-0000-0000-000000009001', '00000000-0000-0000-0000-0000000
 
 -- ---------------------------------------------------------------------------
 -- leave_requests: cross-tenant rejection + valid insert.
+--
+-- leave_type_id is required (Phase H) — organizations created via plain
+-- INSERT (as tenant A/B are, above) get their default leave types seeded
+-- automatically by organizations_seed_leave_types_trigger, so tenant A
+-- already has an 'Other' leave_type row to reference here.
 
 do $$
+declare
+  v_leave_type_id uuid;
 begin
+  select id into v_leave_type_id from public.leave_types where tenant_id = '00000000-0000-0000-0000-0000000000a1' and name = 'Other';
+
   begin
-    insert into public.leave_requests (tenant_id, employee_id, start_date, end_date)
-    values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000005003', current_date, current_date + 1);
+    insert into public.leave_requests (tenant_id, employee_id, leave_type_id, start_date, end_date)
+    values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000005003', v_leave_type_id, current_date, current_date + 1);
     raise exception 'SECURITY_FAILURE: cross-tenant leave_request.employee_id insert succeeded';
   exception
     when others then
       if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
       raise notice 'PASS: cross-tenant leave_request.employee_id blocked (%)', sqlerrm;
   end;
-end $$;
 
-insert into public.leave_requests (tenant_id, employee_id, start_date, end_date)
-values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000005001', current_date, current_date + 1);
+  insert into public.leave_requests (tenant_id, employee_id, leave_type_id, start_date, end_date)
+  values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000005001', v_leave_type_id, current_date, current_date + 1);
+end $$;
 
 -- ---------------------------------------------------------------------------
 -- employee_availability / employee_availability_exceptions: cross-tenant
