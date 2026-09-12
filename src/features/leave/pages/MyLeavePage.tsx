@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { Button } from '@/components/ui/Button';
 import { useMyEmployee } from '@/features/employees/hooks/useMyEmployee';
 import { useLeaveRequests } from '@/features/leave/hooks/useLeaveRequests';
@@ -53,6 +54,7 @@ export function MyLeavePage() {
         }
       />
 
+      <OfflineBanner />
       <ErrorAlert message={employeeError ?? requestsError ?? cancelError} />
 
       {!employeeLoading && !employee ? (

@@ -5,11 +5,13 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useMyEmployee } from '@/features/employees/hooks/useMyEmployee';
 import { useMyAttendance } from '@/features/attendance/hooks/useMyAttendance';
 import { useShifts } from '@/features/scheduling/hooks/useShifts';
 import { attendanceService } from '@/features/attendance/services/attendanceService';
 import { getDbErrorMessage } from '@/lib/dbErrors';
+import { retryOnNetworkError } from '@/lib/retry';
 
 function formatMinutes(minutes: number | null): string {
   if (minutes === null) return '—';
@@ -55,7 +57,7 @@ export function MyAttendancePage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await attendanceService.clockIn(employee.id, todaysShift?.siteId ?? employee.homeSiteId ?? '', todaysShift?.id);
+      await retryOnNetworkError(() => attendanceService.clockIn(employee.id, todaysShift?.siteId ?? employee.homeSiteId ?? '', todaysShift?.id));
       void refetch();
     } catch (error) {
       setActionError(getDbErrorMessage(error, 'Failed to clock in.'));
@@ -69,7 +71,7 @@ export function MyAttendancePage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await attendanceService.clockOut(openRecord.id);
+      await retryOnNetworkError(() => attendanceService.clockOut(openRecord.id));
       void refetch();
     } catch (error) {
       setActionError(getDbErrorMessage(error, 'Failed to clock out.'));
@@ -115,6 +117,7 @@ export function MyAttendancePage() {
     <PageContainer width="sm">
       <PageHeader title="My Attendance" description="Clock in, take breaks, and clock out for your shift." />
 
+      <OfflineBanner />
       <ErrorAlert message={employeeError ?? attendanceError ?? actionError} />
 
       {isLoading ? (

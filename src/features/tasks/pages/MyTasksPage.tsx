@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useMyEmployee } from '@/features/employees/hooks/useMyEmployee';
 import { useTasks } from '@/features/tasks/hooks/useTasks';
 import { TaskDetailModal } from '@/features/tasks/components/TaskDetailModal';
@@ -35,6 +36,7 @@ export function MyTasksPage() {
     <PageContainer>
       <PageHeader title="My Tasks" description="Tasks assigned to you, due date first." />
 
+      <OfflineBanner />
       <ErrorAlert message={employeeError ?? error} />
 
       {employeeLoading || isLoading ? (

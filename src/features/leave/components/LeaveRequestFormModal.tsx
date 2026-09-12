@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { leaveService } from '@/features/leave/services/leaveService';
 import { getDbErrorMessage } from '@/lib/dbErrors';
+import { retryOnNetworkError } from '@/lib/retry';
 import {
   leaveRequestSchema,
   leaveRequestDefaultValues,
@@ -46,16 +47,18 @@ export function LeaveRequestFormModal({ isOpen, onClose, employeeId, leaveTypes,
   const onValid = async (values: LeaveRequestFormValues) => {
     setSubmitError(null);
     try {
-      const saved = await leaveService.submitLeaveRequest({
-        employeeId,
-        leaveTypeId: values.leaveTypeId,
-        startDate: values.startDate,
-        endDate: values.endDate,
-        isHalfDay: values.isHalfDay,
-        halfDayPeriod: values.isHalfDay && values.halfDayPeriod ? values.halfDayPeriod : null,
-        reason: values.reason?.trim() || null,
-        supportingDocumentRef: values.supportingDocumentRef?.trim() || null,
-      });
+      const saved = await retryOnNetworkError(() =>
+        leaveService.submitLeaveRequest({
+          employeeId,
+          leaveTypeId: values.leaveTypeId,
+          startDate: values.startDate,
+          endDate: values.endDate,
+          isHalfDay: values.isHalfDay,
+          halfDayPeriod: values.isHalfDay && values.halfDayPeriod ? values.halfDayPeriod : null,
+          reason: values.reason?.trim() || null,
+          supportingDocumentRef: values.supportingDocumentRef?.trim() || null,
+        }),
+      );
       onSaved(saved);
       onClose();
     } catch (error) {

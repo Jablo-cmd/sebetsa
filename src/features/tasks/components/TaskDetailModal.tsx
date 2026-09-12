@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { taskService } from '@/features/tasks/services/taskService';
 import { getDbErrorMessage } from '@/lib/dbErrors';
+import { retryOnNetworkError } from '@/lib/retry';
 import type { Task, TaskChecklistItem, TaskEvidence } from '@/features/tasks/types/task.types';
 
 export interface TaskDetailModalProps {
@@ -61,7 +62,7 @@ export function TaskDetailModal({ isOpen, onClose, task, tenantId, canAct, canMa
     setIsSubmitting(true);
     setError(null);
     try {
-      await taskService.completeTask(task.id);
+      await retryOnNetworkError(() => taskService.completeTask(task.id));
       onChanged();
       onClose();
     } catch (err) {
