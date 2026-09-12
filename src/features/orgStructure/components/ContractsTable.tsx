@@ -11,6 +11,8 @@ export interface ContractsTableProps {
 const STATUS_CLASSES: Record<Contract['status'], string> = {
   draft: 'text-content-tertiary',
   active: 'text-success-500',
+  expiring: 'text-warning-600 dark:text-warning-500',
+  suspended: 'text-warning-600 dark:text-warning-500',
   expired: 'text-warning-600 dark:text-warning-500',
   terminated: 'text-danger-600',
 };

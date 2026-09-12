@@ -136,6 +136,16 @@ export type InventoryMovementTypeEnum = Database['public']['Enums']['inventory_m
 export type ProcurementRequestRow = TableRow<'procurement_requests'>;
 export type ProcurementStatusEnum = Database['public']['Enums']['procurement_status'];
 
+export type ClientContactRow = TableRow<'client_contacts'>;
+export type ClientContactInsert = TableInsert<'client_contacts'>;
+
+export type ContractDocumentRow = TableRow<'contract_documents'>;
+
+export type SlaDefinitionRow = TableRow<'sla_definitions'>;
+export type SlaMetricTypeEnum = Database['public']['Enums']['sla_metric_type'];
+
+export type SlaMeasurementRow = TableRow<'sla_measurements'>;
+
 export type LeavePolicyRow = TableRow<'leave_policies'>;
 export type LeavePolicyInsert = TableInsert<'leave_policies'>;
 export type LeavePolicyUpdate = TableUpdate<'leave_policies'>;

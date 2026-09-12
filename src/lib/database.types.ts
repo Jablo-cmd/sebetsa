@@ -438,6 +438,200 @@ export type Database = {
           },
         ]
       }
+      client_contacts: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_primary: boolean
+          name: string
+          notes: string | null
+          phone: string | null
+          role_title: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role_title?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role_title?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_documents: {
+        Row: {
+          contract_id: string
+          created_at: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          file_name: string
+          file_size_bytes: number
+          id?: string
+          mime_type: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sla_definitions: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          measurement_period: string
+          metric_type: Database["public"]["Enums"]["sla_metric_type"]
+          name: string
+          site_id: string | null
+          target_value: number
+          tenant_id: string
+          threshold_operator: string
+          updated_at: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          measurement_period?: string
+          metric_type: Database["public"]["Enums"]["sla_metric_type"]
+          name: string
+          site_id?: string | null
+          target_value: number
+          tenant_id: string
+          threshold_operator: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          measurement_period?: string
+          metric_type?: Database["public"]["Enums"]["sla_metric_type"]
+          name?: string
+          site_id?: string | null
+          target_value?: number
+          tenant_id?: string
+          threshold_operator?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_definitions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sla_measurements: {
+        Row: {
+          computed_at: string
+          computed_by: string | null
+          id: string
+          measured_value: number
+          period_end: string
+          period_start: string
+          sla_definition_id: string
+          target_met: boolean
+          tenant_id: string
+        }
+        Insert: {
+          computed_at?: string
+          computed_by?: string | null
+          id?: string
+          measured_value: number
+          period_end: string
+          period_start: string
+          sla_definition_id: string
+          target_met: boolean
+          tenant_id: string
+        }
+        Update: {
+          computed_at?: string
+          computed_by?: string | null
+          id?: string
+          measured_value?: number
+          period_end?: string
+          period_start?: string
+          sla_definition_id?: string
+          target_met?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_measurements_sla_definition_id_fkey"
+            columns: ["sla_definition_id"]
+            isOneToOne: false
+            referencedRelation: "sla_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           client_id: string
@@ -3056,6 +3250,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      compute_sla_measurement: {
+        Args: { p_sla_definition_id: string; p_period_start: string; p_period_end: string }
+        Returns: Database["public"]["Tables"]["sla_measurements"]["Row"]
+      }
+      create_contract_document_slot: {
+        Args: {
+          p_contract_id: string
+          p_file_name: string
+          p_mime_type: string
+          p_file_size_bytes: number
+        }
+        Returns: Database["public"]["Tables"]["contract_documents"]["Row"]
+      }
       assign_asset: {
         Args: {
           p_asset_id: string
@@ -3808,7 +4015,7 @@ export type Database = {
         | "non_compliant"
         | "expired"
         | "waived"
-      contract_status: "draft" | "active" | "expired" | "terminated"
+      contract_status: "draft" | "active" | "expiring" | "expired" | "suspended" | "terminated"
       document_status:
         | "uploaded"
         | "pending_review"
@@ -3865,6 +4072,11 @@ export type Database = {
         | "cancelled"
       profile_status: "active" | "inactive" | "suspended"
       shift_status: "scheduled" | "confirmed" | "cancelled" | "completed"
+      sla_metric_type:
+        | "staffing_fulfillment"
+        | "task_completion_rate"
+        | "incident_response_hours"
+        | "compliance_completion_rate"
       task_evidence_kind: "note" | "confirmation"
       task_priority: "low" | "normal" | "high" | "urgent"
       task_status:
@@ -4023,7 +4235,7 @@ export const Constants = {
       ],
       attendance_correction_field: ["clock_in_at", "clock_out_at", "status"],
       attendance_correction_status: ["pending", "approved", "rejected"],
-      contract_status: ["draft", "active", "expired", "terminated"],
+      contract_status: ["draft", "active", "expiring", "expired", "suspended", "terminated"],
       document_status: [
         "uploaded",
         "pending_review",

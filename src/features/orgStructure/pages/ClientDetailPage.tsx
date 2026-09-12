@@ -1,13 +1,21 @@
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FullScreenSpinner } from '@/components/ui/FullScreenSpinner';
 import { FullScreenNotice } from '@/components/ui/FullScreenNotice';
+import { Button } from '@/components/ui/Button';
+import { TextField } from '@/components/ui/TextField';
+import { usePermissions } from '@/hooks/usePermissions';
 import { useClient } from '@/features/orgStructure/hooks/useClients';
 import { useSitesForClient } from '@/features/orgStructure/hooks/useSites';
 import { useContractsForClient } from '@/features/orgStructure/hooks/useContracts';
+import { clientContactService, type ClientContact } from '@/features/orgStructure/services/clientContactService';
+import { getDbErrorMessage } from '@/lib/dbErrors';
 
 const CONTRACT_STATUS_CLASSES: Record<string, string> = {
   draft: 'text-content-tertiary',
   active: 'text-success-500',
+  expiring: 'text-warning-600 dark:text-warning-500',
+  suspended: 'text-warning-600 dark:text-warning-500',
   expired: 'text-warning-600 dark:text-warning-500',
   terminated: 'text-danger-600',
 };
@@ -15,9 +23,45 @@ const CONTRACT_STATUS_CLASSES: Record<string, string> = {
 export function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { can } = usePermissions();
+  const canManage = can('org_structure.manage');
   const { client, isLoading, error } = useClient(id);
   const { sites, isLoading: sitesLoading } = useSitesForClient(id);
   const { contracts, isLoading: contractsLoading } = useContractsForClient(id);
+  const [contacts, setContacts] = useState<ClientContact[]>([]);
+  const [contactsError, setContactsError] = useState<string | null>(null);
+  const [contactName, setContactName] = useState('');
+  const [contactRole, setContactRole] = useState('');
+  const [isAddingContact, setIsAddingContact] = useState(false);
+
+  const loadContacts = useCallback(async () => {
+    if (!id) return;
+    try {
+      setContacts(await clientContactService.getContactsForClient(id));
+    } catch (err) {
+      setContactsError(getDbErrorMessage(err, 'Failed to load contacts.'));
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void loadContacts();
+  }, [loadContacts]);
+
+  const handleAddContact = async () => {
+    if (!id || !client || !contactName.trim()) return;
+    setIsAddingContact(true);
+    setContactsError(null);
+    try {
+      await clientContactService.createContact({ tenantId: client.tenantId, clientId: id, name: contactName.trim(), roleTitle: contactRole.trim() || undefined });
+      setContactName('');
+      setContactRole('');
+      void loadContacts();
+    } catch (err) {
+      setContactsError(getDbErrorMessage(err, 'Failed to add the contact.'));
+    } finally {
+      setIsAddingContact(false);
+    }
+  };
 
   if (isLoading) {
     return <FullScreenSpinner label="Loading client…" />;
@@ -77,6 +121,36 @@ export function ClientDetailPage() {
           </div>
         </dl>
       </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-base font-semibold text-content-primary">Contacts</h2>
+        {contactsError && <p className="text-sm font-medium text-danger-600">{contactsError}</p>}
+        {contacts.length === 0 ? (
+          <p className="rounded-card border border-border bg-surface-raised px-4 py-8 text-center text-sm text-content-tertiary">
+            No named contacts for this client yet.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-border rounded-card border border-border bg-surface-raised">
+            {contacts.map((contact) => (
+              <div key={contact.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <div>
+                  <p className="font-medium text-content-primary">{contact.name}</p>
+                  <p className="text-xs text-content-tertiary">{contact.roleTitle ?? '—'} {contact.email ? `· ${contact.email}` : ''}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {canManage && (
+          <div className="flex flex-wrap items-end gap-2">
+            <TextField label="Name" placeholder="Jane Ops" value={contactName} onChange={(event) => setContactName(event.target.value)} />
+            <TextField label="Role" placeholder="Operations Lead" value={contactRole} onChange={(event) => setContactRole(event.target.value)} />
+            <Button variant="secondary" onClick={() => void handleAddContact()} isLoading={isAddingContact} disabled={!contactName.trim()}>
+              Add contact
+            </Button>
+          </div>
+        )}
+      </section>
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
