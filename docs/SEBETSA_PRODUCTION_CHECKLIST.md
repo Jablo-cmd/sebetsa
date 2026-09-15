@@ -15,13 +15,14 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 
 - [x] (remediated) Fix `employees_write_by_manager` RLS policy — the `hr_user` OR-branch has no tenant comparison (CRITICAL cross-tenant read/write/delete)
 - [x] (remediated) Fix the 12+ blanket "any tenant member" SELECT policies (employees, teams, team_members, site_assignments, regions, clients, sites, contracts, contract_sites, departments, positions, shifts, shift_substitutions, shift_definitions, site_staffing_requirements, profiles) to actually check role, not just tenant
-- [ ] Add cross-tenant FK-validation triggers to `clients`/`sites`/`contracts`/`contract_sites` (every other domain has this; org-hierarchy never got it) — still open, see remediation report
-- [ ] Add cross-tenant FK-validation trigger to `asset_assignments` (the one relationship table missing it) — still open, see remediation report
+- [x] (remediated, second pass) Add cross-tenant FK-validation triggers to `clients`/`sites`/`contracts`/`contract_sites` (every other domain has this; org-hierarchy never got it)
+- [x] (remediated, second pass) Add cross-tenant FK-validation trigger to `asset_assignments` (the one relationship table missing it)
+- [x] (remediated, second pass — new finding) 12 more tables (`assets`, `asset_assignments`, `asset_maintenance_records`, `inventory_items`, `inventory_movements`, `compliance_requirements`, `client_contacts`, `contract_documents`, `sla_definitions`, `sla_measurements`, `employee_availability`, `employee_availability_exceptions`) had the same blanket-SELECT shape as the original C-2 finding, discovered during the second pass's own broader audit — narrowed to the correct permission tier. `task_comments` and the catalogue/reference tables (leave_types, task_templates, training_programs/requirements, attendance_policies, leave_policies, skills) were deliberately left as-is — see remediation report
 - [ ] Decide and implement a tenant-deletion story (`organizations` cascades to `audit_log`/`incidents`/`compliance_records` with no soft-delete; `profiles.tenant_id` uniquely uses `SET NULL` instead of `CASCADE`)
 - [ ] Add `employment_status`-transition validation trigger on `employees` (every other lifecycle table has one; this doesn't)
 - [ ] Add overlap/exclusion constraint on `site_assignments` (shifts already have this pattern — reuse it)
-- [ ] Fix `submit_leave_request()`'s missing `on conflict do nothing` upsert before the balance UPDATE (silently drops the "pending" figure on an employee's first-ever request) — still open, see remediation report
-- [ ] Explicitly `revoke ... from public, anon` on the boolean permission-helper functions (`can_manage_profiles`, `can_assign_role`, `can_manage_org_structure`, `can_manage_operations`, `can_manage_employees`, `can_manage_leave`, `can_approve_leave`, `can_view_leave_broad`) — currently rely only on never being granted, not an explicit revoke
+- [x] (remediated, second pass) Fix `submit_leave_request()`'s missing upsert before the balance write (previously silently dropped the "pending" figure on an employee's first-ever request)
+- [x] (remediated, second pass) Explicitly `revoke ... from public, anon` on the boolean permission-helper functions (`can_manage_profiles`, `can_assign_role`, `can_manage_org_structure`, `can_manage_operations`, `can_manage_employees`, `can_manage_leave`, `can_approve_leave`, `can_view_leave_broad`)
 - [ ] Sanitize `p_file_name` in `create_contract_document_slot()` the same way `create_document_upload_slot()` already does
 - [ ] Decide the fate of `sla_definitions.site_id IS NULL` (contract-wide SLA) — currently schema-supported but `compute_sla_measurement()` unconditionally rejects it
 
@@ -39,12 +40,12 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 ## RBAC
 
 - [x] (remediated) Verify the fixed RBAC matrix (9 roles × 24 permission domains) against actual RLS after the CRITICAL policy fixes above — confirmed via the new `p0_tenant_rbac_remediation.sql` RLS test file
-- [x] (remediated, partial) Self-action guards added to `approve_leave_request`/`reject_leave_request`/`revoke_leave_request`, `decide_attendance_correction`, `verify_task`, `verify_compliance_record`, `verify_incident_action` — **`verify_employee_qualification`/`verify_employee_skill` still have no guard**, explicitly open, see remediation report
+- [x] (remediated) Self-action guards added to `approve_leave_request`/`reject_leave_request`/`revoke_leave_request`, `decide_attendance_correction`, `verify_task`, `verify_compliance_record`, `verify_incident_action`, and (second pass) `verify_employee_qualification`/`verify_employee_skill` — all 9 approval/verification RPCs in the codebase now guard against self-approval
 - [x] (remediated) Corrected the `verify_compliance_record` migration comment that falsely claimed self-verification was already blocked
 
 ## RLS
 
-- [x] (remediated) Restore `supabase/rls-tests/run.sh` so the test suite actually executes — 17/17 files now pass (verified via a native-Postgres equivalent in this sandbox; Docker itself was not re-verified, see remediation report)
+- [x] (remediated) Restore `supabase/rls-tests/run.sh` so the test suite actually executes — 21/21 files now pass, confirmed both via a native-Postgres equivalent AND a live, triggered GitHub Actions run (workflow run #16, commit `b80f833`) using the real Docker-based `run.sh` — see remediation report
 - [ ] Add an RLS test file for `notifications` (none exists despite the service layer naming RLS as its enforcement mechanism)
 - [x] (remediated) Add RLS test coverage for the actual self-verification scenario in `compliance_incidents.sql` (split into two correct assertions)
 - [x] (remediated) Wire the RLS suite into the CI gate as a required check — the job now has a runner script to execute
@@ -131,7 +132,7 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 ## Training
 
 - [ ] Decide whether expired required certifications should gate scheduling (currently `training_requirements` is never joined against `shifts` — fully decorative today)
-- [ ] Add self-verification guard to `verify_employee_skill()`/`verify_employee_qualification()` — **still open, explicitly not fixed in this remediation pass**, see remediation report
+- [x] (remediated, second pass) Add self-verification guard to `verify_employee_skill()`/`verify_employee_qualification()`
 
 ## Reporting
 
