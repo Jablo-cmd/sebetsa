@@ -241,6 +241,18 @@ reset request.jwt.claims;
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c6","app_metadata":{"role":"hr_user"}}';
 
+-- P0 remediation (docs/PRODUCTION_READINESS_AUDIT.md): approve_leave_request
+-- now checks the request against leave_balances.remaining before approving
+-- — top up a balance for the 3-day request submitted above so this
+-- approval-flow assertion isn't testing balance sufficiency, which is
+-- covered separately below.
+do $$
+declare v_annual_type_id uuid;
+begin
+  select id into v_annual_type_id from public.leave_types where tenant_id = '00000000-0000-0000-0000-0000000000c1' and name = 'Annual';
+  perform public.adjust_leave_balance('00000000-0000-0000-0000-000000005101', v_annual_type_id, extract(year from current_date + 10)::int, 20, 'test fixture top-up');
+end $$;
+
 do $$
 declare
   v_request_id uuid;
@@ -456,11 +468,28 @@ begin
   where employee_id = '00000000-0000-0000-0000-000000005101' and exception_date = current_date + 30 and leave_request_id is null;
   if v_manual_count <> 1 then raise exception 'FAIL: revocation disturbed the unrelated manual exception'; end if;
 
+  raise notice 'PASS: revocation reversed balance usage exactly once, removed only leave-generated exceptions, and preserved the manual exception';
+end $$;
+
+-- Shift-existence is a raw data-integrity assertion ("did revocation
+-- physically delete the row"), not a permissions test, so it is checked as
+-- the table owner rather than under hr_user's role-scoped visibility.
+-- Corrected 2026-09-19 as part of the production-readiness audit's C-2
+-- remediation (docs/PRODUCTION_READINESS_AUDIT.md): shifts_select_broad no
+-- longer grants hr_user visibility (hr_user does not hold scheduling.view
+-- in rolePermissions.ts) — this check previously relied on the very
+-- blanket-SELECT bug being fixed to see the shift row at all.
+reset role;
+reset request.jwt.claims;
+do $$
+declare v_shift_count int;
+begin
   select count(*) into v_shift_count from public.shifts where id = '00000000-0000-0000-0000-000000008101';
   if v_shift_count <> 1 then raise exception 'FAIL: revocation must never delete/restore shifts, but the shift is gone'; end if;
-
-  raise notice 'PASS: revocation reversed balance usage exactly once, removed only leave-generated exceptions, preserved the manual exception, and left shifts untouched';
+  raise notice 'PASS: revocation left shifts untouched';
 end $$;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c6","app_metadata":{"role":"hr_user"}}';
 
 -- Repeated revocation attempt must fail (already revoked) rather than
 -- double-reverse.

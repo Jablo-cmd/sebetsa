@@ -247,7 +247,19 @@ begin
   raise notice 'PASS: verify_compliance_record approves and server-derives verifier';
 end $$;
 
--- Non-manager cannot self-verify.
+-- Corrected 2026-09-19 as part of the production-readiness audit's
+-- self-approval remediation (docs/PRODUCTION_READINESS_AUDIT.md):
+-- verify_compliance_record now blocks the record's own responsible_profile_id
+-- from verifying it, regardless of role tier. This record's
+-- responsible_profile_id is '...1902' (site_manager) — the previous
+-- version of this test called verify_compliance_record AS '...1902' and
+-- mislabelled that as "non-manager cannot self-verify" / "operations tier
+-- can also verify", when it was actually the exact self-verification case
+-- the migration comment (now corrected) always claimed was blocked but
+-- the code never enforced. Split into the two real assertions below.
+
+-- The responsible person cannot verify their own compliance record, even
+-- though site_manager is on the can_manage_operations() tier.
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
@@ -257,9 +269,29 @@ do $$
 declare v_id uuid;
 begin
   select id into v_id from public.compliance_records where requirement_id = '00000000-0000-0000-0000-000000006901' limit 1;
-  -- site_manager IS a can_manage_operations() tier member, so this should succeed (re-verification/adjustment).
+  begin
+    perform public.verify_compliance_record(v_id, false);
+    raise exception 'SECURITY_FAILURE: responsible_profile_id self-verified their own compliance record';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: responsible_profile_id blocked from self-verifying (%)', sqlerrm;
+  end;
+end $$;
+
+-- A different can_manage_operations()-tier person (not the responsible
+-- party) can verify it.
+reset role;
+reset request.jwt.claims;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000001901","app_metadata":{"role":"organization_administrator"}}';
+
+do $$
+declare v_id uuid;
+begin
+  select id into v_id from public.compliance_records where requirement_id = '00000000-0000-0000-0000-000000006901' limit 1;
   perform public.verify_compliance_record(v_id, false);
-  raise notice 'PASS: site_manager (operations tier) can also verify compliance records';
+  raise notice 'PASS: a different operations-tier person (not the responsible party) can verify the compliance record';
 end $$;
 
 reset role;

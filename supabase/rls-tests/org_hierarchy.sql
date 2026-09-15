@@ -133,7 +133,14 @@ reset role;
 reset request.jwt.claims;
 
 -- ---------------------------------------------------------------------------
--- UNAUTHORIZED ROLE: an 'employee' in Org A can read but not manage.
+-- UNAUTHORIZED ROLE: an 'employee' in Org A holds neither org_structure.view
+-- nor org_structure.manage (see rolePermissions.ts — employee is
+-- deliberately minimal). Corrected 2026-09-19 as part of the production-
+-- readiness audit's C-2 remediation (docs/PRODUCTION_READINESS_AUDIT.md):
+-- this assertion previously expected employee to read the region, which
+-- was only true because regions_select_within_tenant had no role check at
+-- all (the bug being fixed) — not because employee was ever meant to see
+-- org-hierarchy data.
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a3","app_metadata":{"role":"employee"}}';
 
@@ -141,8 +148,8 @@ do $$
 declare v_count int;
 begin
   select count(*) into v_count from public.regions where id = '00000000-0000-0000-0000-000000000001';
-  if v_count != 1 then raise exception 'FAIL: employee cannot read their own tenant''s region'; end if;
-  raise notice 'PASS: employee (read-only role) can read their own tenant''s region';
+  if v_count != 0 then raise exception 'SECURITY_FAILURE: employee (no org_structure.view) read a region, got % rows', v_count; end if;
+  raise notice 'PASS: employee (no org_structure.view) correctly sees zero regions';
 end $$;
 
 do $$
