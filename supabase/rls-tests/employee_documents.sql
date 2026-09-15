@@ -149,6 +149,38 @@ begin
   raise notice 'PASS: operations_manager sees non-sensitive documents but not medical/disciplinary ones';
 end $$;
 
+-- P1 remediation regression (docs/PRODUCTION_READINESS_AUDIT.md, storage
+-- sensitivity-tier fix): the same restriction must hold at the
+-- storage.objects layer, not just the metadata table — an
+-- operations_manager must not be able to read the medical document's
+-- bytes by going directly through the Storage API/table even though the
+-- metadata query above correctly hides the row. The path is fetched as
+-- the connecting superuser (bypasses RLS — not the property under test)
+-- and stashed in a session GUC, since operations_manager's own RLS-scoped
+-- lookup on employee_documents can't see this row either.
+reset role;
+reset request.jwt.claims;
+do $$
+declare v_path text;
+begin
+  select storage_path into v_path from public.employee_documents
+  where employee_id = '00000000-0000-0000-0000-00000000017a' and document_type = 'medical';
+  if v_path is null then raise exception 'test setup error: medical document storage_path not found'; end if;
+  perform set_config('app.medical_storage_path', v_path, true);
+end $$;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000013a","app_metadata":{"role":"operations_manager"}}';
+
+do $$
+declare v_count int;
+begin
+  select count(*) into v_count from storage.objects
+  where bucket_id = 'employee-documents' and name = current_setting('app.medical_storage_path', true);
+  if v_count <> 0 then raise exception 'SECURITY_FAILURE: operations_manager read the medical document object directly via storage.objects (% rows)', v_count; end if;
+  raise notice 'PASS: operations_manager cannot read the medical document via storage.objects either';
+end $$;
+
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
@@ -287,13 +319,19 @@ begin
   end;
 end $$;
 
-insert into storage.objects (bucket_id, name) values ('employee-documents', '00000000-0000-0000-0000-00000000010a/00000000-0000-0000-0000-00000000018a/own-file.pdf');
-
+-- Verified via the INSERT's own row_count, not a follow-up SELECT: this
+-- object is created directly (not via create_document_upload_slot()), so
+-- it has no matching employee_documents row, and P1 remediation
+-- (docs/PRODUCTION_READINESS_AUDIT.md, storage sensitivity-tier fix) made
+-- the storage.objects SELECT policy join on that row to determine
+-- document_type sensitivity — correctly failing closed for an object with
+-- no metadata counterpart, which never happens in the real upload flow.
 do $$
-declare v_count int;
+declare v_rows int;
 begin
-  select count(*) into v_count from storage.objects where name = '00000000-0000-0000-0000-00000000010a/00000000-0000-0000-0000-00000000018a/own-file.pdf';
-  if v_count <> 1 then raise exception 'FAIL: employee-m2 could not write a storage object under their own path prefix'; end if;
+  insert into storage.objects (bucket_id, name) values ('employee-documents', '00000000-0000-0000-0000-00000000010a/00000000-0000-0000-0000-00000000018a/own-file.pdf');
+  get diagnostics v_rows = row_count;
+  if v_rows <> 1 then raise exception 'FAIL: employee-m2 could not write a storage object under their own path prefix'; end if;
   raise notice 'PASS: an employee can write a storage object under their own tenant/employee path prefix';
 end $$;
 
