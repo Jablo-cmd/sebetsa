@@ -5,6 +5,10 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # Lets this workflow be triggered on any branch without opening a PR or
+  # pushing to main — used to get a real, observable CI run on a
+  # remediation branch before it merges. Doesn't change what any job does.
+  workflow_dispatch: {}
 
 # Cancel superseded runs on the same branch/PR so pushes don't queue behind
 # stale ones.

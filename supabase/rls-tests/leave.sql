@@ -460,6 +460,28 @@ begin
   where employee_id = '00000000-0000-0000-0000-000000005101' and transaction_type = 'reversal';
   if v_reversal_count <> 1 then raise exception 'FAIL: expected exactly 1 reversal transaction, got %', v_reversal_count; end if;
 
+  raise notice 'PASS: revocation reversed balance usage exactly once';
+end $$;
+
+-- The two employee_availability_exceptions counts below are raw
+-- data-integrity assertions ("did revocation delete the right rows and
+-- leave the unrelated one alone"), not a permissions test, so they are
+-- checked as the table owner rather than under hr_user's role-scoped
+-- visibility. Corrected 2026-09-20 as part of the P1 broader-SELECT-
+-- narrowing remediation (docs/SEBETSA_REMEDIATION_REPORT.md):
+-- employee_availability_exceptions_select_broad no longer grants hr_user
+-- visibility into another employee's rows (hr_user does not hold
+-- availability.view in rolePermissions.ts) — this check previously relied
+-- on the very blanket-SELECT gap being fixed to see these rows at all,
+-- exactly the same class of fixture bug the shift-existence check below
+-- was already corrected for.
+reset role;
+reset request.jwt.claims;
+do $$
+declare
+  v_exception_count int;
+  v_manual_count int;
+begin
   select count(*) into v_exception_count from public.employee_availability_exceptions
   where employee_id = '00000000-0000-0000-0000-000000005101' and leave_request_id is not null;
   if v_exception_count <> 0 then raise exception 'FAIL: revocation did not remove all leave-generated exceptions, % remain', v_exception_count; end if;
@@ -468,8 +490,10 @@ begin
   where employee_id = '00000000-0000-0000-0000-000000005101' and exception_date = current_date + 30 and leave_request_id is null;
   if v_manual_count <> 1 then raise exception 'FAIL: revocation disturbed the unrelated manual exception'; end if;
 
-  raise notice 'PASS: revocation reversed balance usage exactly once, removed only leave-generated exceptions, and preserved the manual exception';
+  raise notice 'PASS: revocation removed only leave-generated exceptions, and preserved the manual exception';
 end $$;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c6","app_metadata":{"role":"hr_user"}}';
 
 -- Shift-existence is a raw data-integrity assertion ("did revocation
 -- physically delete the row"), not a permissions test, so it is checked as
