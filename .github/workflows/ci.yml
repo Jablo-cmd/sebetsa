@@ -41,23 +41,17 @@ jobs:
         # real production build with the hosted Supabase configuration.
         run: npm run build
 
-  edge-functions:
-    name: Edge Function (Deno) tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-      - name: Type-check Edge Functions
-        working-directory: supabase/functions
-        run: deno check payments-initiate/index.ts payments-webhook/index.ts admissions-public/index.ts notifications-dispatch/index.ts _shared/providers/providers.test.ts
-      - name: Lint Edge Functions
-        working-directory: supabase/functions
-        run: deno lint
-      - name: Payment provider adapter tests
-        working-directory: supabase/functions
-        run: deno test --allow-env --allow-net _shared/providers/providers.test.ts
+  # No "Edge Function (Deno) tests" job: the three functions it used to
+  # check (payments-initiate, payments-webhook, notifications-dispatch)
+  # were confirmed orphaned dead code — they referenced payment_intents/
+  # payment_gateway_configs/learners/notification_deliveries, none of
+  # which exist anywhere in supabase/migrations/ (only in the archived
+  # docs/funda360-reference-migrations/ for the predecessor product) — and
+  # had no frontend caller (docs/PRODUCTION_READINESS_AUDIT.md). Removed
+  # in the same change as this job, rather than left deployed-but-dead.
+  # This job also referenced a fourth function, admissions-public, that
+  # never existed in this repository at all. Add a new job here if/when a
+  # real Edge Function is added.
 
   rls-tests:
     name: RLS / trigger / SECURITY DEFINER regression suite
@@ -152,13 +146,13 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_APP_NAME: Funda360
+          VITE_APP_NAME: Sebetsa
         run: npm run build
 
       - name: Verify Pages entrypoint
         run: |
           test -f dist/index.html
-          # Funda360 uses BrowserRouter. GitHub Pages needs an SPA fallback
+          # Sebetsa uses BrowserRouter. GitHub Pages needs an SPA fallback
           # so direct visits/refreshes of application routes do not 404.
           cp dist/index.html dist/404.html
 
