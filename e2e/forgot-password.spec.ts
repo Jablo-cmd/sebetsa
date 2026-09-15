@@ -17,7 +17,7 @@ test('shows a generic confirmation after requesting a reset link', async ({ page
   });
 
   await page.goto('/forgot-password');
-  await page.getByLabel('Email address').fill('admin@funda360.com');
+  await page.getByLabel('Email address').fill('admin@sebetsa.example');
   await page.getByRole('button', { name: 'Send reset link' }).click();
 
   await expect(page.getByRole('status')).toContainText("we've sent a link to reset your password");
@@ -29,7 +29,7 @@ test('surfaces rate-limit errors from the reset request', async ({ page }) => {
   });
 
   await page.goto('/forgot-password');
-  await page.getByLabel('Email address').fill('admin@funda360.com');
+  await page.getByLabel('Email address').fill('admin@sebetsa.example');
   await page.getByRole('button', { name: 'Send reset link' }).click();
 
   await expect(page.getByRole('alert')).toHaveText('Too many requests. Please wait a moment and try again.');

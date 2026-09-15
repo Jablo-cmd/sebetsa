@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { fulfillJson, installAuthMocks, seedAuthenticatedSession } from './utils/mockAuth';
-import { buildMockProfileRow, buildMockSchoolRow, installDataMocks } from './utils/mockData';
+import { fulfillJson, installAuthMocks } from './utils/mockAuth';
+import { seedSebetsaSession } from './utils/sebetsaAuth';
+import { installSebetsaMocks, buildProfileRow } from './utils/sebetsaData';
 
 test('redirects an unverified signed-in user to /verify-email and allows resending', async ({ page }) => {
-  await seedAuthenticatedSession(page, { emailConfirmed: false });
+  await seedSebetsaSession(page, { emailConfirmed: false });
   await installAuthMocks(page, {
     resend: (route) => fulfillJson(route, {}),
   });
@@ -11,7 +12,7 @@ test('redirects an unverified signed-in user to /verify-email and allows resendi
   await page.goto('/');
   await expect(page).toHaveURL(/\/verify-email$/);
   await expect(page.getByRole('heading', { name: 'Verify your email' })).toBeVisible();
-  await expect(page.getByText('admin@funda360.com')).toBeVisible();
+  await expect(page.getByText('test.user@sebetsa.example')).toBeVisible();
 
   await page.getByRole('button', { name: 'Resend verification email' }).click();
   await expect(page.getByRole('status')).toHaveText('Verification email sent. Please check your inbox.');
@@ -19,13 +20,12 @@ test('redirects an unverified signed-in user to /verify-email and allows resendi
 });
 
 test('sends a verified signed-in user straight to the protected home', async ({ page }) => {
-  await seedAuthenticatedSession(page, { emailConfirmed: true });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
+  await seedSebetsaSession(page, { emailConfirmed: true, role: 'employee' });
+  await installSebetsaMocks(page, {
+    profile: buildProfileRow({ role: 'employee', first_name: 'Ada' }),
   });
 
   await page.goto('/verify-email');
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
-  await expect(page.getByRole('heading', { name: 'Welcome back, Ada' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome, Ada' })).toBeVisible();
 });

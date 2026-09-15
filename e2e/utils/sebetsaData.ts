@@ -725,3 +725,36 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
 
   return state;
 }
+
+/**
+ * Mocks the paginated profiles list query UsersPage.tsx issues (`limit`/
+ * `offset` params, needs a `content-range` header for the total count) —
+ * distinct from installSebetsaMocks' own `/profiles` handler, which only
+ * ever returns a single row (the signed-in caller's own profile).
+ */
+export async function installUsersListMock(page: Page, users: ReturnType<typeof buildProfileRow>[]) {
+  await page.route('**/rest/v1/profiles*', async (route: Route) => {
+    const url = new URL(route.request().url());
+    const isListQuery = url.searchParams.has('limit') || url.searchParams.has('offset');
+    if (!isListQuery) return route.fallback();
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: {
+        'content-range': `0-${Math.max(users.length - 1, 0)}/${users.length}`,
+        'access-control-expose-headers': 'content-range',
+      },
+      body: JSON.stringify(users),
+    });
+  });
+}
+
+/** Mocks a `.rpc('admin_create_user' | 'admin_update_user_role', ...)` call. */
+export async function installRpcMock(
+  page: Page,
+  fnName: 'admin_create_user' | 'admin_update_user_role',
+  handler: (route: Route) => Promise<void>,
+) {
+  await page.route(`**/rest/v1/rpc/${fnName}`, handler);
+}

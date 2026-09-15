@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { seedAuthenticatedSession } from './utils/mockAuth';
-import { buildMockProfileRow, buildMockSchoolRow, installDataMocks } from './utils/mockData';
+import { seedSebetsaSession } from './utils/sebetsaAuth';
+import { installSebetsaMocks, buildProfileRow, buildOrganizationRow } from './utils/sebetsaData';
 
 test('shows a friendly notice when the signed-in user has no profile row', async ({ page }) => {
-  await seedAuthenticatedSession(page);
-  await installDataMocks(page, { profile: null });
+  await seedSebetsaSession(page);
+  await installSebetsaMocks(page, { profile: null });
 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Profile not found' })).toBeVisible();
@@ -12,37 +12,37 @@ test('shows a friendly notice when the signed-in user has no profile row', async
 });
 
 test('shows a friendly notice when a non-platform role has no tenant assigned', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'teacher' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow({ tenantId: null, firstName: 'Naledi', lastName: 'Dlamini' }),
+  await seedSebetsaSession(page, { role: 'employee' });
+  await installSebetsaMocks(page, {
+    profile: buildProfileRow({ tenant_id: null, first_name: 'Naledi', last_name: 'Dlamini' }),
   });
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'No school assigned' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'No organization assigned' })).toBeVisible();
 });
 
-test('shows a friendly notice when the assigned school is inactive', async ({ page }) => {
-  await seedAuthenticatedSession(page);
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow({ status: 'inactive' }),
+test('shows a friendly notice when the assigned organization is inactive', async ({ page }) => {
+  await seedSebetsaSession(page);
+  await installSebetsaMocks(page, {
+    profile: buildProfileRow(),
+    organization: buildOrganizationRow({ status: 'inactive', name: 'Auris Facilities Group' }),
   });
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'School inactive' })).toBeVisible();
-  await expect(page.getByRole('alert')).toContainText('Riverside Secondary School');
+  await expect(page.getByRole('heading', { name: 'Organization inactive' })).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Auris Facilities Group');
 });
 
 test('a platform-level role with no tenant reaches the protected home directly', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'super_administrator' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow({ tenantId: null, firstName: 'Lerato', lastName: 'Molefe' }),
+  await seedSebetsaSession(page, { role: 'platform_administrator' });
+  await installSebetsaMocks(page, {
+    profile: buildProfileRow({ tenant_id: null, role: 'platform_administrator', first_name: 'Lerato', last_name: 'Molefe' }),
   });
 
   await page.goto('/');
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
   await expect(page.getByRole('heading', { name: 'Welcome back, Lerato' })).toBeVisible();
   // Scoped to main: the sidebar's account identity block also renders the
-  // role text ("super administrator"), so an unscoped query is ambiguous.
-  await expect(page.getByRole('main').getByText('super administrator', { exact: true })).toBeVisible();
+  // role text ("platform administrator"), so an unscoped query is ambiguous.
+  await expect(page.getByRole('main').getByText('platform administrator', { exact: true })).toBeVisible();
 });
