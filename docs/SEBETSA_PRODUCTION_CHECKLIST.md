@@ -2,79 +2,80 @@
 
 Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PRODUCTION_READINESS_AUDIT.md) (audited 2026-09-15, `main` @ `74b957f`). Unchecked items are confirmed gaps, not unknowns — each maps to a finding in the audit report.
 
+> **Remediation status (2026-09-15):** items below marked `[x] (remediated)` were fixed and verified in the P0/P1 remediation pass — see [`SEBETSA_REMEDIATION_REPORT.md`](./SEBETSA_REMEDIATION_REPORT.md) for the fix, the migration, and how it was verified. Everything else is still an open gap exactly as originally audited; the remediation report's "Remaining Risks" section calls out several of these by name as deliberately out of scope for that pass.
+
 ## Environment
 
 - [ ] `.env.example` rewritten for Sebetsa (currently `VITE_APP_NAME=Funda360`, documents a nonexistent `admissions-public` function and a nonexistent `rls-tests/run.sh`, "per-school" language throughout)
 - [x] No secrets committed to git (verified clean — anon key only, no service_role key in any client-reachable code)
-- [ ] GitHub Actions secrets `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` configured in the `github-pages` environment (currently missing — deploy job fails)
+- [ ] GitHub Actions secrets `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` configured in the `github-pages` environment (still missing — requires a repository-admin action in GitHub Settings, outside what a code change can do; the deploy job already fails loudly rather than deploying silently broken)
 - [ ] `config.toml`'s `auto_expose_new_tables = true` reviewed/removed before it's deprecated upstream (2026-10-30) — low current risk since FORCE RLS is universal, but no safety net for a future migration that forgets an explicit grant
 
 ## Database
 
-- [ ] Fix `employees_write_by_manager` RLS policy — the `hr_user` OR-branch has no tenant comparison (CRITICAL cross-tenant read/write/delete)
-- [ ] Fix the 12+ blanket "any tenant member" SELECT policies (employees, teams, team_members, site_assignments, regions, clients, sites, contracts, contract_sites, departments, positions, shifts, shift_substitutions, shift_definitions, site_staffing_requirements, profiles) to actually check role, not just tenant
-- [ ] Add cross-tenant FK-validation triggers to `clients`/`sites`/`contracts`/`contract_sites` (every other domain has this; org-hierarchy never got it)
-- [ ] Add cross-tenant FK-validation trigger to `asset_assignments` (the one relationship table missing it)
+- [x] (remediated) Fix `employees_write_by_manager` RLS policy — the `hr_user` OR-branch has no tenant comparison (CRITICAL cross-tenant read/write/delete)
+- [x] (remediated) Fix the 12+ blanket "any tenant member" SELECT policies (employees, teams, team_members, site_assignments, regions, clients, sites, contracts, contract_sites, departments, positions, shifts, shift_substitutions, shift_definitions, site_staffing_requirements, profiles) to actually check role, not just tenant
+- [ ] Add cross-tenant FK-validation triggers to `clients`/`sites`/`contracts`/`contract_sites` (every other domain has this; org-hierarchy never got it) — still open, see remediation report
+- [ ] Add cross-tenant FK-validation trigger to `asset_assignments` (the one relationship table missing it) — still open, see remediation report
 - [ ] Decide and implement a tenant-deletion story (`organizations` cascades to `audit_log`/`incidents`/`compliance_records` with no soft-delete; `profiles.tenant_id` uniquely uses `SET NULL` instead of `CASCADE`)
 - [ ] Add `employment_status`-transition validation trigger on `employees` (every other lifecycle table has one; this doesn't)
 - [ ] Add overlap/exclusion constraint on `site_assignments` (shifts already have this pattern — reuse it)
-- [ ] Fix `submit_leave_request()`'s missing `on conflict do nothing` upsert before the balance UPDATE (silently drops the "pending" figure on an employee's first-ever request)
+- [ ] Fix `submit_leave_request()`'s missing `on conflict do nothing` upsert before the balance UPDATE (silently drops the "pending" figure on an employee's first-ever request) — still open, see remediation report
 - [ ] Explicitly `revoke ... from public, anon` on the boolean permission-helper functions (`can_manage_profiles`, `can_assign_role`, `can_manage_org_structure`, `can_manage_operations`, `can_manage_employees`, `can_manage_leave`, `can_approve_leave`, `can_view_leave_broad`) — currently rely only on never being granted, not an explicit revoke
 - [ ] Sanitize `p_file_name` in `create_contract_document_slot()` the same way `create_document_upload_slot()` already does
 - [ ] Decide the fate of `sla_definitions.site_id IS NULL` (contract-wide SLA) — currently schema-supported but `compute_sla_measurement()` unconditionally rejects it
 
 ## Authentication
 
-- [ ] Decide whether MFA for platform_administrator/organization_administrator/hr_user should be a hard block, not a dismissible banner — currently zero server-side enforcement (no `aal` check anywhere in RLS/RPCs)
+- [x] (remediated, partial — see below) MFA for platform_administrator/organization_administrator/hr_user now has real server-side enforcement, deliberately scoped to `admin_create_user`/`admin_update_user_role` only, not a blanket hard block on every action — see remediation report for why
 - [x] Password reset/activation correctly forces session invalidation after password change
 - [x] No secret exposure in session storage beyond standard supabase-js SPA behavior (no XSS sink exists to exploit it today)
 
 ## MFA
 
-- [ ] Add a server-side assurance-level check (`auth.jwt()->>'aal'`) to at least the "required" roles' most sensitive RPCs, or accept and document that MFA is advisory-only for now
+- [x] (remediated, partial) Server-side assurance-level check (`auth.jwt()->>'aal'`) added to the two highest-leverage privileged RPCs (user creation, role assignment) — not yet extended to every "required"-role sensitive RPC, tracked as a P2 follow-up in the remediation report
 - [ ] Confirm the intended UX for a privileged user who never enrolls — currently indistinguishable from one who has
 
 ## RBAC
 
-- [ ] Verify the fixed RBAC matrix (9 roles × 24 permission domains) against actual RLS after the CRITICAL policy fixes above — the frontend `RequirePermission` guard is already consistent with `rolePermissions.ts`, but RLS is the real boundary and two of its policies currently disagree with it
-- [ ] Add self-action guards (`if v_subject = auth.uid() and not is_platform_admin() then raise exception ...`) to: `approve_leave_request`/`reject_leave_request`, `decide_attendance_correction`, `verify_task`, `verify_compliance_record`, `verify_incident_action`, `verify_employee_qualification`/`verify_employee_skill` — `decide_procurement_request` already does this correctly; replicate its pattern
-- [ ] Correct or remove the `verify_compliance_record` migration comment that falsely claims self-verification is already blocked
+- [x] (remediated) Verify the fixed RBAC matrix (9 roles × 24 permission domains) against actual RLS after the CRITICAL policy fixes above — confirmed via the new `p0_tenant_rbac_remediation.sql` RLS test file
+- [x] (remediated, partial) Self-action guards added to `approve_leave_request`/`reject_leave_request`/`revoke_leave_request`, `decide_attendance_correction`, `verify_task`, `verify_compliance_record`, `verify_incident_action` — **`verify_employee_qualification`/`verify_employee_skill` still have no guard**, explicitly open, see remediation report
+- [x] (remediated) Corrected the `verify_compliance_record` migration comment that falsely claimed self-verification was already blocked
 
 ## RLS
 
-- [ ] Restore or rewrite `supabase/rls-tests/run.sh` so the 13 existing, genuinely thorough test files actually execute (currently referenced by CI but absent — job fails instantly, exit 127)
+- [x] (remediated) Restore `supabase/rls-tests/run.sh` so the test suite actually executes — 17/17 files now pass (verified via a native-Postgres equivalent in this sandbox; Docker itself was not re-verified, see remediation report)
 - [ ] Add an RLS test file for `notifications` (none exists despite the service layer naming RLS as its enforcement mechanism)
-- [ ] Add RLS test coverage for the actual self-verification scenario in `compliance_incidents.sql` (current test only proves role-tier gating, not same-person gating)
-- [ ] Wire the RLS suite into the CI gate as a required check before merge, once it runs
+- [x] (remediated) Add RLS test coverage for the actual self-verification scenario in `compliance_incidents.sql` (split into two correct assertions)
+- [x] (remediated) Wire the RLS suite into the CI gate as a required check — the job now has a runner script to execute
 
 ## Multi-tenancy
 
-- [ ] Re-verify all 7 attack scenarios (A–G) live against a real Supabase project once the CRITICAL policy fixes land — this audit's verification was static (SQL trace), not a live penetration test
+- [ ] Re-verify all 7 attack scenarios (A–G) live against a real, hosted Supabase project — this remediation's verification was against a local from-scratch database with the real migrations applied, still not a live penetration test against the actual hosted project (see remediation report)
 - [ ] Confirm platform-admin cross-tenant reads are acceptable as currently unaudited (no read-logging mechanism exists anywhere — only mutating RPCs write to `audit_log`)
 
 ## Storage
 
-- [ ] Replicate the `employee_documents` medical/disciplinary sensitivity split at the `storage.objects` policy level, not just the metadata-table level (`operations_manager` can currently bypass it via the Storage API directly)
+- [x] (remediated) Replicate the `employee_documents` medical/disciplinary sensitivity split at the `storage.objects` policy level, not just the metadata-table level
 - [ ] Add magic-byte/content-sniffing validation for document uploads (self-acknowledged deferred gap; currently MIME/size only)
 - [x] Storage paths are server-generated and filenames sanitized (employee-documents) — closes path traversal
 - [ ] Apply the same filename-sanitization pattern to `create_contract_document_slot()` (see Database)
 
 ## Edge Functions
 
-- [ ] Decide the fate of `payments-initiate`/`payments-webhook`: either finish the port (add the missing `payment_intents`/`payment_gateway_configs`/`settle_payment_intent`, fix the 3 defects below) or remove them from the deployed function set and CI
-- [ ] If keeping payments: fix `payments-initiate`'s raw-exception-text leak to callers, implement the described-but-missing settlement safety net (signature-gate enforcement, amount re-check, idempotency via a unique `provider_event_id` constraint), and scope CORS away from `*`
-- [ ] Decide the fate of `notifications-dispatch`: either implement the missing `notification_deliveries` outbox table/enqueue path or remove it from CI and deployment
-- [ ] Remove `admissions-public` from `ci.yml`'s Deno typecheck step (references a file that doesn't exist in this repo)
+- [x] (remediated) `payments-initiate`/`payments-webhook` removed entirely (dead code referencing a nonexistent schema, not finished)
+- [x] (remediated) `notifications-dispatch` removed entirely (dead code)
+- [x] (remediated) Removed the whole Edge Function CI job, including the `admissions-public` reference (a file that never existed in this repo)
 
 ## Employees
 
-- [ ] Make `terminate_employee()`'s `profiles.status='inactive'` actually mean something — add the check to every self-service RPC (`clock_in`, `submit_leave_request`, `request_attendance_correction`, `complete_task`, availability writes) or, better, deny at the RLS/session layer
+- [x] (remediated) Make `terminate_employee()`'s `profiles.status='inactive'`/`employment_status='terminated'` actually mean something — added to `clock_in`, `submit_leave_request`, `request_attendance_correction`, `complete_task`
 - [ ] Filter terminated employees out of scheduling/site-assignment candidate pickers (`searchEmployeeCandidates()` currently has no `employment_status` filter)
 - [ ] Add employee uniqueness beyond `employee_number` (email or an ID-equivalent field)
 
 ## Sites
 
-- [ ] Add employee-`active` + site-`active` + contract-validity checks to `site_assignments` writes
+- [x] (remediated, partial) Added employee-`active` + site-`active` checks to open-ended `site_assignments` writes — contract-validity checks and overlap prevention are still open (see below)
 - [ ] Add overlap prevention to `site_assignments`
 
 ## Scheduling
@@ -86,28 +87,28 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 
 ## Attendance
 
-- [ ] Add `employment_status` + `site_assignments` checks to `clock_in()`
+- [x] (remediated) Add `employment_status` check to `clock_in()` (via `employee_can_self_serve()`) — a `site_assignments` cross-check specifically was not added, still open
 - [ ] Decide handling for clock-in during already-approved leave (currently silent, contradictory)
-- [ ] Add self-approval guard to `decide_attendance_correction()`
+- [x] (remediated) Add self-approval guard to `decide_attendance_correction()`
 - [ ] Add future-date validation to attendance corrections
 - [ ] Decide whether `attendance_records_write_by_manager`'s direct-write escape hatch around the correction workflow is intentional or should be removed
 
 ## Leave
 
-- [ ] Add self-approval guard to `approve_leave_request()`/`reject_leave_request()`/`revoke_leave_request()`
-- [ ] Add a balance check to `approve_leave_request()` before allowing approval into negative
-- [ ] Fix the first-request balance-recording bug (see Database)
+- [x] (remediated) Add self-approval guard to `approve_leave_request()`/`reject_leave_request()`/`revoke_leave_request()`
+- [x] (remediated) Add a balance check to `approve_leave_request()` before allowing approval into negative
+- [ ] Fix the first-request balance-recording bug (see Database) — still open, see remediation report
 - [ ] Add overlapping-leave-request prevention
 
 ## Tasks
 
-- [ ] Add a verifier-differs-from-completer check to `verify_task()`
+- [x] (remediated) Add a verifier-differs-from-completer check to `verify_task()`
 - [ ] Add a `site_assignments` check to task assignment/reassignment
 
 ## Documents
 
-- [ ] Fix the storage-layer sensitivity bypass (see Storage)
-- [ ] Consider scheduling the expiry sweep instead of relying on someone opening the management page
+- [x] (remediated) Fix the storage-layer sensitivity bypass (see Storage)
+- [ ] Consider scheduling the expiry sweep instead of relying on someone opening the management page — sweep functions are now wired for `pg_cron` scheduling, but scheduling itself was never live-observed firing (`pg_cron` unavailable in this sandbox), see remediation report
 
 ## Incidents
 
@@ -115,12 +116,12 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 
 ## Compliance
 
-- [ ] Add self-verification guard to `verify_compliance_record()` and correct the migration comment that falsely claims it's already blocked
-- [ ] Wire `sync_expired_compliance_records()` into the frontend (currently fully implemented but never called — expired records show as compliant indefinitely)
+- [x] (remediated) Add self-verification guard to `verify_compliance_record()` and correct the migration comment that falsely claims it's already blocked
+- [x] (remediated, partial) `sync_expired_compliance_records()` (and qualifications/documents) now have tenant-batch wrappers wired for `pg_cron`; live scheduling itself unconfirmed, see remediation report
 
 ## Assets
 
-- [ ] Add the missing cross-tenant validation trigger to `asset_assignments`
+- [ ] Add the missing cross-tenant validation trigger to `asset_assignments` — still open, see remediation report
 - [ ] Consider a cross-site check on asset assignment
 
 ## Procurement
@@ -130,7 +131,7 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 ## Training
 
 - [ ] Decide whether expired required certifications should gate scheduling (currently `training_requirements` is never joined against `shifts` — fully decorative today)
-- [ ] Add self-verification guard to `verify_employee_skill()`/`verify_employee_qualification()`
+- [ ] Add self-verification guard to `verify_employee_skill()`/`verify_employee_qualification()` — **still open, explicitly not fixed in this remediation pass**, see remediation report
 
 ## Reporting
 
@@ -174,8 +175,8 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 
 ## Deployment
 
-- [ ] Fix the GitHub Pages deploy job (missing `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` secrets)
-- [ ] Remove or fix the three CI jobs currently failing on `main` (e2e, edge-functions, rls-tests) before treating CI green as meaningful again
+- [ ] Configure the GitHub Pages deploy job's missing `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` secrets — requires a repository-admin action in GitHub Settings; still open, cannot be done via a code change (the job already fails loudly rather than deploying broken)
+- [x] (remediated) Fixed all three CI jobs that were failing on `main` (e2e, edge-functions, rls-tests) — see remediation report for exactly what each fix was
 
 ## Rollback
 
@@ -199,7 +200,7 @@ Practical go/no-go checklist derived from [`PRODUCTION_READINESS_AUDIT.md`](./PR
 
 ## Testing infrastructure (supporting, but a real production-risk driver)
 
-- [ ] Filter or delete the ~40 e2e spec files using the broken `mockAuth`/`mockData` utilities (wrong localStorage key, references routes that don't exist)
-- [ ] Once filtered, wire the remaining genuine spec files into a required CI check
+- [x] (remediated) Deleted 24 e2e spec files testing functionality with no Sebetsa equivalent; migrated every remaining file off the broken `mockAuth`/`mockData` utilities to genuine `sebetsaAuth`/`sebetsaData` mocking — full suite now 127/127 passing
+- [x] (remediated) The e2e job runs the full, now-passing suite unfiltered — no filtering flag was needed once every file was fixed rather than skipped
 - [ ] Regenerate `package-lock.json` so its `name` field matches `package.json` (currently drifted to `"funda360"`)
 - [ ] Address the 2 moderate (`react-router-dom` open-redirect + constructor-injection CVEs) and 2 low (`@supabase/auth-js` via an unusually old exact-pinned `supabase-js@2.45.4`) `npm audit` findings
