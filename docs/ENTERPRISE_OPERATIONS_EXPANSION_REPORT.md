@@ -106,3 +106,56 @@ This file is the primary new documentation artifact for this pass. Two live, use
 ## 8. What a reader should take away
 
 Three enterprise domains were built end-to-end — real Postgres schema and RLS, real RPCs with real security tests, real frontend pages wired to those RPCs following every existing codebase convention exactly, a real (and fixed) adversarial security finding, zero regressions to the 148 previously-passing automated checks (21 RLS files + 127 e2e tests) this pass touched. What is honestly not done: CI/hosted-Supabase verification (no access), true offline queueing (a disclosed, reasoned scope cut consistent with this codebase's own stated philosophy), and e2e coverage of the three new domains specifically (also disclosed, with the RLS suite carrying that verification weight instead). Nothing here claims more than what is proven above.
+
+---
+
+## 9. Addendum — final hardening pass (this same branch, commits `6a16307`, `f6cae0c`)
+
+A second, adversarial re-review of the three domains above, specifically targeting the disclosed gaps in §8. Two real production defects were found and fixed that the original test suite had not caught; the disclosed e2e gap was then closed.
+
+### 9.1 Two real defects found and fixed
+
+1. **`start_patrol()` TOCTOU concurrency race.** Its "already have a patrol in progress" guard was a plain check-then-insert with no database-level enforcement, unlike every other "one open X per employee" invariant in this codebase (`attendance_records`, `attendance_breaks`), which use a partial `UNIQUE` index. Two concurrent `start_patrol()` calls for the same employee could both pass the `EXISTS` check before either `INSERT` committed, producing two simultaneous in-progress patrol runs — a real safety-integrity gap for a system whose whole purpose is an authoritative patrol record. **Fixed**: `patrol_runs_open_idx` is now a real `UNIQUE` partial index (matching the established pattern exactly); `start_patrol()` catches the resulting `unique_violation` and re-raises the same clean `already_in_progress` error the losing caller would otherwise have gotten from the (now redundant, but still useful for a fast/friendly error) advisory check.
+2. **Four tables silently accepted physically-impossible GPS coordinates.** Only the geofence *configuration* table (`site_geofences`) had a `CHECK` constraint on latitude/longitude. The four tables that record a *raw device or scan reading* — `attendance_location_events`, `checkpoints`, `patrol_checkpoint_scans`, `emergency_events` — had none, so a value like `latitude = 200` would have been stored and displayed as if it were real evidence. **Fixed**: the same nullable-safe `CHECK (col IS NULL OR col BETWEEN ...)` pattern added to all four, plus a non-negative check on `accuracy_meters` where present. `dbErrors.ts`'s existing generic `23514` mapping already renders this safely to the user with no frontend change needed.
+
+Every other check-then-insert/check-then-update path across Domains 13-15 was re-audited for the same TOCTOU shape and confirmed already correct: `scan_checkpoint()` and alert/emergency decisions serialize via `SELECT ... FOR UPDATE` on the row being modified (which already exists, unlike a not-yet-inserted row), and `operational_alerts`' sweep-generated dedup already uses a partial unique index with `ON CONFLICT DO NOTHING`.
+
+Both fixes are proven by 5 new adversarial RLS assertions (2 impossible-coordinate rejections on `clock_in`, 1 on `scan_checkpoint`, 1 on `trigger_emergency`, plus a concurrency-safety comment on the existing "cannot start a second patrol" test).
+
+### 9.2 Domain 13-15 e2e coverage gap — closed
+
+§8's disclosed gap ("no new Playwright e2e specs were written for Domains 13/14/15") is closed: `e2e/patrols.spec.ts`, `e2e/command-centre.spec.ts`, `e2e/intelligence.spec.ts` (24 new tests) now cover, per domain — GPS clock-in outside geofence + exception request + supervisor review + self-approval-rejection error handling; the full patrol scan lifecycle (wrong-order, valid, duplicate, complete) and Patrol Oversight's real aggregate figures; the Command Centre's real figures, the panic button from any page, a failed-trigger honest error, the full emergency ack/respond/resolve lifecycle, emergency self-approval rejection at both the emergency and linked-alert RPC layers, operational alert ack/resolve/reopen-with-reason; the AI assistant's whitelisted-answer and adversarial-fallback paths, and scheduling recommendations' generate-never-publishes / accept-publishes-exactly-one-shift / reject-publishes-nothing invariants — plus role-block checks and axe-core accessibility checks for every new page. `e2e/utils/sebetsaData.ts` gained 8 new per-table mock handlers with real query-param filtering, in the same established style as the rest of the mock layer, so these tests never reach a real network.
+
+### 9.3 Two dangling service functions found and wired to the UI
+
+Cross-checking every `commandCentreService`/`attendanceService` export against what the UI actually calls found two RPCs that existed, were tested at the RLS layer, and had zero UI entry point:
+
+- `reopenAlert()` — `OperationalAlertsPage` now offers a "Reopen" action (with a required reason) on any resolved alert, for the operations tier that already has `commandCentreService`'s other actions.
+- `getMyLocationExceptions()` — a new `useMyLocationExceptions` hook wires this into `MyAttendancePage`, so an employee who requested a GPS exception can now see its outcome (pending / approved / rejected, with the reviewer's notes) instead of that decision being made and then becoming permanently invisible to the person it was made about.
+
+A third, unrelated bug was found in the same sweep: `AiAssistantPage`'s initial conversation-history load silently swallowed its error (`.catch(() => undefined)`), so a failed load looked identical to "no history yet." Fixed to surface the real error via the existing `ErrorAlert` pattern.
+
+### 9.4 Re-verified clean, from a genuinely fresh state, after all of the above
+
+| Check | Result |
+|---|---|
+| `npm run typecheck` | Clean (0 errors) |
+| `npm run lint` | Clean (0 errors, 0 warnings) |
+| `npm test` (Vitest) | 25 files, **180/180** tests passing |
+| `npm run build` | Clean production build |
+| RLS regression suite | **24/24** files passing — fresh native-PostgreSQL-16 apply of all migrations, filename order, from a dropped-and-recreated database (Docker still blocked by this sandbox's egress policy, same methodology as every prior pass) |
+| `npx playwright test` (full suite, chromium) | **155/155** tests passing (127 pre-existing + 24 new for Domains 13-15 + 4 new a11y checks) — a genuinely clean run from a freshly-started `vite preview` with no stale process reused |
+
+### 9.5 Also checked in this pass, found already clean
+
+- **Environment/secrets** — `.env`/`.env.local`/`.env.*.local` are gitignored; only `.env.example` (placeholders only, no real values) is tracked; no `service_role` key, hardcoded Supabase URL, or hardcoded anon key exists anywhere in `src/`.
+- **Observability** — the consequential, safety/audit-relevant actions across Domains 13-15 (clock-in/out, exception decisions, patrol start/scan/complete, emergency trigger/ack/respond/resolve, alert ack/resolve/reopen, shift-recommendation accept/reject) already call the existing `write_audit_log()` pattern; the migrations that don't (a notification-delivery bookkeeping RPC, a one-line enum addition, and pre-existing infra/grants migrations from an earlier pass) are not consequential user-facing actions and don't need one.
+- **Repo cleanliness** — no `TODO`/`FIXME`/`XXX`, no `console.log`, no `debugger`, and no leaked local machine paths (`/home/user`, `/root/`, `/Users/`) anywhere in `src/` or `supabase/`.
+- **Diff hygiene** — the final diff for this pass touches exactly the files this pass's work required (3 migrations, 2 RLS test files, 4 e2e spec/util files, 4 frontend files) — no unrelated files modified.
+
+### 9.6 Status, per the same honest legend as §6
+
+- **IMPLEMENTED, TESTED**: both defect fixes (§9.1), the full Domain 13-15 e2e suite (§9.2), both UI wiring fixes (§9.3).
+- **VERIFIED IN CI**: see the top-level final report for this pass for whether a real GitHub Actions run was actually triggered and its result — this document does not claim CI verification on its own.
+- **VERIFIED AGAINST HOSTED SUPABASE**: still **BLOCKED** — no hosted Supabase project reference or credentials existed in this session, exactly as in §6. Nothing in this addendum changes that.
+- **NOT VERIFIED / DEFERRED**: unchanged from §6 (camera-based QR scanning against a real device, true offline queueing, real push/SMS delivery, a real LLM behind the AI assistant, load/scale testing) — this pass did not attempt any of those, consistent with the same scope boundaries already disclosed.
