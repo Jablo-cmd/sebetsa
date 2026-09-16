@@ -93,6 +93,29 @@ end $$;
 -- not a parameter clock_in accepts at all; confirmed by the three
 -- assertions above, each driven only by raw lat/lng/accuracy.
 
+-- Adversarial: impossible coordinates (out-of-range latitude/longitude,
+-- not just "far away") are rejected by a real CHECK constraint on the
+-- evidence table, not silently stored as a wrong-but-valid-looking number.
+do $$
+begin
+  begin
+    perform public.clock_in('00000000-0000-0000-0000-00000000d107', '00000000-0000-0000-0000-00000000d106', null, 200, 28.0473, 15);
+    raise exception 'SECURITY_FAILURE: clock_in accepted an impossible latitude (200) as real GPS evidence';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: an impossible latitude is rejected, not stored as evidence (%)', sqlerrm;
+  end;
+  begin
+    perform public.clock_in('00000000-0000-0000-0000-00000000d107', '00000000-0000-0000-0000-00000000d106', null, -26.2041, -400, 15);
+    raise exception 'SECURITY_FAILURE: clock_in accepted an impossible longitude (-400) as real GPS evidence';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: an impossible longitude is rejected, not stored as evidence (%)', sqlerrm;
+  end;
+end $$;
+
 reset role;
 reset request.jwt.claims;
 
@@ -275,7 +298,12 @@ begin
   raise notice 'PASS: a fully-scanned patrol completes correctly';
 end $$;
 
--- Cannot start a second patrol while one is already in progress.
+-- Cannot start a second patrol while one is already in progress. Also
+-- proves the race is closed at the database level (a real UNIQUE partial
+-- index, patrol_runs_open_idx), not just an advisory app-level check —
+-- if that INSERT ever raced past the EXISTS check, the unique index (and
+-- start_patrol()'s own unique_violation handler) still produces this same
+-- clean already_in_progress error rather than two live runs.
 do $$
 begin
   perform public.start_patrol('00000000-0000-0000-0000-00000000d10b');
@@ -286,6 +314,22 @@ begin
     when others then
       if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
       raise notice 'PASS: cannot start a second patrol while one is already in progress (%)', sqlerrm;
+  end;
+end $$;
+
+-- Adversarial: impossible checkpoint-scan coordinates are rejected by the
+-- same CHECK constraint pattern as clock_in, not stored as evidence.
+do $$
+declare v_run_id uuid;
+begin
+  select id into v_run_id from public.patrol_runs where employee_id = '00000000-0000-0000-0000-00000000d107' and status = 'in_progress';
+  begin
+    perform public.scan_checkpoint(v_run_id, 'CP-A', 95.0, 28.0473, 'manual');
+    raise exception 'SECURITY_FAILURE: scan_checkpoint accepted an impossible latitude (95) as real GPS evidence';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: an impossible checkpoint-scan latitude is rejected, not stored as evidence (%)', sqlerrm;
   end;
 end $$;
 

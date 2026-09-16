@@ -21,9 +21,9 @@ create table public.emergency_events (
   site_id         uuid references public.sites (id) on delete set null,
   shift_id        uuid references public.shifts (id) on delete set null,
   emergency_type  public.emergency_type not null default 'panic',
-  latitude        numeric(9, 6),
-  longitude       numeric(9, 6),
-  accuracy_meters numeric(8, 2),
+  latitude        numeric(9, 6) check (latitude is null or latitude between -90 and 90),
+  longitude       numeric(9, 6) check (longitude is null or longitude between -180 and 180),
+  accuracy_meters numeric(8, 2) check (accuracy_meters is null or accuracy_meters >= 0),
   triggered_at    timestamptz not null default now(),
   device_context  jsonb not null default '{}'::jsonb
 );

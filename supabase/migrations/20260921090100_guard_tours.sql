@@ -27,8 +27,8 @@ create table public.checkpoints (
   site_id     uuid not null references public.sites (id) on delete cascade,
   code        text not null check (char_length(code) > 0),
   name        text not null check (char_length(name) > 0),
-  latitude    numeric(9, 6),
-  longitude   numeric(9, 6),
+  latitude    numeric(9, 6) check (latitude is null or latitude between -90 and 90),
+  longitude   numeric(9, 6) check (longitude is null or longitude between -180 and 180),
   scan_type   public.checkpoint_scan_type not null default 'qr',
   active      boolean not null default true,
   created_at  timestamptz not null default now(),
@@ -194,7 +194,14 @@ create table public.patrol_runs (
 create index patrol_runs_tenant_id_idx on public.patrol_runs (tenant_id);
 create index patrol_runs_employee_id_idx on public.patrol_runs (employee_id, started_at);
 create index patrol_runs_site_id_idx on public.patrol_runs (site_id, started_at);
-create index patrol_runs_open_idx on public.patrol_runs (employee_id) where status = 'in_progress';
+-- UNIQUE, not just an index: the "one open patrol per employee" rule in
+-- start_patrol() below is otherwise a check-then-insert race — two
+-- concurrent calls can both pass the `if exists(...)` check before either
+-- INSERT commits, producing two simultaneous in-progress runs for one
+-- employee. This mirrors attendance_records_one_open_per_employee_idx's
+-- already-established pattern, making the constraint atomic at the
+-- database level instead of advisory at the application level.
+create unique index patrol_runs_open_idx on public.patrol_runs (employee_id) where status = 'in_progress';
 
 create or replace function public.validate_patrol_run_tenant_refs()
 returns trigger
@@ -242,8 +249,8 @@ create table public.patrol_checkpoint_scans (
   sequence_number     integer not null,
   scanned_at          timestamptz not null default now(),
   scan_method         public.checkpoint_scan_type not null,
-  latitude             numeric(9, 6),
-  longitude            numeric(9, 6),
+  latitude             numeric(9, 6) check (latitude is null or latitude between -90 and 90),
+  longitude            numeric(9, 6) check (longitude is null or longitude between -180 and 180),
   verification_result public.checkpoint_scan_result not null,
   risk_flags          jsonb not null default '[]'::jsonb
 );
@@ -339,9 +346,17 @@ begin
     raise exception 'invalid_request: this patrol route has no checkpoints configured';
   end if;
 
-  insert into public.patrol_runs (tenant_id, patrol_route_id, site_id, employee_id, expected_checkpoint_count)
-  values (v_route.tenant_id, p_patrol_route_id, v_route.site_id, v_employee_id, v_expected_count)
-  returning * into v_result;
+  begin
+    insert into public.patrol_runs (tenant_id, patrol_route_id, site_id, employee_id, expected_checkpoint_count)
+    values (v_route.tenant_id, p_patrol_route_id, v_route.site_id, v_employee_id, v_expected_count)
+    returning * into v_result;
+  exception
+    -- The concurrent-request loser hits patrol_runs_open_idx instead of
+    -- the exists-check above — same clean error either way, never a raw
+    -- constraint-violation message.
+    when unique_violation then
+      raise exception 'already_in_progress: you already have a patrol in progress';
+  end;
 
   perform public.write_audit_log(v_route.tenant_id, auth.uid(), 'patrol_started', 'patrol_runs', v_result.id, null, jsonb_build_object('patrol_route_id', p_patrol_route_id));
 

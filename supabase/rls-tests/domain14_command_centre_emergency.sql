@@ -180,6 +180,15 @@ begin
   get diagnostics v_rows = row_count;
   if v_rows <> 0 then raise exception 'SECURITY_FAILURE: the immutable emergency_events row was updated by its own triggering employee (% rows affected)', v_rows; end if;
   raise notice 'PASS: emergency_events is truly append-only — no UPDATE policy exists for authenticated, so the UPDATE affects zero rows';
+
+  begin
+    perform public.trigger_emergency(-500, 28.047300, 15, 'panic');
+    raise exception 'SECURITY_FAILURE: trigger_emergency accepted an impossible latitude (-500) as real GPS evidence';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: an impossible emergency-trigger latitude is rejected, not stored as evidence (%)', sqlerrm;
+  end;
 end $$;
 
 reset role;
