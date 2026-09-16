@@ -2,6 +2,9 @@ import type { Database } from '@/lib/database.types';
 
 export type EntityStatus = Database['public']['Enums']['entity_status'];
 export type ContractStatus = Database['public']['Enums']['contract_status'];
+export type ContractBillingFrequency = Database['public']['Enums']['contract_billing_frequency'];
+export type ContractPartyResponsibility = Database['public']['Enums']['contract_party_responsibility'];
+export type TaskPriority = Database['public']['Enums']['task_priority'];
 
 export interface Region {
   id: string;
@@ -111,6 +114,19 @@ export interface Contract {
   status: ContractStatus;
   responsibleManagerId: string | null;
   slaNotes: string | null;
+  contractValue: number | null;
+  recurringValue: number | null;
+  billingFrequency: ContractBillingFrequency | null;
+  paymentTermsDays: number | null;
+  renewalDate: string | null;
+  autoRenew: boolean;
+  escalationPercentage: number | null;
+  escalationNotes: string | null;
+  serviceFrequency: string | null;
+  consumablesResponsibility: ContractPartyResponsibility | null;
+  equipmentResponsibility: ContractPartyResponsibility | null;
+  labourNotes: string | null;
+  notes: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -128,6 +144,22 @@ export interface CreateContractInput {
 
 export type UpdateContractInput = Partial<Omit<CreateContractInput, 'siteIds'>>;
 
+export interface UpdateContractCommercialTermsInput {
+  contractValue?: number | null;
+  recurringValue?: number | null;
+  billingFrequency?: ContractBillingFrequency | null;
+  paymentTermsDays?: number | null;
+  renewalDate?: string | null;
+  autoRenew?: boolean;
+  escalationPercentage?: number | null;
+  escalationNotes?: string | null;
+  serviceFrequency?: string | null;
+  consumablesResponsibility?: ContractPartyResponsibility | null;
+  equipmentResponsibility?: ContractPartyResponsibility | null;
+  labourNotes?: string | null;
+  notes?: string | null;
+}
+
 export interface ContractsListFilters {
   search?: string;
   clientId?: string;
@@ -140,3 +172,73 @@ export interface ContractsListPage {
   page: number;
   pageSize: number;
 }
+
+export interface ContractVersion {
+  id: string;
+  tenantId: string;
+  contractId: string;
+  versionNumber: number;
+  snapshot: Record<string, unknown>;
+  changeSummary: string;
+  changedBy: string | null;
+  effectiveDate: string;
+  createdAt: string;
+}
+
+export interface SiteArea {
+  id: string;
+  tenantId: string;
+  siteId: string;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+  status: EntityStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSiteAreaInput {
+  siteId: string;
+  name: string;
+  description?: string | null;
+  sortOrder?: number;
+}
+
+export type UpdateSiteAreaInput = Partial<Omit<CreateSiteAreaInput, 'siteId'>> & { status?: EntityStatus };
+
+export interface ScopeOfWorkItem {
+  id: string;
+  tenantId: string;
+  contractId: string;
+  siteAreaId: string;
+  taskName: string;
+  frequency: string | null;
+  estimatedMinutes: number | null;
+  assignedRole: string | null;
+  requiredEquipment: string | null;
+  requiredConsumables: string | null;
+  ppeNotes: string | null;
+  instructions: string | null;
+  requiresEvidence: boolean;
+  priority: TaskPriority;
+  status: EntityStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateScopeOfWorkItemInput {
+  contractId: string;
+  siteAreaId: string;
+  taskName: string;
+  frequency?: string | null;
+  estimatedMinutes?: number | null;
+  assignedRole?: string | null;
+  requiredEquipment?: string | null;
+  requiredConsumables?: string | null;
+  ppeNotes?: string | null;
+  instructions?: string | null;
+  requiresEvidence?: boolean;
+  priority?: TaskPriority;
+}
+
+export type UpdateScopeOfWorkItemInput = Partial<Omit<CreateScopeOfWorkItemInput, 'contractId' | 'siteAreaId'>> & { status?: EntityStatus };

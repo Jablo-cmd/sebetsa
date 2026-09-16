@@ -40,6 +40,37 @@ export function buildOrganizationRow(overrides: Partial<Record<string, unknown>>
   };
 }
 
+/** Full contracts row shape, including the commercial-term columns added by 20260922090000_commercial_contract_terms.sql — a mock omitting these would render `undefined` where the real DB always returns `null`. */
+export function buildContractRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'contract-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    client_id: 'client-1',
+    contract_number: 'CTR-001',
+    start_date: '2026-01-01',
+    end_date: null,
+    status: 'active',
+    responsible_manager_id: null,
+    sla_notes: null,
+    contract_value: null,
+    recurring_value: null,
+    billing_frequency: null,
+    payment_terms_days: null,
+    renewal_date: null,
+    auto_renew: false,
+    escalation_percentage: null,
+    escalation_notes: null,
+    service_frequency: null,
+    consumables_responsibility: null,
+    equipment_responsibility: null,
+    labour_notes: null,
+    notes: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
 export function buildProfileRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
   return {
     id: SEBETSA_USER_ID,

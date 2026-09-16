@@ -36,6 +36,16 @@ export type ContractUpdate = TableUpdate<'contracts'>;
 
 export type ContractSiteRow = TableRow<'contract_sites'>;
 
+export type ContractVersionRow = TableRow<'contract_versions'>;
+
+export type SiteAreaRow = TableRow<'site_areas'>;
+export type SiteAreaInsert = TableInsert<'site_areas'>;
+export type SiteAreaUpdate = TableUpdate<'site_areas'>;
+
+export type ScopeOfWorkItemRow = TableRow<'scope_of_work_items'>;
+export type ScopeOfWorkItemInsert = TableInsert<'scope_of_work_items'>;
+export type ScopeOfWorkItemUpdate = TableUpdate<'scope_of_work_items'>;
+
 export type DepartmentRow = TableRow<'departments'>;
 export type DepartmentInsert = TableInsert<'departments'>;
 export type DepartmentUpdate = TableUpdate<'departments'>;

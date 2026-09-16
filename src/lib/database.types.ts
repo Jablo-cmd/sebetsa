@@ -637,12 +637,25 @@ export type Database = {
       }
       contracts: {
         Row: {
+          auto_renew: boolean
           client_id: string
+          consumables_responsibility: Database["public"]["Enums"]["contract_party_responsibility"] | null
           contract_number: string
+          contract_value: number | null
           created_at: string
+          equipment_responsibility: Database["public"]["Enums"]["contract_party_responsibility"] | null
+          escalation_notes: string | null
+          escalation_percentage: number | null
+          billing_frequency: Database["public"]["Enums"]["contract_billing_frequency"] | null
           end_date: string | null
           id: string
+          labour_notes: string | null
+          notes: string | null
+          payment_terms_days: number | null
+          recurring_value: number | null
+          renewal_date: string | null
           responsible_manager_id: string | null
+          service_frequency: string | null
           sla_notes: string | null
           start_date: string
           status: Database["public"]["Enums"]["contract_status"]
@@ -650,12 +663,25 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_renew?: boolean
           client_id: string
+          consumables_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
           contract_number: string
+          contract_value?: number | null
           created_at?: string
+          equipment_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
+          escalation_notes?: string | null
+          escalation_percentage?: number | null
+          billing_frequency?: Database["public"]["Enums"]["contract_billing_frequency"] | null
           end_date?: string | null
           id?: string
+          labour_notes?: string | null
+          notes?: string | null
+          payment_terms_days?: number | null
+          recurring_value?: number | null
+          renewal_date?: string | null
           responsible_manager_id?: string | null
+          service_frequency?: string | null
           sla_notes?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["contract_status"]
@@ -663,12 +689,25 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_renew?: boolean
           client_id?: string
+          consumables_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
           contract_number?: string
+          contract_value?: number | null
           created_at?: string
+          equipment_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
+          escalation_notes?: string | null
+          escalation_percentage?: number | null
+          billing_frequency?: Database["public"]["Enums"]["contract_billing_frequency"] | null
           end_date?: string | null
           id?: string
+          labour_notes?: string | null
+          notes?: string | null
+          payment_terms_days?: number | null
+          recurring_value?: number | null
+          renewal_date?: string | null
           responsible_manager_id?: string | null
+          service_frequency?: string | null
           sla_notes?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["contract_status"]
@@ -692,6 +731,190 @@ export type Database = {
           },
           {
             foreignKeyName: "contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_versions: {
+        Row: {
+          change_summary: string
+          changed_by: string | null
+          contract_id: string
+          created_at: string
+          effective_date: string
+          id: string
+          snapshot: Json
+          tenant_id: string
+          version_number: number
+        }
+        Insert: {
+          change_summary: string
+          changed_by?: string | null
+          contract_id: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          snapshot: Json
+          tenant_id: string
+          version_number: number
+        }
+        Update: {
+          change_summary?: string
+          changed_by?: string | null
+          contract_id?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          snapshot?: Json
+          tenant_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_areas: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          site_id: string
+          sort_order: number
+          status: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          site_id: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          site_id?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_areas_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_areas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scope_of_work_items: {
+        Row: {
+          assigned_role: string | null
+          contract_id: string
+          created_at: string
+          estimated_minutes: number | null
+          frequency: string | null
+          id: string
+          instructions: string | null
+          ppe_notes: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          required_consumables: string | null
+          required_equipment: string | null
+          requires_evidence: boolean
+          site_area_id: string
+          status: Database["public"]["Enums"]["entity_status"]
+          task_name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_role?: string | null
+          contract_id: string
+          created_at?: string
+          estimated_minutes?: number | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          ppe_notes?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          required_consumables?: string | null
+          required_equipment?: string | null
+          requires_evidence?: boolean
+          site_area_id: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          task_name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_role?: string | null
+          contract_id?: string
+          created_at?: string
+          estimated_minutes?: number | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          ppe_notes?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          required_consumables?: string | null
+          required_equipment?: string | null
+          requires_evidence?: boolean
+          site_area_id?: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          task_name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scope_of_work_items_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scope_of_work_items_site_area_id_fkey"
+            columns: ["site_area_id"]
+            isOneToOne: false
+            referencedRelation: "site_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scope_of_work_items_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2567,6 +2790,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["task_priority"]
           recurrence_frequency: string | null
           requires_evidence: boolean
+          scope_of_work_item_id: string | null
           site_id: string
           status: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
@@ -2585,6 +2809,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           recurrence_frequency?: string | null
           requires_evidence?: boolean
+          scope_of_work_item_id?: string | null
           site_id: string
           status?: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
@@ -2603,6 +2828,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           recurrence_frequency?: string | null
           requires_evidence?: boolean
+          scope_of_work_item_id?: string | null
           site_id?: string
           status?: Database["public"]["Enums"]["entity_status"]
           tenant_id?: string
@@ -2610,6 +2836,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "task_templates_scope_of_work_item_id_fkey"
+            columns: ["scope_of_work_item_id"]
+            isOneToOne: false
+            referencedRelation: "scope_of_work_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "task_templates_site_id_fkey"
             columns: ["site_id"]
@@ -4039,6 +4272,14 @@ export type Database = {
         }
         Returns: Database["public"]["Tables"]["contract_documents"]["Row"]
       }
+      create_task_template_from_scope_item: {
+        Args: {
+          p_scope_of_work_item_id: string
+          p_default_assignee_id?: string | null
+          p_default_team_id?: string | null
+        }
+        Returns: Database["public"]["Tables"]["task_templates"]["Row"]
+      }
       assign_asset: {
         Args: {
           p_asset_id: string
@@ -5207,6 +5448,8 @@ export type Database = {
         | "expired"
         | "waived"
       contract_status: "draft" | "active" | "expiring" | "expired" | "suspended" | "terminated"
+      contract_billing_frequency: "weekly" | "monthly" | "quarterly" | "annually" | "once_off"
+      contract_party_responsibility: "contractor" | "client" | "shared"
       document_status:
         | "uploaded"
         | "pending_review"
@@ -5463,6 +5706,8 @@ export const Constants = {
       attendance_correction_field: ["clock_in_at", "clock_out_at", "status"],
       attendance_correction_status: ["pending", "approved", "rejected"],
       contract_status: ["draft", "active", "expiring", "expired", "suspended", "terminated"],
+      contract_billing_frequency: ["weekly", "monthly", "quarterly", "annually", "once_off"],
+      contract_party_responsibility: ["contractor", "client", "shared"],
       document_status: [
         "uploaded",
         "pending_review",

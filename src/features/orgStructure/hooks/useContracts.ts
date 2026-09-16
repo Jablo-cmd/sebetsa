@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { contractService } from '@/features/orgStructure/services/contractService';
-import type { Contract, ContractsListFilters } from '@/features/orgStructure/types/orgStructure.types';
+import type { Contract, ContractsListFilters, ContractVersion } from '@/features/orgStructure/types/orgStructure.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
 const PAGE_SIZE = 20;
@@ -189,4 +189,40 @@ export function useContractSiteIds(contractId: string | undefined): UseContractS
   }, [contractId]);
 
   return { siteIds, isLoading, error };
+}
+
+export interface UseContractVersionsResult {
+  versions: ContractVersion[];
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+/** Full commercial-term change history for a contract — newest first, populated only by the DB trigger, never client-writable. */
+export function useContractVersions(contractId: string | undefined): UseContractVersionsResult {
+  const [versions, setVersions] = useState<ContractVersion[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!contractId) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      setVersions(await contractService.getContractVersions(contractId));
+    } catch (err) {
+      setError(getDbErrorMessage(err, 'Failed to load the contract version history.'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [contractId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  return { versions, isLoading, error, refetch: load };
 }
