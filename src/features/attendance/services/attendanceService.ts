@@ -171,24 +171,26 @@ async function decideLocationException(exceptionId: string, approve: boolean, re
 }
 
 /** Pending GPS exceptions across the tenant, for supervisor review. */
-async function getPendingLocationExceptions(tenantId: string): Promise<AttendanceLocationException[]> {
+async function getPendingLocationExceptions(tenantId: string, limit = 100): Promise<AttendanceLocationException[]> {
   const { data, error } = await supabase
     .from('attendance_location_exceptions')
     .select('*')
     .eq('tenant_id', tenantId)
     .eq('status', 'pending')
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .limit(limit);
   if (error) throw error;
   return data.map(toAttendanceLocationException);
 }
 
 /** The caller's own GPS exception requests, most recent first. */
-async function getMyLocationExceptions(employeeId: string): Promise<AttendanceLocationException[]> {
+async function getMyLocationExceptions(employeeId: string, limit = 50): Promise<AttendanceLocationException[]> {
   const { data, error } = await supabase
     .from('attendance_location_exceptions')
     .select('*')
     .eq('employee_id', employeeId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return data.map(toAttendanceLocationException);
 }

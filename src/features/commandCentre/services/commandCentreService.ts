@@ -58,10 +58,11 @@ async function getSnapshot(tenantId: string): Promise<CommandCentreSnapshot> {
   };
 }
 
-async function getAlerts(tenantId: string, status?: OperationalAlert['status']): Promise<OperationalAlert[]> {
+/** Capped, not a full unbounded table scan — a busy tenant's resolved-alert history can run into the thousands; the inbox only ever needs the most recent page. */
+async function getAlerts(tenantId: string, status?: OperationalAlert['status'], limit = 100): Promise<OperationalAlert[]> {
   let query = supabase.from('operational_alerts').select('*').eq('tenant_id', tenantId);
   if (status) query = query.eq('status', status);
-  const { data, error } = await query.order('created_at', { ascending: false });
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(limit);
   if (error) throw error;
   return data.map(toOperationalAlert);
 }

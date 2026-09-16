@@ -130,8 +130,14 @@ async function decideShiftRecommendation(recommendationId: string, accept: boole
   return toShiftRecommendation(data);
 }
 
-async function getSuggestedRecommendations(tenantId: string): Promise<ShiftRecommendation[]> {
-  const { data, error } = await supabase.from('shift_recommendations').select('*').eq('tenant_id', tenantId).eq('status', 'suggested').order('generated_at', { ascending: false });
+async function getSuggestedRecommendations(tenantId: string, limit = 100): Promise<ShiftRecommendation[]> {
+  const { data, error } = await supabase
+    .from('shift_recommendations')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'suggested')
+    .order('generated_at', { ascending: false })
+    .limit(limit);
   if (error) throw error;
   return data.map(toShiftRecommendation);
 }
