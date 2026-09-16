@@ -187,4 +187,175 @@ begin
   raise notice 'PASS: SLA measurement computation is audit-logged';
 end $$;
 
+-- ---------------------------------------------------------------------------
+-- Commercial contract terms + version history (Phase Q).
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000003901","app_metadata":{"role":"organization_administrator"}}';
+
+do $$
+begin
+  begin
+    update public.contracts set contract_value = -100 where id = '00000000-0000-0000-0000-000000005391';
+    raise exception 'SECURITY_FAILURE: negative contract_value accepted';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: negative contract_value rejected (%)', sqlerrm;
+  end;
+end $$;
+
+do $$
+begin
+  begin
+    update public.contracts set escalation_percentage = 150 where id = '00000000-0000-0000-0000-000000005391';
+    raise exception 'SECURITY_FAILURE: escalation_percentage > 100 accepted';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: escalation_percentage > 100 rejected (%)', sqlerrm;
+  end;
+end $$;
+
+do $$
+begin
+  begin
+    update public.contracts set renewal_date = '2025-01-01' where id = '00000000-0000-0000-0000-000000005391';
+    raise exception 'SECURITY_FAILURE: renewal_date before start_date accepted';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: renewal_date before start_date rejected (%)', sqlerrm;
+  end;
+end $$;
+
+-- Unrelated field (sla_notes is not a versioned commercial-term column) —
+-- no version row should be created.
+update public.contracts set sla_notes = 'reviewed quarterly' where id = '00000000-0000-0000-0000-000000005391';
+
+do $$
+declare v_count int;
+begin
+  select count(*) into v_count from public.contract_versions where contract_id = '00000000-0000-0000-0000-000000005391';
+  if v_count <> 0 then raise exception 'FAIL: expected 0 versions before any commercial-term change, got %', v_count; end if;
+  raise notice 'PASS: editing a non-commercial-term field (sla_notes) creates no version row';
+end $$;
+
+update public.contracts set contract_value = 150000, billing_frequency = 'monthly' where id = '00000000-0000-0000-0000-000000005391';
+
+do $$
+declare v_version int; v_summary text; v_snapshot jsonb;
+begin
+  select version_number, change_summary, snapshot into v_version, v_summary, v_snapshot
+    from public.contract_versions where contract_id = '00000000-0000-0000-0000-000000005391' order by version_number desc limit 1;
+  if v_version <> 1 then raise exception 'FAIL: expected version 1 after first commercial-term change, got %', v_version; end if;
+  if v_summary not like '%contract value%' or v_summary not like '%billing frequency%' then
+    raise exception 'FAIL: change_summary does not describe both changed fields, got %', v_summary;
+  end if;
+  if (v_snapshot ->> 'contract_value') is not null then
+    raise exception 'FAIL: version snapshot should capture the OLD (null) contract_value, got %', v_snapshot ->> 'contract_value';
+  end if;
+  raise notice 'PASS: first commercial-term change auto-creates version 1 with an accurate diff summary and a snapshot of the prior (pre-change) state';
+end $$;
+
+update public.contracts set contract_value = 165000 where id = '00000000-0000-0000-0000-000000005391';
+
+do $$
+declare v_count int; v_latest int;
+begin
+  select count(*), max(version_number) into v_count, v_latest from public.contract_versions where contract_id = '00000000-0000-0000-0000-000000005391';
+  if v_count <> 2 or v_latest <> 2 then raise exception 'FAIL: expected 2 versions after a second commercial-term change, got count=% latest=%', v_count, v_latest; end if;
+  raise notice 'PASS: a second commercial-term change creates version 2 (history accumulates, never overwrites)';
+end $$;
+
+reset role;
+reset request.jwt.claims;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000003902","app_metadata":{"role":"employee"}}';
+
+do $$
+declare v_rows int;
+begin
+  update public.contracts set contract_value = 999999 where id = '00000000-0000-0000-0000-000000005391';
+  get diagnostics v_rows = row_count;
+  if v_rows <> 0 then raise exception 'SECURITY_FAILURE: plain employee updated commercial contract terms (% rows)', v_rows; end if;
+  raise notice 'PASS: plain-employee commercial-term update blocked by RLS (0 rows affected, contracts_write_by_manager filters the row out)';
+end $$;
+
+do $$
+declare v_count int;
+begin
+  select count(*) into v_count from public.contract_versions where tenant_id = '00000000-0000-0000-0000-000000000392';
+  if v_count <> 0 then raise exception 'SECURITY_FAILURE: employee of a different tenant sees % contract_versions rows', v_count; end if;
+  raise notice 'PASS: contract_versions tenant isolation holds for a cross-tenant reader';
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Scope of Work engine (Phase Q).
+
+reset role;
+reset request.jwt.claims;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000003901","app_metadata":{"role":"organization_administrator"}}';
+
+insert into public.contract_sites (contract_id, site_id, tenant_id) values
+  ('00000000-0000-0000-0000-000000005391', '00000000-0000-0000-0000-000000004391', '00000000-0000-0000-0000-000000000391');
+
+insert into public.site_areas (id, tenant_id, site_id, name) values
+  ('00000000-0000-0000-0000-000000008391', '00000000-0000-0000-0000-000000000391', '00000000-0000-0000-0000-000000004391', 'Reception');
+
+insert into public.sites (id, tenant_id, client_id, name) values
+  ('00000000-0000-0000-0000-000000004392', '00000000-0000-0000-0000-000000000391', '00000000-0000-0000-0000-000000003391', 'Site P1 Annex — not on the contract');
+insert into public.site_areas (id, tenant_id, site_id, name) values
+  ('00000000-0000-0000-0000-000000008392', '00000000-0000-0000-0000-000000000391', '00000000-0000-0000-0000-000000004392', 'Annex Lobby');
+
+do $$
+begin
+  begin
+    insert into public.scope_of_work_items (tenant_id, contract_id, site_area_id, task_name, frequency)
+    values ('00000000-0000-0000-0000-000000000391', '00000000-0000-0000-0000-000000005391', '00000000-0000-0000-0000-000000008392', 'Vacuum lobby', 'daily');
+    raise exception 'SECURITY_FAILURE: scope item accepted for a site not covered by the contract';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: scope item rejected when its site area''s site is not linked to the contract via contract_sites (%)', sqlerrm;
+  end;
+end $$;
+
+insert into public.scope_of_work_items (id, tenant_id, contract_id, site_area_id, task_name, frequency, estimated_minutes, requires_evidence, instructions)
+values ('00000000-0000-0000-0000-000000009391', '00000000-0000-0000-0000-000000000391', '00000000-0000-0000-0000-000000005391', '00000000-0000-0000-0000-000000008391', 'Vacuum reception carpet', 'daily', 15, true, 'Use the low-noise vacuum before 08:00.');
+
+do $$
+declare v_template public.task_templates;
+begin
+  select * into v_template from public.create_task_template_from_scope_item('00000000-0000-0000-0000-000000009391');
+  if v_template.site_id <> '00000000-0000-0000-0000-000000004391' then
+    raise exception 'FAIL: generated task_template has wrong site_id %, expected the scope item''s area''s site', v_template.site_id;
+  end if;
+  if v_template.scope_of_work_item_id <> '00000000-0000-0000-0000-000000009391' then
+    raise exception 'FAIL: generated task_template is not linked back to its scope_of_work_item_id';
+  end if;
+  if v_template.recurrence_frequency <> 'daily' or v_template.requires_evidence <> true or v_template.expected_duration_minutes <> 15 then
+    raise exception 'FAIL: generated task_template did not carry over frequency/evidence/duration from the scope item';
+  end if;
+  raise notice 'PASS: create_task_template_from_scope_item produces a real task_templates row correctly derived from the scope item, feeding the existing task-generation pipeline unchanged';
+end $$;
+
+reset role;
+reset request.jwt.claims;
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000003902","app_metadata":{"role":"employee"}}';
+
+do $$
+begin
+  begin
+    perform public.create_task_template_from_scope_item('00000000-0000-0000-0000-000000009391');
+    raise exception 'SECURITY_FAILURE: plain employee generated a task template from a scope item';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: plain-employee create_task_template_from_scope_item blocked (%)', sqlerrm;
+  end;
+end $$;
+
 rollback;

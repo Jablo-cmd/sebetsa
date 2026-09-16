@@ -40,6 +40,37 @@ export function buildOrganizationRow(overrides: Partial<Record<string, unknown>>
   };
 }
 
+/** Full contracts row shape, including the commercial-term columns added by 20260922090000_commercial_contract_terms.sql — a mock omitting these would render `undefined` where the real DB always returns `null`. */
+export function buildContractRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'contract-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    client_id: 'client-1',
+    contract_number: 'CTR-001',
+    start_date: '2026-01-01',
+    end_date: null,
+    status: 'active',
+    responsible_manager_id: null,
+    sla_notes: null,
+    contract_value: null,
+    recurring_value: null,
+    billing_frequency: null,
+    payment_terms_days: null,
+    renewal_date: null,
+    auto_renew: false,
+    escalation_percentage: null,
+    escalation_notes: null,
+    service_frequency: null,
+    consumables_responsibility: null,
+    equipment_responsibility: null,
+    labour_notes: null,
+    notes: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
 export function buildProfileRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
   return {
     id: SEBETSA_USER_ID,
@@ -180,6 +211,7 @@ export function buildAttendanceRecordRow(overrides: Partial<Record<string, unkno
     overtime_minutes: null,
     recorded_by: null,
     notes: null,
+    gps_verification_status: 'not_applicable',
     created_at: '2026-09-12T08:00:00Z',
     updated_at: '2026-09-12T08:00:00Z',
     ...overrides,
@@ -405,6 +437,159 @@ export function buildPerformanceReviewRow(overrides: Partial<Record<string, unkn
   };
 }
 
+// ---------------------------------------------------------------------------
+// Domain 13/14/15 — GPS field presence/guard tours, command centre/
+// emergency response, workforce intelligence + AI. Same real-table-name,
+// real-shape mocking convention as everything above.
+
+export function buildPatrolRouteRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'route-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    site_id: 'site-1',
+    name: 'Night Patrol',
+    expected_duration_minutes: 30,
+    allowed_start_window_minutes: 60,
+    completion_threshold_pct: 100,
+    active: true,
+    created_at: '2026-09-14T08:00:00Z',
+    updated_at: '2026-09-14T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildPatrolRunRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'run-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    patrol_route_id: 'route-1',
+    site_id: 'site-1',
+    employee_id: 'employee-1',
+    status: 'in_progress',
+    started_at: new Date().toISOString(),
+    completed_at: null,
+    expected_checkpoint_count: 2,
+    scanned_checkpoint_count: 0,
+    created_at: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+export function buildPatrolCheckpointScanRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'scan-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    patrol_run_id: 'run-1',
+    checkpoint_id: 'checkpoint-1',
+    scanned_code: 'CP-A',
+    employee_id: 'employee-1',
+    sequence_number: 1,
+    scanned_at: new Date().toISOString(),
+    scan_method: 'manual',
+    latitude: null,
+    longitude: null,
+    verification_result: 'valid',
+    risk_flags: [],
+    ...overrides,
+  };
+}
+
+export function buildOperationalAlertRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'alert-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    alert_type: 'site_understaffed',
+    severity: 'warning',
+    site_id: 'site-1',
+    employee_id: null,
+    contract_id: null,
+    message: 'Site 1 is understaffed: 1 assigned vs 2 required',
+    status: 'open',
+    acknowledged_by: null,
+    acknowledged_at: null,
+    resolved_by: null,
+    resolved_at: null,
+    resolution_notes: null,
+    created_at: '2026-09-14T08:00:00Z',
+    updated_at: '2026-09-14T08:00:00Z',
+    ...overrides,
+  };
+}
+
+export function buildEmergencyEventRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'emergency-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    employee_id: 'employee-1',
+    site_id: 'site-1',
+    shift_id: null,
+    emergency_type: 'panic',
+    latitude: -26.2041,
+    longitude: 28.0473,
+    accuracy_meters: 15,
+    triggered_at: new Date().toISOString(),
+    device_context: {},
+    ...overrides,
+  };
+}
+
+export function buildEmergencyResponseRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'emergency-response-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    emergency_event_id: 'emergency-1',
+    status: 'triggered',
+    acknowledged_by: null,
+    acknowledged_at: null,
+    responding_by: null,
+    responding_at: null,
+    resolved_by: null,
+    resolved_at: null,
+    resolution_reason: null,
+    escalation_level: 0,
+    last_escalated_at: null,
+    notes: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+export function buildAiQueryLogRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'ai-log-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    actor_profile_id: SEBETSA_USER_ID,
+    query_text: 'Which sites are understaffed?',
+    matched_intent: 'understaffed_sites',
+    tool_calls: [{ tool: 'understaffed_sites' }],
+    response_text: 'Site 1 is understaffed.',
+    insight_kind: 'rule_based',
+    created_at: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+export function buildShiftRecommendationRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 'recommendation-1',
+    tenant_id: SEBETSA_TENANT_ID,
+    site_id: 'site-1',
+    shift_date: '2026-09-20',
+    starts_at: '2026-09-20T08:00:00Z',
+    ends_at: '2026-09-20T16:00:00Z',
+    candidate_employee_id: 'employee-1',
+    score: 92.5,
+    reasons: [{ factor: 'assigned_to_site', detail: 'currently has an active site assignment here' }],
+    status: 'suggested',
+    generated_at: new Date().toISOString(),
+    decided_by: null,
+    decided_at: null,
+    published_shift_id: null,
+    ...overrides,
+  };
+}
+
 /** Mocks a Storage upload (POST .../storage/v1/object/{bucket}/{path}) — storage-js expects {Id, Key} back. */
 export async function installStorageUploadMock(page: Page, bucket: string) {
   await page.route(`**/storage/v1/object/${bucket}/**`, async (route: Route) => {
@@ -448,6 +633,14 @@ export interface SebetsaMockState {
   trainingEnrollments?: Record<string, unknown>[];
   performanceReviews?: ReturnType<typeof buildPerformanceReviewRow>[];
   developmentActions?: Record<string, unknown>[];
+  patrolRoutes?: ReturnType<typeof buildPatrolRouteRow>[];
+  patrolRuns?: ReturnType<typeof buildPatrolRunRow>[];
+  patrolCheckpointScans?: ReturnType<typeof buildPatrolCheckpointScanRow>[];
+  operationalAlerts?: ReturnType<typeof buildOperationalAlertRow>[];
+  emergencyEvents?: ReturnType<typeof buildEmergencyEventRow>[];
+  emergencyResponses?: ReturnType<typeof buildEmergencyResponseRow>[];
+  aiQueryLog?: ReturnType<typeof buildAiQueryLogRow>[];
+  shiftRecommendations?: ReturnType<typeof buildShiftRecommendationRow>[];
   /** Called for any `rpc/<fnName>` POST not covered by the generic table handlers above — return true if handled. */
   onRpc?: (fnName: string, payload: Record<string, unknown>, route: Route) => Promise<boolean>;
 }
@@ -487,6 +680,14 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     trainingEnrollments: [],
     performanceReviews: [],
     developmentActions: [],
+    patrolRoutes: [],
+    patrolRuns: [],
+    patrolCheckpointScans: [],
+    operationalAlerts: [],
+    emergencyEvents: [],
+    emergencyResponses: [],
+    aiQueryLog: [],
+    shiftRecommendations: [],
     ...initial,
   };
 
@@ -694,6 +895,83 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
     if (path.endsWith('/performance_reviews')) return fulfillJson(route, state.performanceReviews ?? []);
     if (path.endsWith('/development_actions')) return fulfillJson(route, state.developmentActions ?? []);
 
+    if (path.endsWith('/patrol_routes')) {
+      let rows = state.patrolRoutes ?? [];
+      const siteFilter = url.searchParams.get('site_id');
+      if (siteFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { site_id: string }).site_id === siteFilter.slice(3));
+      const activeFilter = url.searchParams.get('active');
+      if (activeFilter === 'eq.true') rows = rows.filter((row) => (row as { active: boolean }).active === true);
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/patrol_runs')) {
+      let rows = state.patrolRuns ?? [];
+      const employeeFilter = url.searchParams.get('employee_id');
+      if (employeeFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { employee_id: string }).employee_id === employeeFilter.slice(3));
+      const tenantFilter = url.searchParams.get('tenant_id');
+      if (tenantFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { tenant_id: string }).tenant_id === tenantFilter.slice(3));
+      const statusFilter = url.searchParams.get('status');
+      if (statusFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { status: string }).status === statusFilter.slice(3));
+      if (route.request().headers()['accept']?.includes('vnd.pgrst.object')) {
+        return fulfillJson(route, rows[0] ?? null);
+      }
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/patrol_checkpoint_scans')) {
+      let rows = state.patrolCheckpointScans ?? [];
+      const runFilter = url.searchParams.get('patrol_run_id');
+      if (runFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { patrol_run_id: string }).patrol_run_id === runFilter.slice(3));
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/operational_alerts')) {
+      let rows = state.operationalAlerts ?? [];
+      const tenantFilter = url.searchParams.get('tenant_id');
+      if (tenantFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { tenant_id: string }).tenant_id === tenantFilter.slice(3));
+      const statusFilter = url.searchParams.get('status');
+      if (statusFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { status: string }).status === statusFilter.slice(3));
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/emergency_events')) {
+      let rows = state.emergencyEvents ?? [];
+      const idFilter = url.searchParams.get('id');
+      if (idFilter?.startsWith('in.')) {
+        const ids = idFilter.slice(4, -1).split(',');
+        rows = rows.filter((row) => ids.includes((row as { id: string }).id));
+      }
+      const tenantFilter = url.searchParams.get('tenant_id');
+      if (tenantFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { tenant_id: string }).tenant_id === tenantFilter.slice(3));
+      if (method === 'PATCH') return fulfillJson(route, {});
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/emergency_responses')) {
+      let rows = state.emergencyResponses ?? [];
+      const tenantFilter = url.searchParams.get('tenant_id');
+      if (tenantFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { tenant_id: string }).tenant_id === tenantFilter.slice(3));
+      const statusFilter = url.searchParams.get('status');
+      if (statusFilter?.startsWith('neq.')) rows = rows.filter((row) => (row as { status: string }).status !== statusFilter.slice(4));
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/ai_query_log')) {
+      let rows = state.aiQueryLog ?? [];
+      const actorFilter = url.searchParams.get('actor_profile_id');
+      if (actorFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { actor_profile_id: string }).actor_profile_id === actorFilter.slice(3));
+      return fulfillJson(route, rows);
+    }
+
+    if (path.endsWith('/shift_recommendations')) {
+      let rows = state.shiftRecommendations ?? [];
+      const tenantFilter = url.searchParams.get('tenant_id');
+      if (tenantFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { tenant_id: string }).tenant_id === tenantFilter.slice(3));
+      const statusFilter = url.searchParams.get('status');
+      if (statusFilter?.startsWith('eq.')) rows = rows.filter((row) => (row as { status: string }).status === statusFilter.slice(3));
+      return fulfillJson(route, rows);
+    }
+
     if (path.includes('/rpc/')) {
       const fnName = path.split('/rpc/')[1] ?? '';
       let payload: Record<string, unknown> = {};
@@ -724,4 +1002,37 @@ export async function installSebetsaMocks(page: Page, initial: SebetsaMockState 
   });
 
   return state;
+}
+
+/**
+ * Mocks the paginated profiles list query UsersPage.tsx issues (`limit`/
+ * `offset` params, needs a `content-range` header for the total count) —
+ * distinct from installSebetsaMocks' own `/profiles` handler, which only
+ * ever returns a single row (the signed-in caller's own profile).
+ */
+export async function installUsersListMock(page: Page, users: ReturnType<typeof buildProfileRow>[]) {
+  await page.route('**/rest/v1/profiles*', async (route: Route) => {
+    const url = new URL(route.request().url());
+    const isListQuery = url.searchParams.has('limit') || url.searchParams.has('offset');
+    if (!isListQuery) return route.fallback();
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: {
+        'content-range': `0-${Math.max(users.length - 1, 0)}/${users.length}`,
+        'access-control-expose-headers': 'content-range',
+      },
+      body: JSON.stringify(users),
+    });
+  });
+}
+
+/** Mocks a `.rpc('admin_create_user' | 'admin_update_user_role', ...)` call. */
+export async function installRpcMock(
+  page: Page,
+  fnName: 'admin_create_user' | 'admin_update_user_role',
+  handler: (route: Route) => Promise<void>,
+) {
+  await page.route(`**/rest/v1/rpc/${fnName}`, handler);
 }

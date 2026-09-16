@@ -41,6 +41,7 @@ export type Database = {
           created_at: string
           early_departure_minutes: number | null
           employee_id: string
+          gps_verification_status: Database["public"]["Enums"]["gps_verification_status"]
           id: string
           late_minutes: number | null
           notes: string | null
@@ -59,6 +60,7 @@ export type Database = {
           created_at?: string
           early_departure_minutes?: number | null
           employee_id: string
+          gps_verification_status?: Database["public"]["Enums"]["gps_verification_status"]
           id?: string
           late_minutes?: number | null
           notes?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           created_at?: string
           early_departure_minutes?: number | null
           employee_id?: string
+          gps_verification_status?: Database["public"]["Enums"]["gps_verification_status"]
           id?: string
           late_minutes?: number | null
           notes?: string | null
@@ -634,12 +637,25 @@ export type Database = {
       }
       contracts: {
         Row: {
+          auto_renew: boolean
           client_id: string
+          consumables_responsibility: Database["public"]["Enums"]["contract_party_responsibility"] | null
           contract_number: string
+          contract_value: number | null
           created_at: string
+          equipment_responsibility: Database["public"]["Enums"]["contract_party_responsibility"] | null
+          escalation_notes: string | null
+          escalation_percentage: number | null
+          billing_frequency: Database["public"]["Enums"]["contract_billing_frequency"] | null
           end_date: string | null
           id: string
+          labour_notes: string | null
+          notes: string | null
+          payment_terms_days: number | null
+          recurring_value: number | null
+          renewal_date: string | null
           responsible_manager_id: string | null
+          service_frequency: string | null
           sla_notes: string | null
           start_date: string
           status: Database["public"]["Enums"]["contract_status"]
@@ -647,12 +663,25 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_renew?: boolean
           client_id: string
+          consumables_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
           contract_number: string
+          contract_value?: number | null
           created_at?: string
+          equipment_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
+          escalation_notes?: string | null
+          escalation_percentage?: number | null
+          billing_frequency?: Database["public"]["Enums"]["contract_billing_frequency"] | null
           end_date?: string | null
           id?: string
+          labour_notes?: string | null
+          notes?: string | null
+          payment_terms_days?: number | null
+          recurring_value?: number | null
+          renewal_date?: string | null
           responsible_manager_id?: string | null
+          service_frequency?: string | null
           sla_notes?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["contract_status"]
@@ -660,12 +689,25 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_renew?: boolean
           client_id?: string
+          consumables_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
           contract_number?: string
+          contract_value?: number | null
           created_at?: string
+          equipment_responsibility?: Database["public"]["Enums"]["contract_party_responsibility"] | null
+          escalation_notes?: string | null
+          escalation_percentage?: number | null
+          billing_frequency?: Database["public"]["Enums"]["contract_billing_frequency"] | null
           end_date?: string | null
           id?: string
+          labour_notes?: string | null
+          notes?: string | null
+          payment_terms_days?: number | null
+          recurring_value?: number | null
+          renewal_date?: string | null
           responsible_manager_id?: string | null
+          service_frequency?: string | null
           sla_notes?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["contract_status"]
@@ -689,6 +731,464 @@ export type Database = {
           },
           {
             foreignKeyName: "contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_versions: {
+        Row: {
+          change_summary: string
+          changed_by: string | null
+          contract_id: string
+          created_at: string
+          effective_date: string
+          id: string
+          snapshot: Json
+          tenant_id: string
+          version_number: number
+        }
+        Insert: {
+          change_summary: string
+          changed_by?: string | null
+          contract_id: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          snapshot: Json
+          tenant_id: string
+          version_number: number
+        }
+        Update: {
+          change_summary?: string
+          changed_by?: string | null
+          contract_id?: string
+          created_at?: string
+          effective_date?: string
+          id?: string
+          snapshot?: Json
+          tenant_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_versions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_versions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          client_id: string
+          converted_to_contract_id: string | null
+          created_at: string
+          discount_amount: number
+          exclusions: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          assumptions: string | null
+          prepared_by: string | null
+          quote_number: string
+          site_id: string | null
+          status: Database["public"]["Enums"]["quote_status"]
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          tenant_id: string
+          total_amount: number
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          client_id: string
+          converted_to_contract_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          exclusions?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          assumptions?: string | null
+          prepared_by?: string | null
+          quote_number: string
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          tenant_id: string
+          total_amount?: number
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          client_id?: string
+          converted_to_contract_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          exclusions?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          assumptions?: string | null
+          prepared_by?: string | null
+          quote_number?: string
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          tenant_id?: string
+          total_amount?: number
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_converted_to_contract_id_fkey"
+            columns: ["converted_to_contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_line_items: {
+        Row: {
+          category: Database["public"]["Enums"]["quote_line_category"]
+          created_at: string
+          description: string
+          id: string
+          line_total: number
+          quantity: number
+          quote_id: string
+          sort_order: number
+          tenant_id: string
+          unit_rate: number
+          updated_at: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["quote_line_category"]
+          created_at?: string
+          description: string
+          id?: string
+          quantity: number
+          quote_id: string
+          sort_order?: number
+          tenant_id: string
+          unit_rate: number
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["quote_line_category"]
+          created_at?: string
+          description?: string
+          id?: string
+          quantity?: number
+          quote_id?: string
+          sort_order?: number
+          tenant_id?: string
+          unit_rate?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_line_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_line_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_surveys: {
+        Row: {
+          access_restrictions: string | null
+          address: string | null
+          approx_area_sqm: number | null
+          bathroom_count: number | null
+          building_type: string | null
+          client_id: string
+          common_area_count: number | null
+          conducted_at: string
+          conducted_by: string | null
+          consumable_requirements: string | null
+          created_at: string
+          entrance_count: number | null
+          equipment_requirements: string | null
+          floor_count: number | null
+          floor_types: string | null
+          id: string
+          kitchen_count: number | null
+          notes: string | null
+          office_count: number | null
+          operating_hours: string | null
+          prospective_site_name: string
+          required_services: string | null
+          risks: string | null
+          site_id: string | null
+          special_instructions: string | null
+          special_surfaces: string | null
+          status: Database["public"]["Enums"]["site_survey_status"]
+          tenant_id: string
+          updated_at: string
+          window_count: number | null
+        }
+        Insert: {
+          access_restrictions?: string | null
+          address?: string | null
+          approx_area_sqm?: number | null
+          bathroom_count?: number | null
+          building_type?: string | null
+          client_id: string
+          common_area_count?: number | null
+          conducted_at?: string
+          conducted_by?: string | null
+          consumable_requirements?: string | null
+          created_at?: string
+          entrance_count?: number | null
+          equipment_requirements?: string | null
+          floor_count?: number | null
+          floor_types?: string | null
+          id?: string
+          kitchen_count?: number | null
+          notes?: string | null
+          office_count?: number | null
+          operating_hours?: string | null
+          prospective_site_name: string
+          required_services?: string | null
+          risks?: string | null
+          site_id?: string | null
+          special_instructions?: string | null
+          special_surfaces?: string | null
+          status?: Database["public"]["Enums"]["site_survey_status"]
+          tenant_id: string
+          updated_at?: string
+          window_count?: number | null
+        }
+        Update: {
+          access_restrictions?: string | null
+          address?: string | null
+          approx_area_sqm?: number | null
+          bathroom_count?: number | null
+          building_type?: string | null
+          client_id?: string
+          common_area_count?: number | null
+          conducted_at?: string
+          conducted_by?: string | null
+          consumable_requirements?: string | null
+          created_at?: string
+          entrance_count?: number | null
+          equipment_requirements?: string | null
+          floor_count?: number | null
+          floor_types?: string | null
+          id?: string
+          kitchen_count?: number | null
+          notes?: string | null
+          office_count?: number | null
+          operating_hours?: string | null
+          prospective_site_name?: string
+          required_services?: string | null
+          risks?: string | null
+          site_id?: string | null
+          special_instructions?: string | null
+          special_surfaces?: string | null
+          status?: Database["public"]["Enums"]["site_survey_status"]
+          tenant_id?: string
+          updated_at?: string
+          window_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_surveys_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_surveys_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_surveys_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_areas: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          site_id: string
+          sort_order: number
+          status: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          site_id: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          site_id?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_areas_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_areas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scope_of_work_items: {
+        Row: {
+          assigned_role: string | null
+          contract_id: string
+          created_at: string
+          estimated_minutes: number | null
+          frequency: string | null
+          id: string
+          instructions: string | null
+          ppe_notes: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          required_consumables: string | null
+          required_equipment: string | null
+          requires_evidence: boolean
+          site_area_id: string
+          status: Database["public"]["Enums"]["entity_status"]
+          task_name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_role?: string | null
+          contract_id: string
+          created_at?: string
+          estimated_minutes?: number | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          ppe_notes?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          required_consumables?: string | null
+          required_equipment?: string | null
+          requires_evidence?: boolean
+          site_area_id: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          task_name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_role?: string | null
+          contract_id?: string
+          created_at?: string
+          estimated_minutes?: number | null
+          frequency?: string | null
+          id?: string
+          instructions?: string | null
+          ppe_notes?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          required_consumables?: string | null
+          required_equipment?: string | null
+          requires_evidence?: boolean
+          site_area_id?: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          task_name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scope_of_work_items_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scope_of_work_items_site_area_id_fkey"
+            columns: ["site_area_id"]
+            isOneToOne: false
+            referencedRelation: "site_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scope_of_work_items_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2564,6 +3064,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["task_priority"]
           recurrence_frequency: string | null
           requires_evidence: boolean
+          scope_of_work_item_id: string | null
           site_id: string
           status: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
@@ -2582,6 +3083,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           recurrence_frequency?: string | null
           requires_evidence?: boolean
+          scope_of_work_item_id?: string | null
           site_id: string
           status?: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
@@ -2600,6 +3102,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           recurrence_frequency?: string | null
           requires_evidence?: boolean
+          scope_of_work_item_id?: string | null
           site_id?: string
           status?: Database["public"]["Enums"]["entity_status"]
           tenant_id?: string
@@ -2607,6 +3110,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "task_templates_scope_of_work_item_id_fkey"
+            columns: ["scope_of_work_item_id"]
+            isOneToOne: false
+            referencedRelation: "scope_of_work_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "task_templates_site_id_fkey"
             columns: ["site_id"]
@@ -2834,6 +3344,7 @@ export type Database = {
           name: string
           reorder_threshold: number | null
           sku: string
+          standard_unit_cost: number | null
           tenant_id: string
           unit: string
           updated_at: string
@@ -2846,6 +3357,7 @@ export type Database = {
           name: string
           reorder_threshold?: number | null
           sku: string
+          standard_unit_cost?: number | null
           tenant_id: string
           unit?: string
           updated_at?: string
@@ -2858,6 +3370,7 @@ export type Database = {
           name?: string
           reorder_threshold?: number | null
           sku?: string
+          standard_unit_cost?: number | null
           tenant_id?: string
           unit?: string
           updated_at?: string
@@ -3285,6 +3798,1470 @@ export type Database = {
           },
         ]
       }
+      attendance_location_exceptions: {
+        Row: {
+          attendance_record_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_record_id: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          reason: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_record_id?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          reason?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patrol_routes: {
+        Row: {
+          active: boolean
+          allowed_start_window_minutes: number
+          completion_threshold_pct: number
+          created_at: string
+          expected_duration_minutes: number | null
+          id: string
+          name: string
+          site_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allowed_start_window_minutes?: number
+          completion_threshold_pct?: number
+          created_at?: string
+          expected_duration_minutes?: number | null
+          id?: string
+          name: string
+          site_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allowed_start_window_minutes?: number
+          completion_threshold_pct?: number
+          created_at?: string
+          expected_duration_minutes?: number | null
+          id?: string
+          name?: string
+          site_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patrol_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id: string
+          patrol_route_id: string
+          scanned_checkpoint_count: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id?: string
+          patrol_route_id: string
+          scanned_checkpoint_count?: number
+          site_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          expected_checkpoint_count?: number
+          id?: string
+          patrol_route_id?: string
+          scanned_checkpoint_count?: number
+          site_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      patrol_checkpoint_scans: {
+        Row: {
+          checkpoint_id: string | null
+          employee_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          patrol_run_id: string
+          risk_flags: Json
+          scan_method: Database["public"]["Enums"]["checkpoint_scan_type"]
+          scanned_at: string
+          scanned_code: string | null
+          sequence_number: number
+          tenant_id: string
+          verification_result: Database["public"]["Enums"]["checkpoint_scan_result"]
+        }
+        Insert: {
+          checkpoint_id?: string | null
+          employee_id: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          patrol_run_id: string
+          risk_flags?: Json
+          scan_method?: Database["public"]["Enums"]["checkpoint_scan_type"]
+          scanned_at?: string
+          scanned_code?: string | null
+          sequence_number: number
+          tenant_id: string
+          verification_result: Database["public"]["Enums"]["checkpoint_scan_result"]
+        }
+        Update: {
+          checkpoint_id?: string | null
+          employee_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          patrol_run_id?: string
+          risk_flags?: Json
+          scan_method?: Database["public"]["Enums"]["checkpoint_scan_type"]
+          scanned_at?: string
+          scanned_code?: string | null
+          sequence_number?: number
+          tenant_id?: string
+          verification_result?: Database["public"]["Enums"]["checkpoint_scan_result"]
+        }
+        Relationships: []
+      }
+      operational_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id?: string | null
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          message: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id?: string | null
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          message?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["alert_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      emergency_events: {
+        Row: {
+          accuracy_meters: number | null
+          device_context: Json
+          emergency_type: Database["public"]["Enums"]["emergency_type"]
+          employee_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          shift_id: string | null
+          site_id: string | null
+          tenant_id: string
+          triggered_at: string
+        }
+        Insert: {
+          accuracy_meters?: number | null
+          device_context?: Json
+          emergency_type?: Database["public"]["Enums"]["emergency_type"]
+          employee_id: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          shift_id?: string | null
+          site_id?: string | null
+          tenant_id: string
+          triggered_at?: string
+        }
+        Update: {
+          accuracy_meters?: number | null
+          device_context?: Json
+          emergency_type?: Database["public"]["Enums"]["emergency_type"]
+          employee_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          shift_id?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          triggered_at?: string
+        }
+        Relationships: []
+      }
+      emergency_responses: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          emergency_event_id: string
+          escalation_level?: number
+          id?: string
+          last_escalated_at?: string | null
+          notes?: string | null
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responding_at?: string | null
+          responding_by?: string | null
+          status?: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          emergency_event_id?: string
+          escalation_level?: number
+          id?: string
+          last_escalated_at?: string | null
+          notes?: string | null
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responding_at?: string | null
+          responding_by?: string | null
+          status?: Database["public"]["Enums"]["emergency_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_query_log: {
+        Row: {
+          actor_profile_id: string
+          created_at: string
+          id: string
+          insight_kind: Database["public"]["Enums"]["insight_kind"]
+          matched_intent: string | null
+          query_text: string
+          response_text: string | null
+          tenant_id: string
+          tool_calls: Json
+        }
+        Insert: {
+          actor_profile_id: string
+          created_at?: string
+          id?: string
+          insight_kind?: Database["public"]["Enums"]["insight_kind"]
+          matched_intent?: string | null
+          query_text: string
+          response_text?: string | null
+          tenant_id: string
+          tool_calls?: Json
+        }
+        Update: {
+          actor_profile_id?: string
+          created_at?: string
+          id?: string
+          insight_kind?: Database["public"]["Enums"]["insight_kind"]
+          matched_intent?: string | null
+          query_text?: string
+          response_text?: string | null
+          tenant_id?: string
+          tool_calls?: Json
+        }
+        Relationships: []
+      }
+      shift_recommendations: {
+        Row: {
+          candidate_employee_id: string
+          decided_at: string | null
+          decided_by: string | null
+          ends_at: string
+          generated_at: string
+          id: string
+          published_shift_id: string | null
+          reasons: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }
+        Insert: {
+          candidate_employee_id: string
+          decided_at?: string | null
+          decided_by?: string | null
+          ends_at: string
+          generated_at?: string
+          id?: string
+          published_shift_id?: string | null
+          reasons?: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status?: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }
+        Update: {
+          candidate_employee_id?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          ends_at?: string
+          generated_at?: string
+          id?: string
+          published_shift_id?: string | null
+          reasons?: Json
+          score?: number
+          shift_date?: string
+          site_id?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      client_portal_users: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          profile_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          profile_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          profile_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_users_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          site_id: string | null
+          contract_id: string | null
+          requested_by: string | null
+          request_type: Database["public"]["Enums"]["service_request_type"]
+          description: string
+          requested_date: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["service_request_status"]
+          origin: Database["public"]["Enums"]["service_request_origin"]
+          resolved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          site_id?: string | null
+          contract_id?: string | null
+          requested_by?: string | null
+          request_type?: Database["public"]["Enums"]["service_request_type"]
+          description: string
+          requested_date?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["service_request_status"]
+          origin?: Database["public"]["Enums"]["service_request_origin"]
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          site_id?: string | null
+          contract_id?: string | null
+          requested_by?: string | null
+          request_type?: Database["public"]["Enums"]["service_request_type"]
+          description?: string
+          requested_date?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["service_request_status"]
+          origin?: Database["public"]["Enums"]["service_request_origin"]
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variation_orders: {
+        Row: {
+          id: string
+          tenant_id: string
+          service_request_id: string | null
+          client_id: string
+          contract_id: string
+          site_id: string
+          title: string
+          description: string | null
+          reason: string | null
+          status: Database["public"]["Enums"]["variation_order_status"]
+          quote_id: string | null
+          approved_by: string | null
+          approved_at: string | null
+          task_id: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          service_request_id?: string | null
+          client_id: string
+          contract_id: string
+          site_id: string
+          title: string
+          description?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["variation_order_status"]
+          quote_id?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          task_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          service_request_id?: string | null
+          client_id?: string
+          contract_id?: string
+          site_id?: string
+          title?: string
+          description?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["variation_order_status"]
+          quote_id?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          task_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          completed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_number_counters: {
+        Row: {
+          tenant_id: string
+          last_number: number
+        }
+        Insert: {
+          tenant_id: string
+          last_number?: number
+        }
+        Update: {
+          tenant_id?: string
+          last_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_number_counters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          contract_id: string | null
+          site_id: string | null
+          variation_order_id: string | null
+          invoice_number: string
+          source: Database["public"]["Enums"]["invoice_source"]
+          billing_period_start: string | null
+          billing_period_end: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          currency: string
+          tax_rate: number
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          amount_paid: number
+          amount_outstanding: number
+          issue_date: string | null
+          due_date: string | null
+          notes: string | null
+          void_reason: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          contract_id?: string | null
+          site_id?: string | null
+          variation_order_id?: string | null
+          invoice_number: string
+          source?: Database["public"]["Enums"]["invoice_source"]
+          billing_period_start?: string | null
+          billing_period_end?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          currency?: string
+          tax_rate?: number
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          amount_paid?: number
+          issue_date?: string | null
+          due_date?: string | null
+          notes?: string | null
+          void_reason?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          contract_id?: string | null
+          site_id?: string | null
+          variation_order_id?: string | null
+          invoice_number?: string
+          source?: Database["public"]["Enums"]["invoice_source"]
+          billing_period_start?: string | null
+          billing_period_end?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          currency?: string
+          tax_rate?: number
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          amount_paid?: number
+          issue_date?: string | null
+          due_date?: string | null
+          notes?: string | null
+          void_reason?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_variation_order_id_fkey"
+            columns: ["variation_order_id"]
+            isOneToOne: false
+            referencedRelation: "variation_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_lines: {
+        Row: {
+          id: string
+          tenant_id: string
+          invoice_id: string
+          description: string
+          quantity: number
+          unit_price: number
+          line_total: number
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          invoice_id: string
+          description: string
+          quantity: number
+          unit_price: number
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          invoice_id?: string
+          description?: string
+          quantity?: number
+          unit_price?: number
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          id: string
+          tenant_id: string
+          invoice_id: string
+          amount: number
+          payment_date: string
+          method: string | null
+          reference: string | null
+          notes: string | null
+          recorded_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          invoice_id: string
+          amount: number
+          payment_date: string
+          method?: string | null
+          reference?: string | null
+          notes?: string | null
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          invoice_id?: string
+          amount?: number
+          payment_date?: string
+          method?: string | null
+          reference?: string | null
+          notes?: string | null
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_templates: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          description: string | null
+          category: string | null
+          pass_threshold: number
+          is_active: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          description?: string | null
+          category?: string | null
+          pass_threshold?: number
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          name?: string
+          description?: string | null
+          category?: string | null
+          pass_threshold?: number
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_template_items: {
+        Row: {
+          id: string
+          tenant_id: string
+          template_id: string
+          area_label: string
+          criterion: string
+          max_score: number
+          weight: number
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          template_id: string
+          area_label: string
+          criterion: string
+          max_score?: number
+          weight?: number
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          template_id?: string
+          area_label?: string
+          criterion?: string
+          max_score?: number
+          weight?: number
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_template_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspections: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id: string | null
+          variation_order_id: string | null
+          template_id: string
+          inspector_id: string | null
+          status: Database["public"]["Enums"]["inspection_status"]
+          scheduled_at: string | null
+          started_at: string | null
+          completed_at: string | null
+          closed_at: string | null
+          overall_score: number | null
+          passed: boolean | null
+          notes: string | null
+          reinspection_of: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id?: string | null
+          variation_order_id?: string | null
+          template_id: string
+          inspector_id?: string | null
+          status?: Database["public"]["Enums"]["inspection_status"]
+          scheduled_at?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          closed_at?: string | null
+          overall_score?: number | null
+          passed?: boolean | null
+          notes?: string | null
+          reinspection_of?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          site_id?: string
+          contract_id?: string | null
+          variation_order_id?: string | null
+          template_id?: string
+          inspector_id?: string | null
+          status?: Database["public"]["Enums"]["inspection_status"]
+          scheduled_at?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          closed_at?: string | null
+          overall_score?: number | null
+          passed?: boolean | null
+          notes?: string | null
+          reinspection_of?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_variation_order_id_fkey"
+            columns: ["variation_order_id"]
+            isOneToOne: false
+            referencedRelation: "variation_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_reinspection_of_fkey"
+            columns: ["reinspection_of"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_results: {
+        Row: {
+          id: string
+          tenant_id: string
+          inspection_id: string
+          template_item_id: string
+          score: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          inspection_id: string
+          template_item_id: string
+          score: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          inspection_id?: string
+          template_item_id?: string
+          score?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_results_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_results_template_item_id_fkey"
+            columns: ["template_item_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_template_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      defects: {
+        Row: {
+          id: string
+          tenant_id: string
+          inspection_id: string
+          inspection_result_id: string | null
+          severity: Database["public"]["Enums"]["defect_severity"]
+          description: string
+          area_label: string | null
+          responsible_team_id: string | null
+          due_date: string | null
+          status: Database["public"]["Enums"]["defect_status"]
+          corrective_action: string | null
+          resolution_notes: string | null
+          resolved_by: string | null
+          resolved_at: string | null
+          verified_by: string | null
+          verified_at: string | null
+          reinspection_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          inspection_id: string
+          inspection_result_id?: string | null
+          severity?: Database["public"]["Enums"]["defect_severity"]
+          description: string
+          area_label?: string | null
+          responsible_team_id?: string | null
+          due_date?: string | null
+          status?: Database["public"]["Enums"]["defect_status"]
+          corrective_action?: string | null
+          resolution_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          verified_by?: string | null
+          verified_at?: string | null
+          reinspection_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          inspection_id?: string
+          inspection_result_id?: string | null
+          severity?: Database["public"]["Enums"]["defect_severity"]
+          description?: string
+          area_label?: string | null
+          responsible_team_id?: string | null
+          due_date?: string | null
+          status?: Database["public"]["Enums"]["defect_status"]
+          corrective_action?: string | null
+          resolution_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          verified_by?: string | null
+          verified_at?: string | null
+          reinspection_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defects_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_inspection_result_id_fkey"
+            columns: ["inspection_result_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_responsible_team_id_fkey"
+            columns: ["responsible_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_reinspection_id_fkey"
+            columns: ["reinspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_cost_rates: {
+        Row: {
+          id: string
+          tenant_id: string
+          employee_id: string
+          hourly_rate: number
+          overtime_multiplier: number
+          effective_from: string
+          effective_to: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          employee_id: string
+          hourly_rate: number
+          overtime_multiplier?: number
+          effective_from: string
+          effective_to?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          employee_id?: string
+          hourly_rate?: number
+          overtime_multiplier?: number
+          effective_from?: string
+          effective_to?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_cost_rates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_cost_rates_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_entries: {
+        Row: {
+          id: string
+          tenant_id: string
+          contract_id: string | null
+          site_id: string
+          variation_order_id: string | null
+          category: Database["public"]["Enums"]["cost_entry_category"]
+          description: string
+          amount: number
+          cost_date: string
+          recorded_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          contract_id?: string | null
+          site_id: string
+          variation_order_id?: string | null
+          category?: Database["public"]["Enums"]["cost_entry_category"]
+          description: string
+          amount: number
+          cost_date: string
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          contract_id?: string | null
+          site_id?: string
+          variation_order_id?: string | null
+          category?: Database["public"]["Enums"]["cost_entry_category"]
+          description?: string
+          amount?: number
+          cost_date?: string
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_entries_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_entries_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_entries_variation_order_id_fkey"
+            columns: ["variation_order_id"]
+            isOneToOne: false
+            referencedRelation: "variation_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_report_generations: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id: string | null
+          period_start: string
+          period_end: string
+          generated_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id?: string | null
+          period_start: string
+          period_end: string
+          generated_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          site_id?: string
+          contract_id?: string | null
+          period_start?: string
+          period_end?: string
+          generated_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_report_generations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_report_generations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_report_generations_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_report_generations_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3362,13 +5339,25 @@ export type Database = {
         }
       }
       clock_in: {
-        Args: { p_employee_id: string; p_shift_id?: string; p_site_id: string }
+        Args: {
+          p_accuracy_meters?: number
+          p_client_captured_at?: string
+          p_device_context?: Json
+          p_employee_id: string
+          p_gps_denied?: boolean
+          p_latitude?: number
+          p_longitude?: number
+          p_offline_captured?: boolean
+          p_shift_id?: string
+          p_site_id: string
+        }
         Returns: {
           clock_in_at: string | null
           clock_out_at: string | null
           created_at: string
           early_departure_minutes: number | null
           employee_id: string
+          gps_verification_status: Database["public"]["Enums"]["gps_verification_status"]
           id: string
           late_minutes: number | null
           notes: string | null
@@ -3389,13 +5378,23 @@ export type Database = {
         }
       }
       clock_out: {
-        Args: { p_attendance_record_id: string }
+        Args: {
+          p_accuracy_meters?: number
+          p_attendance_record_id: string
+          p_client_captured_at?: string
+          p_device_context?: Json
+          p_gps_denied?: boolean
+          p_latitude?: number
+          p_longitude?: number
+          p_offline_captured?: boolean
+        }
         Returns: {
           clock_in_at: string | null
           clock_out_at: string | null
           created_at: string
           early_departure_minutes: number | null
           employee_id: string
+          gps_verification_status: Database["public"]["Enums"]["gps_verification_status"]
           id: string
           late_minutes: number | null
           notes: string | null
@@ -3599,6 +5598,30 @@ export type Database = {
           p_file_size_bytes: number
         }
         Returns: Database["public"]["Tables"]["contract_documents"]["Row"]
+      }
+      create_task_template_from_scope_item: {
+        Args: {
+          p_scope_of_work_item_id: string
+          p_default_assignee_id?: string | null
+          p_default_team_id?: string | null
+        }
+        Returns: Database["public"]["Tables"]["task_templates"]["Row"]
+      }
+      recompute_quote_totals: {
+        Args: { p_quote_id: string }
+        Returns: Database["public"]["Tables"]["quotes"]["Row"]
+      }
+      convert_quote_to_contract: {
+        Args: {
+          p_quote_id: string
+          p_contract_number: string
+          p_start_date: string
+        }
+        Returns: Database["public"]["Tables"]["contracts"]["Row"]
+      }
+      convert_site_survey_to_site: {
+        Args: { p_survey_id: string }
+        Returns: Database["public"]["Tables"]["sites"]["Row"]
       }
       assign_asset: {
         Args: {
@@ -4327,6 +6350,583 @@ export type Database = {
         }
         Returns: undefined
       }
+      request_attendance_location_exception: {
+        Args: { p_attendance_record_id: string; p_reason: string }
+        Returns: {
+          attendance_record_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      decide_attendance_location_exception: {
+        Args: { p_approve: boolean; p_exception_id: string; p_review_notes?: string }
+        Returns: {
+          attendance_record_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      start_patrol: {
+        Args: { p_patrol_route_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id: string
+          patrol_route_id: string
+          scanned_checkpoint_count: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+      }
+      scan_checkpoint: {
+        Args: {
+          p_checkpoint_code: string
+          p_latitude?: number
+          p_longitude?: number
+          p_patrol_run_id: string
+          p_scan_method?: Database["public"]["Enums"]["checkpoint_scan_type"]
+        }
+        Returns: {
+          run: {
+            completed_at: string | null
+            created_at: string
+            employee_id: string
+            expected_checkpoint_count: number
+            id: string
+            patrol_route_id: string
+            scanned_checkpoint_count: number
+            site_id: string
+            started_at: string
+            status: Database["public"]["Enums"]["patrol_run_status"]
+            tenant_id: string
+          }
+          scan: {
+            checkpoint_id: string | null
+            employee_id: string
+            id: string
+            latitude: number | null
+            longitude: number | null
+            patrol_run_id: string
+            risk_flags: Json
+            scan_method: Database["public"]["Enums"]["checkpoint_scan_type"]
+            scanned_at: string
+            scanned_code: string | null
+            sequence_number: number
+            tenant_id: string
+            verification_result: Database["public"]["Enums"]["checkpoint_scan_result"]
+          }
+        }[]
+      }
+      complete_patrol: {
+        Args: { p_patrol_run_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id: string
+          patrol_route_id: string
+          scanned_checkpoint_count: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+      }
+      get_patrol_summary: {
+        Args: { p_since?: string; p_tenant_id: string }
+        Returns: {
+          active_patrols: number
+          completed_patrols: number
+          exception_rate: number
+          incomplete_patrols: number
+          late_checkpoints: number
+          missed_checkpoints: number
+        }[]
+      }
+      get_command_centre_snapshot: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          alerts_critical: number
+          alerts_open: number
+          compliance_expired: number
+          compliance_expiring_soon: number
+          contracts_active: number
+          contracts_sla_breaching: number
+          emergencies_active: number
+          incidents_critical: number
+          incidents_open: number
+          incidents_overdue: number
+          patrols_active: number
+          patrols_completed_today: number
+          patrols_missed: number
+          sites_total_active: number
+          sites_uncovered: number
+          sites_understaffed: number
+          tasks_overdue: number
+          tasks_verification_pending: number
+          workforce_absent: number
+          workforce_clocked_in: number
+          workforce_late: number
+          workforce_pending_exceptions: number
+          workforce_total_scheduled: number
+        }[]
+      }
+      acknowledge_operational_alert: {
+        Args: { p_alert_id: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      resolve_operational_alert: {
+        Args: { p_alert_id: string; p_resolution_notes?: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      reopen_operational_alert: {
+        Args: { p_alert_id: string; p_reason: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      trigger_emergency: {
+        Args: {
+          p_accuracy_meters?: number
+          p_device_context?: Json
+          p_emergency_type?: Database["public"]["Enums"]["emergency_type"]
+          p_latitude?: number
+          p_longitude?: number
+          p_site_id?: string
+        }
+        Returns: {
+          accuracy_meters: number | null
+          device_context: Json
+          emergency_type: Database["public"]["Enums"]["emergency_type"]
+          employee_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          shift_id: string | null
+          site_id: string | null
+          tenant_id: string
+          triggered_at: string
+        }
+      }
+      acknowledge_emergency: {
+        Args: { p_emergency_event_id: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      respond_to_emergency: {
+        Args: { p_emergency_event_id: string; p_notes?: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      resolve_emergency: {
+        Args: { p_emergency_event_id: string; p_resolution_reason: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      log_ai_query: {
+        Args: {
+          p_insight_kind?: Database["public"]["Enums"]["insight_kind"]
+          p_matched_intent: string
+          p_query_text: string
+          p_response_text: string
+          p_tool_calls: Json
+        }
+        Returns: {
+          actor_profile_id: string
+          created_at: string
+          id: string
+          insight_kind: Database["public"]["Enums"]["insight_kind"]
+          matched_intent: string | null
+          query_text: string
+          response_text: string | null
+          tenant_id: string
+          tool_calls: Json
+        }
+      }
+      get_understaffed_sites: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assigned_count: number
+          required_count: number
+          shortfall: number
+          site_id: string
+          site_name: string
+        }[]
+      }
+      get_employees_absent_now: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          minutes_overdue: number
+          shift_starts_at: string
+          site_id: string
+          site_name: string
+        }[]
+      }
+      get_expiring_qualifications: {
+        Args: { p_tenant_id: string; p_within_days?: number }
+        Returns: {
+          days_remaining: number
+          employee_id: string
+          employee_name: string
+          expiry_date: string
+          qualification_name: string
+        }[]
+      }
+      get_declining_sla_contracts: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          contract_id: string
+          contract_number: string
+          latest_value: number
+          period_end: string
+          sla_name: string
+          target_met: boolean
+          target_value: number
+        }[]
+      }
+      get_overtime_spike_employees: {
+        Args: { p_since?: string; p_tenant_id: string }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          record_count: number
+          total_overtime_minutes: number
+        }[]
+      }
+      get_site_incident_ranking: {
+        Args: { p_since?: string; p_tenant_id: string }
+        Returns: {
+          critical_count: number
+          incident_count: number
+          site_id: string
+          site_name: string
+        }[]
+      }
+      generate_shift_recommendations: {
+        Args: { p_ends_at: string; p_shift_date: string; p_site_id: string; p_starts_at: string }
+        Returns: {
+          candidate_employee_id: string
+          decided_at: string | null
+          decided_by: string | null
+          ends_at: string
+          generated_at: string
+          id: string
+          published_shift_id: string | null
+          reasons: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }[]
+      }
+      decide_shift_recommendation: {
+        Args: { p_accept: boolean; p_recommendation_id: string }
+        Returns: {
+          candidate_employee_id: string
+          decided_at: string | null
+          decided_by: string | null
+          ends_at: string
+          generated_at: string
+          id: string
+          published_shift_id: string | null
+          reasons: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }
+      }
+      provision_client_portal_login: {
+        Args: {
+          p_client_id: string
+          p_email: string
+          p_first_name: string
+          p_last_name: string
+          p_phone?: string | null
+        }
+        Returns: { user_id: string; temporary_password: string }[]
+      }
+      submit_service_request: {
+        Args: {
+          p_request_type: Database["public"]["Enums"]["service_request_type"]
+          p_description: string
+          p_site_id?: string | null
+          p_contract_id?: string | null
+          p_requested_date?: string | null
+          p_priority?: Database["public"]["Enums"]["task_priority"]
+        }
+        Returns: Database["public"]["Tables"]["service_requests"]["Row"]
+      }
+      assess_service_request: {
+        Args: {
+          p_request_id: string
+          p_title: string
+          p_description?: string | null
+          p_reason?: string | null
+        }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      link_variation_quote: {
+        Args: { p_variation_id: string; p_quote_id: string }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      mark_variation_quoted: {
+        Args: { p_variation_id: string }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      client_decide_variation: {
+        Args: { p_variation_id: string; p_approve: boolean }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      schedule_variation_work: {
+        Args: {
+          p_variation_id: string
+          p_assignee_id?: string | null
+          p_due_at?: string | null
+        }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      transition_variation_status: {
+        Args: {
+          p_variation_id: string
+          p_new_status: Database["public"]["Enums"]["variation_order_status"]
+        }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      recompute_invoice_totals: {
+        Args: { p_invoice_id: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      issue_invoice: {
+        Args: { p_invoice_id: string; p_issue_date: string; p_due_date: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      void_invoice: {
+        Args: { p_invoice_id: string; p_reason: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      record_payment: {
+        Args: {
+          p_invoice_id: string
+          p_amount: number
+          p_payment_date: string
+          p_method?: string | null
+          p_reference?: string | null
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      create_draft_invoice: {
+        Args: {
+          p_client_id: string
+          p_contract_id?: string | null
+          p_site_id?: string | null
+          p_tax_rate?: number
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      generate_contract_billing_invoice: {
+        Args: {
+          p_contract_id: string
+          p_billing_period_start: string
+          p_billing_period_end: string
+        }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      create_variation_invoice: {
+        Args: { p_variation_id: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      start_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      submit_inspection_result: {
+        Args: {
+          p_inspection_id: string
+          p_template_item_id: string
+          p_score: number
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["inspection_results"]["Row"]
+      }
+      complete_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      create_defect: {
+        Args: {
+          p_inspection_id: string
+          p_description: string
+          p_severity?: Database["public"]["Enums"]["defect_severity"]
+          p_area_label?: string | null
+          p_responsible_team_id?: string | null
+          p_due_date?: string | null
+          p_inspection_result_id?: string | null
+        }
+        Returns: Database["public"]["Tables"]["defects"]["Row"]
+      }
+      resolve_defect: {
+        Args: {
+          p_defect_id: string
+          p_resolution_notes: string
+          p_corrective_action?: string | null
+        }
+        Returns: Database["public"]["Tables"]["defects"]["Row"]
+      }
+      verify_defect: {
+        Args: { p_defect_id: string }
+        Returns: Database["public"]["Tables"]["defects"]["Row"]
+      }
+      close_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      schedule_reinspection: {
+        Args: { p_defect_id: string; p_scheduled_at?: string | null }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      get_contract_profitability: {
+        Args: {
+          p_contract_id: string
+          p_period_start: string
+          p_period_end: string
+        }
+        Returns: {
+          revenue: number
+          labour_cost: number
+          consumables_cost: number
+          equipment_cost: number
+          other_cost: number
+          gross_contribution: number
+          gross_margin_pct: number | null
+        }[]
+      }
     }
     Enums: {
       attendance_status:
@@ -4358,6 +6958,11 @@ export type Database = {
         | "expired"
         | "waived"
       contract_status: "draft" | "active" | "expiring" | "expired" | "suspended" | "terminated"
+      contract_billing_frequency: "weekly" | "monthly" | "quarterly" | "annually" | "once_off"
+      contract_party_responsibility: "contractor" | "client" | "shared"
+      quote_status: "draft" | "sent" | "viewed" | "negotiation" | "approved" | "rejected" | "expired" | "cancelled"
+      quote_line_category: "labour" | "consumables" | "equipment" | "transport" | "overhead" | "other"
+      site_survey_status: "draft" | "completed" | "converted"
       document_status:
         | "uploaded"
         | "pending_review"
@@ -4438,6 +7043,63 @@ export type Database = {
         | "hr_user"
         | "employee"
         | "client_user"
+      gps_verification_status:
+        | "verified"
+        | "outside_geofence"
+        | "low_accuracy"
+        | "location_unavailable"
+        | "pending_verification"
+        | "offline_pending"
+        | "manual_review"
+        | "not_applicable"
+      checkpoint_scan_type: "qr" | "nfc" | "manual"
+      patrol_run_status: "in_progress" | "completed" | "incomplete" | "abandoned"
+      checkpoint_scan_result:
+        | "valid"
+        | "wrong_sequence"
+        | "duplicate"
+        | "out_of_window"
+        | "invalid_checkpoint"
+        | "not_assigned"
+      alert_severity: "info" | "warning" | "critical"
+      alert_status: "open" | "acknowledged" | "resolved"
+      operational_alert_type:
+        | "site_understaffed"
+        | "employee_absent"
+        | "employee_late"
+        | "patrol_missed"
+        | "checkpoint_missed"
+        | "qualification_expired"
+        | "contract_sla_breach"
+        | "incident_overdue"
+        | "critical_task_overdue"
+        | "excessive_overtime"
+        | "emergency_active"
+      emergency_type: "panic" | "medical" | "security_threat" | "other"
+      emergency_status: "triggered" | "acknowledged" | "responding" | "resolved"
+      insight_kind: "rule_based" | "ai_generated"
+      shift_recommendation_status: "suggested" | "accepted" | "rejected" | "published"
+      service_request_type: "additional_cleaning" | "deep_clean" | "complaint" | "emergency" | "other"
+      service_request_status: "requested" | "assessed" | "converted" | "rejected" | "cancelled"
+      service_request_origin: "client" | "internal"
+      variation_order_status:
+        | "draft"
+        | "assessed"
+        | "quoting"
+        | "quoted"
+        | "approved"
+        | "rejected"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "invoiced"
+        | "cancelled"
+      invoice_status: "draft" | "issued" | "partially_paid" | "paid" | "void" | "cancelled"
+      invoice_source: "contract_billing" | "variation" | "manual"
+      inspection_status: "scheduled" | "in_progress" | "completed" | "closed"
+      defect_severity: "low" | "medium" | "high" | "critical"
+      defect_status: "open" | "in_progress" | "resolved" | "verified"
+      cost_entry_category: "equipment" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4578,6 +7240,11 @@ export const Constants = {
       attendance_correction_field: ["clock_in_at", "clock_out_at", "status"],
       attendance_correction_status: ["pending", "approved", "rejected"],
       contract_status: ["draft", "active", "expiring", "expired", "suspended", "terminated"],
+      contract_billing_frequency: ["weekly", "monthly", "quarterly", "annually", "once_off"],
+      contract_party_responsibility: ["contractor", "client", "shared"],
+      quote_status: ["draft", "sent", "viewed", "negotiation", "approved", "rejected", "expired", "cancelled"],
+      quote_line_category: ["labour", "consumables", "equipment", "transport", "overhead", "other"],
+      site_survey_status: ["draft", "completed", "converted"],
       document_status: [
         "uploaded",
         "pending_review",
@@ -4625,6 +7292,28 @@ export const Constants = {
         "employee",
         "client_user",
       ],
+      service_request_type: ["additional_cleaning", "deep_clean", "complaint", "emergency", "other"],
+      service_request_status: ["requested", "assessed", "converted", "rejected", "cancelled"],
+      service_request_origin: ["client", "internal"],
+      variation_order_status: [
+        "draft",
+        "assessed",
+        "quoting",
+        "quoted",
+        "approved",
+        "rejected",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "invoiced",
+        "cancelled",
+      ],
+      invoice_status: ["draft", "issued", "partially_paid", "paid", "void", "cancelled"],
+      invoice_source: ["contract_billing", "variation", "manual"],
+      inspection_status: ["scheduled", "in_progress", "completed", "closed"],
+      defect_severity: ["low", "medium", "high", "critical"],
+      defect_status: ["open", "in_progress", "resolved", "verified"],
+      cost_entry_category: ["equipment", "other"],
     },
   },
 } as const

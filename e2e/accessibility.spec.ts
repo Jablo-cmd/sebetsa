@@ -1,41 +1,22 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { seedAuthenticatedSession } from './utils/mockAuth';
-import {
-  buildMockProfileRow,
-  buildMockSchoolRow,
-  buildMockAcademicYearRow,
-  buildMockClassRow,
-  buildMockLearnerRow,
-  buildMockAssessmentRow,
-  installDataMocks,
-  installAcademicListMock,
-  installLearnersListMock,
-  installEmployeesListMock,
-  installUsersListMock,
-  installReportRowsMock,
-  installAttendanceRecordsMock,
-  installAssessmentsListMock,
-} from './utils/mockData';
+import { fulfillJson } from './utils/mockAuth';
+import { seedSebetsaSession } from './utils/sebetsaAuth';
+import { installSebetsaMocks, buildProfileRow, buildEmployeeRow } from './utils/sebetsaData';
 
 /**
- * A practical accessibility baseline, not a full audit: automated
- * scanning (axe-core) only catches a subset of WCAG issues — missing
- * labels, contrast, landmark/role misuse, unlabelled form controls — and
- * says nothing about keyboard-flow sensibility or screen-reader phrasing.
+ * A practical accessibility baseline, not a full audit: automated scanning
+ * (axe-core) only catches a subset of WCAG issues — missing labels,
+ * contrast, landmark/role misuse, unlabelled form controls — and says
+ * nothing about keyboard-flow sensibility or screen-reader phrasing.
  * Failing this means a genuine, tool-detectable defect; passing it is a
- * floor, not a certification. Scoped to the pages named in the audit
- * brief (Login, Dashboard, Attendance, Attendance Report, Learners,
- * Assessments) rather than every route in the app.
- */
-/**
- * FND-SEC-007: `color-contrast`/`link-in-text-block` were previously
- * excluded here — the `content-tertiary` token measured ~2.56:1 against
- * white (light mode) and ~3.62:1 (dark mode), both under WCAG AA's 4.5:1
- * floor for normal text. The token itself has been fixed (see
- * src/styles/index.css) to 4.667:1 / 4.925:1 respectively, so the
- * exclusion is removed — every rule now gates for real, including
- * contrast, not just labels/ARIA/roles/landmarks/keyboard affordances.
+ * floor, not a certification. Most feature areas already carry their own
+ * "has no serious/critical accessibility violations" test next to their
+ * functional tests (see attendance.spec.ts, leave.spec.ts, tasks.spec.ts,
+ * reports.spec.ts, dashboard.spec.ts, etc.) — this file only covers the
+ * pages that don't belong to any single feature module: the unauthenticated
+ * login screen, the plain self-service dashboard variant, and the
+ * employees directory table.
  */
 async function expectNoSeriousViolations(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
@@ -52,78 +33,32 @@ test('Login page has no serious/critical accessibility violations', async ({ pag
   await expectNoSeriousViolations(page);
 });
 
-test('Dashboard has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page);
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-  await installAttendanceRecordsMock(page, []);
-  await installLearnersListMock(page, []);
-  await installEmployeesListMock(page, []);
-  await installUsersListMock(page, [buildMockProfileRow()]);
+test('the plain self-service dashboard has no serious/critical accessibility violations', async ({ page }) => {
+  // dashboard.spec.ts already covers the management-role variant with the
+  // operational-exceptions panel — this covers the simpler workspace
+  // dashboard an employee (or any role without reports.view) sees instead.
+  await seedSebetsaSession(page, { role: 'employee' });
+  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });
 
   await page.goto('/dashboard');
-  await expect(page.getByRole('heading', { name: /Welcome back/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /^Welcome/ })).toBeVisible();
   await expectNoSeriousViolations(page);
 });
 
-test('Attendance page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
+test('Employees directory has no serious/critical accessibility violations', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'hr_user' });
+  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'hr_user' }) });
+  await page.route('**/rest/v1/departments*', async (route) => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    await fulfillJson(route, []);
   });
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAcademicListMock(page, 'class_teacher_assignments', []);
-  await installReportRowsMock(page, 'learners', [buildMockLearnerRow({ id: 'learner-1', firstName: 'Naledi', lastName: 'Dube' })]);
-  await installAttendanceRecordsMock(page, []);
-
-  await page.goto('/attendance');
-  await expect(page.getByRole('heading', { name: 'Attendance' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Attendance Report page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
+  await page.route('**/rest/v1/employees*', async (route) => {
+    const url = new URL(route.request().url());
+    if (route.request().method() !== 'GET' || !url.searchParams.has('limit')) return route.fallback();
+    await fulfillJson(route, [buildEmployeeRow({ first_name: 'Karabo', last_name: 'Mokoena' })]);
   });
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAttendanceRecordsMock(page, []);
-  await installReportRowsMock(page, 'learners', []);
 
-  await page.goto('/reports/attendance');
-  await expect(page.getByRole('heading', { name: 'Attendance report' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Learners page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installLearnersListMock(page, [buildMockLearnerRow({ id: 'learner-1', firstName: 'Naledi', lastName: 'Dube' })]);
-
-  await page.goto('/learners');
-  await expect(page.getByRole('heading', { name: 'Learners' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Assessments page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAcademicListMock(page, 'subjects', []);
-  await installAssessmentsListMock(page, [buildMockAssessmentRow()]);
-
-  await page.goto('/academic/assessments');
-  await expect(page.getByRole('heading', { name: 'Assessments' })).toBeVisible();
+  await page.goto('/employees');
+  await expect(page.getByRole('heading', { name: 'Employees' })).toBeVisible();
   await expectNoSeriousViolations(page);
 });

@@ -90,6 +90,10 @@ const AttendanceCorrectionsPage = named(
   () => import('@/features/attendance/pages/AttendanceCorrectionsPage'),
   'AttendanceCorrectionsPage',
 );
+const LocationExceptionsPage = named(
+  () => import('@/features/attendance/pages/LocationExceptionsPage'),
+  'LocationExceptionsPage',
+);
 const SchedulePage = named(() => import('@/features/scheduling/pages/SchedulePage'), 'SchedulePage');
 const MySchedulePage = named(
   () => import('@/features/scheduling/pages/MySchedulePage'),
@@ -174,6 +178,61 @@ const ContractDetailPage = named(
   () => import('@/features/orgStructure/pages/ContractDetailPage'),
   'ContractDetailPage',
 );
+const QuotesPage = named(() => import('@/features/quotes/pages/QuotesPage'), 'QuotesPage');
+const QuoteDetailPage = named(() => import('@/features/quotes/pages/QuoteDetailPage'), 'QuoteDetailPage');
+const SiteSurveysPage = named(() => import('@/features/siteSurveys/pages/SiteSurveysPage'), 'SiteSurveysPage');
+const SiteSurveyDetailPage = named(
+  () => import('@/features/siteSurveys/pages/SiteSurveyDetailPage'),
+  'SiteSurveyDetailPage',
+);
+const ServiceRequestsPage = named(
+  () => import('@/features/variationOrders/pages/ServiceRequestsPage'),
+  'ServiceRequestsPage',
+);
+const VariationOrdersPage = named(
+  () => import('@/features/variationOrders/pages/VariationOrdersPage'),
+  'VariationOrdersPage',
+);
+const VariationOrderDetailPage = named(
+  () => import('@/features/variationOrders/pages/VariationOrderDetailPage'),
+  'VariationOrderDetailPage',
+);
+const InvoicesPage = named(() => import('@/features/billing/pages/InvoicesPage'), 'InvoicesPage');
+const InvoiceDetailPage = named(() => import('@/features/billing/pages/InvoiceDetailPage'), 'InvoiceDetailPage');
+const InspectionsPage = named(() => import('@/features/cleaningQa/pages/InspectionsPage'), 'InspectionsPage');
+const InspectionDetailPage = named(
+  () => import('@/features/cleaningQa/pages/InspectionDetailPage'),
+  'InspectionDetailPage',
+);
+const InspectionTemplatesPage = named(
+  () => import('@/features/cleaningQa/pages/InspectionTemplatesPage'),
+  'InspectionTemplatesPage',
+);
+const MyPatrolsPage = named(() => import('@/features/patrols/pages/MyPatrolsPage'), 'MyPatrolsPage');
+const PatrolOversightPage = named(
+  () => import('@/features/patrols/pages/PatrolOversightPage'),
+  'PatrolOversightPage',
+);
+const CommandCentrePage = named(
+  () => import('@/features/commandCentre/pages/CommandCentrePage'),
+  'CommandCentrePage',
+);
+const OperationalAlertsPage = named(
+  () => import('@/features/commandCentre/pages/OperationalAlertsPage'),
+  'OperationalAlertsPage',
+);
+const EmergencyResponsePage = named(
+  () => import('@/features/emergency/pages/EmergencyResponsePage'),
+  'EmergencyResponsePage',
+);
+const AiAssistantPage = named(
+  () => import('@/features/intelligence/pages/AiAssistantPage'),
+  'AiAssistantPage',
+);
+const SchedulingRecommendationsPage = named(
+  () => import('@/features/intelligence/pages/SchedulingRecommendationsPage'),
+  'SchedulingRecommendationsPage',
+);
 
 export function AppRoutes() {
   return (
@@ -245,6 +304,7 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="scheduling.manage" />}>
                 <Route path="/schedule/definitions" element={<ShiftDefinitionsPage />} />
+                <Route path="/schedule/recommendations" element={<SchedulingRecommendationsPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="availability.view" />}>
@@ -258,6 +318,7 @@ export function AppRoutes() {
 
               <Route element={<RequirePermission permission="attendance.manage" />}>
                 <Route path="/attendance/corrections" element={<AttendanceCorrectionsPage />} />
+                <Route path="/attendance/location-exceptions" element={<LocationExceptionsPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="leave.view" />}>
@@ -330,6 +391,45 @@ export function AppRoutes() {
                 <Route path="/sites/:id" element={<SiteDetailPage />} />
                 <Route path="/contracts" element={<ContractsPage />} />
                 <Route path="/contracts/:id" element={<ContractDetailPage />} />
+                <Route path="/quotes" element={<QuotesPage />} />
+                <Route path="/quotes/:id" element={<QuoteDetailPage />} />
+                <Route path="/site-surveys" element={<SiteSurveysPage />} />
+                <Route path="/site-surveys/:id" element={<SiteSurveyDetailPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="variation.view" />}>
+                <Route path="/service-requests" element={<ServiceRequestsPage />} />
+                <Route path="/variation-orders" element={<VariationOrdersPage />} />
+                <Route path="/variation-orders/:id" element={<VariationOrderDetailPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="billing.view" />}>
+                <Route path="/invoices" element={<InvoicesPage />} />
+                <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="inspection.view" />}>
+                <Route path="/inspections" element={<InspectionsPage />} />
+                <Route path="/inspections/:id" element={<InspectionDetailPage />} />
+                <Route path="/inspection-templates" element={<InspectionTemplatesPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="patrol.view" />}>
+                <Route path="/patrols" element={<MyPatrolsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="command_centre.view" />}>
+                <Route path="/patrols/oversight" element={<PatrolOversightPage />} />
+                <Route path="/command-centre" element={<CommandCentrePage />} />
+                <Route path="/command-centre/alerts" element={<OperationalAlertsPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="emergency.view" />}>
+                <Route path="/emergencies" element={<EmergencyResponsePage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="intelligence.view" />}>
+                <Route path="/intelligence" element={<AiAssistantPage />} />
               </Route>
             </Route>
           </Route>

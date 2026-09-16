@@ -14,6 +14,22 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'retain-on-failure',
+    // Optional local/sandbox override for a pre-installed Chromium binary
+    // whose path doesn't match this pinned @playwright/test version's
+    // expected download location — unset (default) everywhere else,
+    // including CI, which installs its own matching browser.
+    launchOptions: process.env.PW_EXECUTABLE_PATH
+      ? {
+          executablePath: process.env.PW_EXECUTABLE_PATH,
+          args: [
+            '--disable-background-networking',
+            '--disable-component-update',
+            '--disable-domain-reliability',
+            '--disable-client-side-phishing-detection',
+            '--disable-features=OptimizationHints,MediaRouter,AutofillServerCommunication',
+          ],
+        }
+      : undefined,
   },
   // A residual, separately-diagnosed flake remains even against a
   // prebuilt server: My Profile's request-heavy waterfall (employee +

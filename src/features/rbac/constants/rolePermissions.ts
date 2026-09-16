@@ -31,6 +31,34 @@ import type { Permission } from '@/features/rbac/types/permission.types';
  * employee always manages their OWN availability via the RLS self-service
  * carve-out regardless of permissions here (mirrors profile.update_own).
  * Keep this file and those RLS policies in sync if either changes.
+ *
+ * patrol.view/command_centre.view/emergency.view/intelligence.view (Domain
+ * 13/14/15) mirror can_manage_operations() exactly — the same operational
+ * tier as team.manage/scheduling.manage, again excluding hr_user — except
+ * patrol.view is additionally granted to `employee`, matching
+ * attendance.view: an employee always has RLS-scoped access to execute
+ * their OWN patrol (start/scan/complete) regardless of this permission
+ * list; the ops-tier holders instead see the oversight summary. Triggering
+ * an emergency (the panic button) is intentionally NOT gated by any
+ * permission at all — every authenticated, tenant-gated user can reach it,
+ * the same "no guard needed" posture as /dashboard and /notifications.
+ *
+ * variation.view/manage and inspection.view/manage (Commercial Revenue
+ * sprint) mirror can_manage_operations() — the same operational tier as
+ * team.manage/patrol.view — since variation_orders/service_requests/
+ * inspections/defects RLS write policies use that exact function. billing.*
+ * and job_costing.view instead mirror can_manage_org_structure() (a
+ * narrower tier: org admin + operations manager only), matching the
+ * invoices/employee_cost_rates/cost_entries RLS policies, which treat
+ * pricing and commercial cost data as more sensitive than day-to-day
+ * operations — a site_manager/supervisor can run an inspection or approve
+ * a variation's work order, but cannot see what it costs or bills at.
+ * There is no dedicated `finance` role in the user_role enum today; billing/
+ * job_costing access currently maps onto this same org-structure tier
+ * rather than a separate Finance role — a genuine, disclosed gap against
+ * the brief's RBAC ask, not a silent omission (see the final report).
+ * client_user carries none of these — the client portal is a dedicated,
+ * separately modelled nav/permission surface, not derived from this table.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   platform_administrator: [
@@ -78,6 +106,19 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'billing.view',
+    'billing.manage',
+    'job_costing.view',
+    'client_portal.view',
+    'client_portal.manage',
   ],
   organization_administrator: [
     'organization.view',
@@ -123,6 +164,19 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'billing.view',
+    'billing.manage',
+    'job_costing.view',
+    'client_portal.view',
+    'client_portal.manage',
   ],
   operations_manager: [
     'organization.view',
@@ -166,6 +220,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
   ],
   regional_manager: [
     'organization.view',
@@ -199,6 +257,15 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'client_portal.view',
   ],
   site_manager: [
     'organization.view',
@@ -230,6 +297,15 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'client_portal.view',
   ],
   supervisor: [
     'organization.view',
@@ -259,6 +335,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
   ],
   hr_user: [
     'organization.view',
@@ -282,6 +366,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'reports.view',
     'reports.export',
   ],
-  employee: ['scheduling.view', 'availability.view', 'attendance.view', 'task.view', 'leave.view', 'document.view', 'incident.view', 'procurement.view', 'development.view'],
+  employee: ['scheduling.view', 'availability.view', 'attendance.view', 'task.view', 'leave.view', 'document.view', 'incident.view', 'procurement.view', 'development.view', 'patrol.view'],
   client_user: [],
 };

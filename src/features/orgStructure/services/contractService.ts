@@ -2,8 +2,10 @@ import { supabase } from '@/lib/supabase';
 import type { ContractRow, ContractInsert, ContractUpdate } from '@/lib/dbTypes';
 import type {
   Contract,
+  ContractVersion,
   CreateContractInput,
   UpdateContractInput,
+  UpdateContractCommercialTermsInput,
   ContractsListFilters,
   ContractsListPage,
 } from '@/features/orgStructure/types/orgStructure.types';
@@ -42,8 +44,45 @@ export function toContract(row: ContractRow): Contract {
     status: row.status,
     responsibleManagerId: row.responsible_manager_id,
     slaNotes: row.sla_notes,
+    contractValue: row.contract_value,
+    recurringValue: row.recurring_value,
+    billingFrequency: row.billing_frequency,
+    paymentTermsDays: row.payment_terms_days,
+    renewalDate: row.renewal_date,
+    autoRenew: row.auto_renew,
+    escalationPercentage: row.escalation_percentage,
+    escalationNotes: row.escalation_notes,
+    serviceFrequency: row.service_frequency,
+    consumablesResponsibility: row.consumables_responsibility,
+    equipmentResponsibility: row.equipment_responsibility,
+    labourNotes: row.labour_notes,
+    notes: row.notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  };
+}
+
+function toContractVersion(row: {
+  id: string;
+  tenant_id: string;
+  contract_id: string;
+  version_number: number;
+  snapshot: unknown;
+  change_summary: string;
+  changed_by: string | null;
+  effective_date: string;
+  created_at: string;
+}): ContractVersion {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    contractId: row.contract_id,
+    versionNumber: row.version_number,
+    snapshot: row.snapshot as Record<string, unknown>,
+    changeSummary: row.change_summary,
+    changedBy: row.changed_by,
+    effectiveDate: row.effective_date,
+    createdAt: row.created_at,
   };
 }
 
@@ -163,6 +202,39 @@ async function updateContractStatus(id: string, status: Contract['status']): Pro
   return updateContract(id, { status });
 }
 
+/** Updates the commercial terms only. contracts_snapshot_version_trigger auto-records a contract_versions row for whichever of these fields actually changed — never a silent overwrite of contract history. */
+async function updateContractCommercialTerms(id: string, updates: UpdateContractCommercialTermsInput): Promise<Contract> {
+  const payload: ContractUpdate = {};
+  if (updates.contractValue !== undefined) payload.contract_value = updates.contractValue;
+  if (updates.recurringValue !== undefined) payload.recurring_value = updates.recurringValue;
+  if (updates.billingFrequency !== undefined) payload.billing_frequency = updates.billingFrequency;
+  if (updates.paymentTermsDays !== undefined) payload.payment_terms_days = updates.paymentTermsDays;
+  if (updates.renewalDate !== undefined) payload.renewal_date = updates.renewalDate;
+  if (updates.autoRenew !== undefined) payload.auto_renew = updates.autoRenew;
+  if (updates.escalationPercentage !== undefined) payload.escalation_percentage = updates.escalationPercentage;
+  if (updates.escalationNotes !== undefined) payload.escalation_notes = updates.escalationNotes;
+  if (updates.serviceFrequency !== undefined) payload.service_frequency = updates.serviceFrequency;
+  if (updates.consumablesResponsibility !== undefined) payload.consumables_responsibility = updates.consumablesResponsibility;
+  if (updates.equipmentResponsibility !== undefined) payload.equipment_responsibility = updates.equipmentResponsibility;
+  if (updates.labourNotes !== undefined) payload.labour_notes = updates.labourNotes;
+  if (updates.notes !== undefined) payload.notes = updates.notes;
+
+  const { data, error } = await supabase.from('contracts').update(payload).eq('id', id).select('*').single();
+  if (error) throw error;
+  return toContract(data);
+}
+
+/** Full version history, newest first — contract_versions is append-only and populated only by the DB trigger. */
+async function getContractVersions(contractId: string): Promise<ContractVersion[]> {
+  const { data, error } = await supabase
+    .from('contract_versions')
+    .select('*')
+    .eq('contract_id', contractId)
+    .order('version_number', { ascending: false });
+  if (error) throw error;
+  return data.map(toContractVersion);
+}
+
 export const contractService = {
   searchManagerCandidates,
   getContracts,
@@ -174,4 +246,6 @@ export const contractService = {
   createContract,
   updateContract,
   updateContractStatus,
+  updateContractCommercialTerms,
+  getContractVersions,
 };

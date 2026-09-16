@@ -32,14 +32,19 @@ test.describe('phone viewport (390x844)', () => {
     await expect(page).toHaveURL(/\/attendance\/mine/);
   });
 
-  test('employee can clock in on a phone-sized screen', async ({ page }) => {
+  test('employee can clock in on a phone-sized screen', async ({ page, context }) => {
+    // Same real-device-location dependency and same reason to mock it as
+    // attendance.spec.ts's clock-in test.
+    await context.grantPermissions(['geolocation']);
+    await context.setGeolocation({ latitude: -26.2041, longitude: 28.0473 });
+
     await seedSebetsaSession(page, { role: 'employee' });
     const state = await installSebetsaMocks(page, {
       profile: buildProfileRow({ role: 'employee' }),
       employee: buildEmployeeRow(),
       onRpc: async (fnName, _payload, route) => {
         if (fnName === 'clock_in') {
-          const record = { id: 'attendance-1', tenant_id: state.employee?.tenant_id, employee_id: 'employee-1', shift_id: null, site_id: 'site-1', status: 'present', clock_in_at: new Date().toISOString(), clock_out_at: null, late_minutes: null, early_departure_minutes: null, worked_minutes: null, overtime_minutes: null, recorded_by: null, notes: null, created_at: '', updated_at: '' };
+          const record = { id: 'attendance-1', tenant_id: state.employee?.tenant_id, employee_id: 'employee-1', shift_id: null, site_id: 'site-1', status: 'present', clock_in_at: new Date().toISOString(), clock_out_at: null, late_minutes: null, early_departure_minutes: null, worked_minutes: null, overtime_minutes: null, recorded_by: null, notes: null, gps_verification_status: 'not_applicable', created_at: '', updated_at: '' };
           state.attendanceRecords = [record];
           await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(record) });
           return true;

@@ -5,6 +5,7 @@ import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 import { AppFooter } from '@/components/layout/AppFooter';
 import { CloseIcon } from '@/components/ui/icons';
 import { MfaRequiredBanner } from '@/features/mfa/components/MfaRequiredBanner';
+import { PanicButton } from '@/features/emergency/components/PanicButton';
 
 export function DashboardLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -49,6 +50,7 @@ export function DashboardLayout() {
       </div>
 
       <AppFooter />
+      <PanicButton />
     </div>
   );
 }

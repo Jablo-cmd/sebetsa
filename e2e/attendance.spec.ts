@@ -22,7 +22,15 @@ async function expectNoSeriousViolations(page: import('@playwright/test').Page) 
  * Real UI, mocked REST/RPC — no database-internal state asserted here;
  * that belongs to supabase/rls-tests/attendance_time_management.sql. */
 
-test('employee can clock in, take a break, and clock out', async ({ page }) => {
+test('employee can clock in, take a break, and clock out', async ({ page, context }) => {
+  // MyAttendancePage reads a device location before clock-in/out and passes
+  // it to clock_in()/clock_out() — grant + mock it so the test resolves
+  // instantly from Playwright's injected position instead of the browser's
+  // real network location provider (which this sandbox's egress policy
+  // blocks, not a product defect).
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: -26.2041, longitude: 28.0473 });
+
   await seedSebetsaSession(page, { role: 'employee' });
   const state = await installSebetsaMocks(page, {
     profile: buildProfileRow({ role: 'employee' }),

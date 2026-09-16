@@ -92,6 +92,80 @@ test('operations_manager can search for an employee, upload on their behalf, and
   await expect(page.getByText('Verified')).toBeVisible();
 });
 
+test('an unsupported file type is rejected before any upload request is made', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'employee' });
+  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }), employee: buildEmployeeRow(), employeeDocuments: [] });
+
+  let uploadAttempted = false;
+  await page.route('**/storage/v1/object/employee-documents/**', async (route) => {
+    uploadAttempted = true;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/documents');
+  await page.setInputFiles('#document-file', {
+    name: 'malware.exe',
+    mimeType: 'application/x-msdownload',
+    buffer: Buffer.from('not a real document'),
+  });
+
+  await expect(page.getByText('Only PDF, JPEG, or PNG files are accepted.')).toBeVisible();
+  expect(uploadAttempted).toBe(false);
+});
+
+test('an oversized file is rejected before any upload request is made', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'employee' });
+  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }), employee: buildEmployeeRow(), employeeDocuments: [] });
+
+  let uploadAttempted = false;
+  await page.route('**/storage/v1/object/employee-documents/**', async (route) => {
+    uploadAttempted = true;
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/documents');
+  await page.setInputFiles('#document-file', {
+    name: 'huge.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.alloc(11 * 1024 * 1024, 'x'),
+  });
+
+  await expect(page.getByText('Maximum file size is 10MB.')).toBeVisible();
+  expect(uploadAttempted).toBe(false);
+});
+
+test('a self-service user without a linked employee record sees a clear message instead of the upload form', async ({ page }) => {
+  await seedSebetsaSession(page, { role: 'employee' });
+  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }), employee: null });
+
+  await page.goto('/documents');
+  await expect(page.getByText('No employee record is linked to your account.')).toBeVisible();
+  await expect(page.getByLabel('Document type')).toHaveCount(0);
+});
+
+test('opening a document resolves a fresh signed URL rather than a stored public link', async ({ page, context }) => {
+  await seedSebetsaSession(page, { role: 'employee' });
+  await installSebetsaMocks(page, {
+    profile: buildProfileRow({ role: 'employee' }),
+    employee: buildEmployeeRow(),
+    employeeDocuments: [buildEmployeeDocumentRow({ id: 'document-1' })],
+  });
+  await installStorageSignedUrlMock(page, 'employee-documents');
+  // The resolved signed URL opens in a new tab via window.open, whose own
+  // navigation request page.route() never sees — only a context-wide route
+  // reaches it too.
+  await context.route('**/object/sign/employee-documents/mock-path*', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'text/plain', body: 'mock signed file content' });
+  });
+
+  await page.goto('/documents');
+  const [popup] = await Promise.all([page.waitForEvent('popup'), page.getByRole('button', { name: 'View' }).click()]);
+  await popup.waitForLoadState('load');
+  expect(popup.url()).toContain('/object/sign/employee-documents/mock-path');
+  expect(popup.url()).toContain('token=mock-token');
+  await popup.close();
+});
+
 test('an employee is blocked from Employee Documents', async ({ page }) => {
   await seedSebetsaSession(page, { role: 'employee' });
   await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });

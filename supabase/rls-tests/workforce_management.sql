@@ -42,8 +42,12 @@ insert into public.positions (id, tenant_id, department_id, title) values
   ('00000000-0000-0000-0000-000000002001', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000001001', 'Cleaner A');
 insert into public.clients (id, tenant_id, name) values
   ('00000000-0000-0000-0000-000000003001', '00000000-0000-0000-0000-0000000000a1', 'Client A');
-insert into public.sites (id, tenant_id, client_id, name) values
-  ('00000000-0000-0000-0000-000000004001', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000003001', 'Site A');
+-- status explicitly 'active' (not the default 'onboarding') — this site
+-- receives a real site_assignment below, and P0 remediation
+-- (docs/PRODUCTION_READINESS_AUDIT.md) now requires an active site for a
+-- new open assignment.
+insert into public.sites (id, tenant_id, client_id, name, status) values
+  ('00000000-0000-0000-0000-000000004001', '00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000003001', 'Site A', 'active');
 
 -- Org B structure (as service role, bypassing RLS, just to have cross-tenant targets)
 reset role;

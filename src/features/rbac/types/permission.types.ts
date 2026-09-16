@@ -48,4 +48,17 @@ export type Permission =
   | 'procurement.view'
   | 'procurement.manage'
   | 'development.view'
-  | 'development.manage';
+  | 'development.manage'
+  | 'patrol.view'
+  | 'command_centre.view'
+  | 'emergency.view'
+  | 'intelligence.view'
+  | 'variation.view'
+  | 'variation.manage'
+  | 'inspection.view'
+  | 'inspection.manage'
+  | 'billing.view'
+  | 'billing.manage'
+  | 'job_costing.view'
+  | 'client_portal.view'
+  | 'client_portal.manage';

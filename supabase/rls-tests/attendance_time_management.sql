@@ -298,6 +298,18 @@ values ('00000000-0000-0000-0000-000000009202', '00000000-0000-0000-0000-0000000
 insert into public.attendance_records (id, tenant_id, shift_id, site_id, employee_id, status)
 values ('00000000-0000-0000-0000-000000009301', '00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-000000009202', '00000000-0000-0000-0000-000000004201', '00000000-0000-0000-0000-000000005202', 'unconfirmed');
 
+-- P0 remediation (docs/PRODUCTION_READINESS_AUDIT.md): approve_leave_request
+-- now checks the request against leave_balances.remaining before
+-- approving — top up a balance for this employee/type/year first, since
+-- this test's point is the leave->attendance sync, not balance
+-- sufficiency.
+do $$
+declare v_leave_type_id uuid;
+begin
+  select id into v_leave_type_id from public.leave_types where tenant_id = '00000000-0000-0000-0000-0000000000e1' and name = 'Annual';
+  perform public.adjust_leave_balance('00000000-0000-0000-0000-000000005202', v_leave_type_id, extract(year from current_date + 1)::int, 20, 'test fixture top-up');
+end $$;
+
 do $$
 declare
   v_leave_type_id uuid;

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { buildMockUser, fulfillJson, installAuthMocks, seedAuthenticatedSession } from './utils/mockAuth';
+import { fulfillJson, installAuthMocks } from './utils/mockAuth';
+import { buildSebetsaUser, seedSebetsaSession } from './utils/sebetsaAuth';
 
 test('shows an invalid-link notice when there is no recovery session', async ({ page }) => {
   await page.goto('/reset-password');
@@ -12,9 +13,9 @@ test('shows an invalid-link notice when there is no recovery session', async ({ 
 });
 
 test('validates password confirmation and updates the password', async ({ page }) => {
-  await seedAuthenticatedSession(page);
+  await seedSebetsaSession(page);
   await installAuthMocks(page, {
-    user: (route) => fulfillJson(route, { user: buildMockUser() }),
+    user: (route) => fulfillJson(route, buildSebetsaUser()),
     logout: (route) => fulfillJson(route, {}, 204),
   });
 

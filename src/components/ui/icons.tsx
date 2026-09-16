@@ -478,6 +478,44 @@ export function ClipboardListIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function AlertTriangleIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M12 3.5 22 20.5H2L12 3.5Z" />
+      <path d="M12 10v4.5" />
+      <circle cx="12" cy="17.5" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function SparklesIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M11 3.5 12.6 8 17 9.5l-4.4 1.6L11 15.5 9.4 11.1 5 9.5l4.4-1.5Z" />
+      <path d="M18.5 14v3.5M17 15.75h3" />
+      <path d="M5.5 16v2.5M4.25 17.25h2.5" />
+    </svg>
+  );
+}
+
 export function ShieldIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg

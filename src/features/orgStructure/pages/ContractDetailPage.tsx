@@ -16,6 +16,10 @@ import { contractService } from '@/features/orgStructure/services/contractServic
 import { ContractFormModal } from '@/features/orgStructure/components/ContractFormModal';
 import { slaService, type SlaDefinition, type SlaMeasurement } from '@/features/orgStructure/services/slaService';
 import { contractDocumentService, type ContractDocument } from '@/features/orgStructure/services/contractDocumentService';
+import { useContractVersions } from '@/features/orgStructure/hooks/useContracts';
+import { CommercialTermsSection } from '@/features/orgStructure/components/CommercialTermsSection';
+import { ScopeOfWorkSection } from '@/features/orgStructure/components/ScopeOfWorkSection';
+import { ProfitabilitySection } from '@/features/jobCosting/components/ProfitabilitySection';
 import type { ContractStatus } from '@/features/orgStructure/types/orgStructure.types';
 import type { SlaMetricTypeEnum } from '@/lib/dbTypes';
 import { getDbErrorMessage } from '@/lib/dbErrors';
@@ -47,6 +51,7 @@ export function ContractDetailPage() {
   const { siteIds } = useContractSiteIds(id);
   const { sites: allSites } = useAllSites(organization?.id);
   const { clients } = useAllClients(organization?.id);
+  const { versions, refetch: refetchVersions } = useContractVersions(id);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -270,6 +275,41 @@ export function ContractDetailPage() {
           </div>
         )}
       </section>
+
+      <CommercialTermsSection
+        contract={contract}
+        canManage={canManage}
+        onSaved={async () => {
+          await refetch();
+          void refetchVersions();
+        }}
+      />
+
+      {versions.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-base font-semibold text-content-primary">Version history</h2>
+          <p className="text-xs text-content-tertiary">
+            Every commercial-term change is recorded automatically — this history can never be edited or deleted.
+          </p>
+          <ol className="flex flex-col divide-y divide-border rounded-card border border-border bg-surface-raised">
+            {versions.map((version) => (
+              <li key={version.id} className="flex flex-col gap-1 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-content-primary">Version {version.versionNumber}</span>
+                  <span className="text-xs text-content-tertiary">Effective {version.effectiveDate}</span>
+                </div>
+                <p className="text-sm text-content-secondary">{version.changeSummary}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <ScopeOfWorkSection contract={contract} coveredSites={coveredSites} canManage={canManage} />
+
+      {organization && (
+        <ProfitabilitySection contract={contract} tenantId={organization.id} coveredSites={coveredSites} canView={can('job_costing.view')} />
+      )}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold text-content-primary">SLA performance</h2>

@@ -74,12 +74,17 @@ begin
   raise notice 'PASS: employee update of site_staffing_requirements affects 0 rows (RLS hides it)';
 end $$;
 
+-- Corrected 2026-09-19 as part of the production-readiness audit's C-2
+-- remediation (docs/PRODUCTION_READINESS_AUDIT.md): site_staffing_requirements
+-- maps to the site_assignment.view permission in rolePermissions.ts, which
+-- employee does not hold. The previous assertion (employee sees it via
+-- "broad SELECT") only held because the old policy had no role check.
 do $$
 declare v_count int;
 begin
   select count(*) into v_count from public.site_staffing_requirements where tenant_id = '00000000-0000-0000-0000-000000000091';
-  if v_count <> 1 then raise exception 'FAIL: employee should still see the tenant''s staffing requirement via broad SELECT, got %', v_count; end if;
-  raise notice 'PASS: employee can read (but not write) their tenant''s staffing requirements';
+  if v_count <> 0 then raise exception 'SECURITY_FAILURE: employee (no site_assignment.view) read site_staffing_requirements, got % rows', v_count; end if;
+  raise notice 'PASS: employee (no site_assignment.view) correctly sees zero staffing requirements';
 end $$;
 
 reset role;
