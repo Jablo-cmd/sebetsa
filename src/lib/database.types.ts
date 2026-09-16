@@ -942,6 +942,127 @@ export type Database = {
           },
         ]
       }
+      site_surveys: {
+        Row: {
+          access_restrictions: string | null
+          address: string | null
+          approx_area_sqm: number | null
+          bathroom_count: number | null
+          building_type: string | null
+          client_id: string
+          common_area_count: number | null
+          conducted_at: string
+          conducted_by: string | null
+          consumable_requirements: string | null
+          created_at: string
+          entrance_count: number | null
+          equipment_requirements: string | null
+          floor_count: number | null
+          floor_types: string | null
+          id: string
+          kitchen_count: number | null
+          notes: string | null
+          office_count: number | null
+          operating_hours: string | null
+          prospective_site_name: string
+          required_services: string | null
+          risks: string | null
+          site_id: string | null
+          special_instructions: string | null
+          special_surfaces: string | null
+          status: Database["public"]["Enums"]["site_survey_status"]
+          tenant_id: string
+          updated_at: string
+          window_count: number | null
+        }
+        Insert: {
+          access_restrictions?: string | null
+          address?: string | null
+          approx_area_sqm?: number | null
+          bathroom_count?: number | null
+          building_type?: string | null
+          client_id: string
+          common_area_count?: number | null
+          conducted_at?: string
+          conducted_by?: string | null
+          consumable_requirements?: string | null
+          created_at?: string
+          entrance_count?: number | null
+          equipment_requirements?: string | null
+          floor_count?: number | null
+          floor_types?: string | null
+          id?: string
+          kitchen_count?: number | null
+          notes?: string | null
+          office_count?: number | null
+          operating_hours?: string | null
+          prospective_site_name: string
+          required_services?: string | null
+          risks?: string | null
+          site_id?: string | null
+          special_instructions?: string | null
+          special_surfaces?: string | null
+          status?: Database["public"]["Enums"]["site_survey_status"]
+          tenant_id: string
+          updated_at?: string
+          window_count?: number | null
+        }
+        Update: {
+          access_restrictions?: string | null
+          address?: string | null
+          approx_area_sqm?: number | null
+          bathroom_count?: number | null
+          building_type?: string | null
+          client_id?: string
+          common_area_count?: number | null
+          conducted_at?: string
+          conducted_by?: string | null
+          consumable_requirements?: string | null
+          created_at?: string
+          entrance_count?: number | null
+          equipment_requirements?: string | null
+          floor_count?: number | null
+          floor_types?: string | null
+          id?: string
+          kitchen_count?: number | null
+          notes?: string | null
+          office_count?: number | null
+          operating_hours?: string | null
+          prospective_site_name?: string
+          required_services?: string | null
+          risks?: string | null
+          site_id?: string | null
+          special_instructions?: string | null
+          special_surfaces?: string | null
+          status?: Database["public"]["Enums"]["site_survey_status"]
+          tenant_id?: string
+          updated_at?: string
+          window_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_surveys_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_surveys_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_surveys_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_areas: {
         Row: {
           created_at: string
@@ -4445,6 +4566,10 @@ export type Database = {
         }
         Returns: Database["public"]["Tables"]["contracts"]["Row"]
       }
+      convert_site_survey_to_site: {
+        Args: { p_survey_id: string }
+        Returns: Database["public"]["Tables"]["sites"]["Row"]
+      }
       assign_asset: {
         Args: {
           p_asset_id: string
@@ -5617,6 +5742,7 @@ export type Database = {
       contract_party_responsibility: "contractor" | "client" | "shared"
       quote_status: "draft" | "sent" | "viewed" | "negotiation" | "approved" | "rejected" | "expired" | "cancelled"
       quote_line_category: "labour" | "consumables" | "equipment" | "transport" | "overhead" | "other"
+      site_survey_status: "draft" | "completed" | "converted"
       document_status:
         | "uploaded"
         | "pending_review"
@@ -5877,6 +6003,7 @@ export const Constants = {
       contract_party_responsibility: ["contractor", "client", "shared"],
       quote_status: ["draft", "sent", "viewed", "negotiation", "approved", "rejected", "expired", "cancelled"],
       quote_line_category: ["labour", "consumables", "equipment", "transport", "overhead", "other"],
+      site_survey_status: ["draft", "completed", "converted"],
       document_status: [
         "uploaded",
         "pending_review",

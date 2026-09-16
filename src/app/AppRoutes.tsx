@@ -180,6 +180,11 @@ const ContractDetailPage = named(
 );
 const QuotesPage = named(() => import('@/features/quotes/pages/QuotesPage'), 'QuotesPage');
 const QuoteDetailPage = named(() => import('@/features/quotes/pages/QuoteDetailPage'), 'QuoteDetailPage');
+const SiteSurveysPage = named(() => import('@/features/siteSurveys/pages/SiteSurveysPage'), 'SiteSurveysPage');
+const SiteSurveyDetailPage = named(
+  () => import('@/features/siteSurveys/pages/SiteSurveyDetailPage'),
+  'SiteSurveyDetailPage',
+);
 const MyPatrolsPage = named(() => import('@/features/patrols/pages/MyPatrolsPage'), 'MyPatrolsPage');
 const PatrolOversightPage = named(
   () => import('@/features/patrols/pages/PatrolOversightPage'),
@@ -365,6 +370,8 @@ export function AppRoutes() {
                 <Route path="/contracts/:id" element={<ContractDetailPage />} />
                 <Route path="/quotes" element={<QuotesPage />} />
                 <Route path="/quotes/:id" element={<QuoteDetailPage />} />
+                <Route path="/site-surveys" element={<SiteSurveysPage />} />
+                <Route path="/site-surveys/:id" element={<SiteSurveyDetailPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="patrol.view" />}>

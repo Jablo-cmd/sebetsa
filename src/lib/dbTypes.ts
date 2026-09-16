@@ -54,6 +54,10 @@ export type QuoteLineItemRow = TableRow<'quote_line_items'>;
 export type QuoteLineItemInsert = TableInsert<'quote_line_items'>;
 export type QuoteLineItemUpdate = TableUpdate<'quote_line_items'>;
 
+export type SiteSurveyRow = TableRow<'site_surveys'>;
+export type SiteSurveyInsert = TableInsert<'site_surveys'>;
+export type SiteSurveyUpdate = TableUpdate<'site_surveys'>;
+
 export type DepartmentRow = TableRow<'departments'>;
 export type DepartmentInsert = TableInsert<'departments'>;
 export type DepartmentUpdate = TableUpdate<'departments'>;

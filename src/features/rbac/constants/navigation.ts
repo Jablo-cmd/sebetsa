@@ -63,6 +63,7 @@ export const NAV_MODEL: NavGroupDef[] = [
       { label: 'Clients', path: '/clients', icon: BuildingIcon, permission: 'org_structure.view', end: true },
       { label: 'Sites', path: '/sites', icon: BuildingIcon, permission: 'org_structure.view', end: true },
       { label: 'Contracts', path: '/contracts', icon: ClipboardListIcon, permission: 'org_structure.view', end: true },
+      { label: 'Site Surveys', path: '/site-surveys', icon: ClipboardListIcon, permission: 'org_structure.view', end: true },
       { label: 'Quotes', path: '/quotes', icon: ClipboardListIcon, permission: 'org_structure.view', end: true },
     ],
   },
