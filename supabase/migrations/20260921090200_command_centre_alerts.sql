@@ -108,6 +108,15 @@ begin
   if not public.can_manage_operations(v_alert.tenant_id) then
     raise exception 'insufficient_privilege: cannot acknowledge alerts for this tenant';
   end if;
+  -- The safety-critical case (an emergency-active alert about the caller's
+  -- own triggered emergency) needs the same independent-oversight guard
+  -- acknowledge_emergency() itself now has — closing the bypass of calling
+  -- this table-level RPC directly instead of the emergency-specific one.
+  if v_alert.alert_type = 'emergency_active' and v_alert.employee_id is not null
+     and exists (select 1 from public.employees where id = v_alert.employee_id and profile_id = auth.uid())
+     and not public.is_platform_admin() then
+    raise exception 'insufficient_privilege: cannot acknowledge an emergency alert about your own emergency — independent response oversight is required';
+  end if;
   if v_alert.status <> 'open' then
     raise exception 'invalid_transition: only an open alert can be acknowledged (current status: %)', v_alert.status;
   end if;
@@ -139,6 +148,11 @@ begin
   end if;
   if not public.can_manage_operations(v_alert.tenant_id) then
     raise exception 'insufficient_privilege: cannot resolve alerts for this tenant';
+  end if;
+  if v_alert.alert_type = 'emergency_active' and v_alert.employee_id is not null
+     and exists (select 1 from public.employees where id = v_alert.employee_id and profile_id = auth.uid())
+     and not public.is_platform_admin() then
+    raise exception 'insufficient_privilege: cannot resolve an emergency alert about your own emergency — independent response oversight is required';
   end if;
   if v_alert.status = 'resolved' then
     raise exception 'invalid_transition: alert is already resolved';

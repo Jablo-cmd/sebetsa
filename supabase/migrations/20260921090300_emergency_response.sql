@@ -240,6 +240,9 @@ begin
   if not public.can_manage_operations(v_event.tenant_id) then
     raise exception 'insufficient_privilege: cannot acknowledge emergencies for this tenant';
   end if;
+  if exists (select 1 from public.employees where id = v_event.employee_id and profile_id = auth.uid()) and not public.is_platform_admin() then
+    raise exception 'insufficient_privilege: cannot acknowledge your own emergency — independent response oversight is required';
+  end if;
 
   select * into v_response from public.emergency_responses where emergency_event_id = p_emergency_event_id for update;
   if v_response.status <> 'triggered' then
@@ -274,6 +277,9 @@ begin
   end if;
   if not public.can_manage_operations(v_event.tenant_id) then
     raise exception 'insufficient_privilege: cannot respond to emergencies for this tenant';
+  end if;
+  if exists (select 1 from public.employees where id = v_event.employee_id and profile_id = auth.uid()) and not public.is_platform_admin() then
+    raise exception 'insufficient_privilege: cannot respond to your own emergency — independent response oversight is required';
   end if;
 
   select * into v_response from public.emergency_responses where emergency_event_id = p_emergency_event_id for update;
@@ -311,6 +317,9 @@ begin
   end if;
   if not public.can_manage_operations(v_event.tenant_id) then
     raise exception 'insufficient_privilege: cannot resolve emergencies for this tenant';
+  end if;
+  if exists (select 1 from public.employees where id = v_event.employee_id and profile_id = auth.uid()) and not public.is_platform_admin() then
+    raise exception 'insufficient_privilege: cannot resolve your own emergency — independent response oversight is required';
   end if;
 
   select * into v_response from public.emergency_responses where emergency_event_id = p_emergency_event_id for update;

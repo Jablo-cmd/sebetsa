@@ -303,6 +303,95 @@ reset role;
 reset request.jwt.claims;
 
 -- ---------------------------------------------------------------------------
+-- Self-approval: a site_manager (operations-tier) is ALSO an employee who
+-- can trigger their own panic. Independent oversight means they must not
+-- be able to acknowledge/respond/resolve their own emergency, nor bypass
+-- that by acting on the linked operational_alert directly instead of the
+-- emergency-specific RPC.
+
+insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-00000000e111', 'authenticated', 'authenticated', 'sitemgr-e1@example.com', crypt('x', gen_salt('bf')), now(), '{"role":"site_manager"}', '{}', now(), now());
+insert into public.profiles (id, tenant_id, first_name, last_name, email, role, status) values
+  ('00000000-0000-0000-0000-00000000e111', '00000000-0000-0000-0000-00000000e101', 'Site', 'Manager', 'sitemgr-e1@example.com', 'site_manager', 'active');
+insert into public.employees (id, tenant_id, profile_id, employee_number, first_name, last_name, employment_start_date) values
+  ('00000000-0000-0000-0000-00000000e112', '00000000-0000-0000-0000-00000000e101', '00000000-0000-0000-0000-00000000e111', 'E1003', 'Site', 'Manager', current_date - 90);
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000e111","app_metadata":{"role":"site_manager"}}';
+
+do $$
+declare v_event_id uuid; v_alert_id uuid;
+begin
+  perform public.trigger_emergency(-26.204100, 28.047300, 15, 'panic');
+  select id into v_event_id from public.emergency_events where employee_id = '00000000-0000-0000-0000-00000000e112' order by triggered_at desc limit 1;
+  select id into v_alert_id from public.operational_alerts where alert_type = 'emergency_active' and employee_id = '00000000-0000-0000-0000-00000000e112';
+
+  begin
+    perform public.acknowledge_emergency(v_event_id);
+    raise exception 'SECURITY_FAILURE: a site_manager acknowledged their own triggered emergency';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: a site_manager cannot acknowledge their own emergency (%)', sqlerrm;
+  end;
+
+  begin
+    perform public.acknowledge_operational_alert(v_alert_id);
+    raise exception 'SECURITY_FAILURE: a site_manager acknowledged the operational alert for their own emergency, bypassing acknowledge_emergency()''s guard';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: the same self-approval guard holds on the underlying operational_alerts RPC, not just the emergency-specific one (%)', sqlerrm;
+  end;
+end $$;
+
+reset role;
+reset request.jwt.claims;
+
+-- A different ops-tier user acknowledges it first, then the site_manager
+-- still cannot respond/resolve their own emergency even once acknowledged.
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000e102","app_metadata":{"role":"organization_administrator"}}';
+
+do $$
+begin
+  perform public.acknowledge_emergency((select id from public.emergency_events where employee_id = '00000000-0000-0000-0000-00000000e112' order by triggered_at desc limit 1));
+end $$;
+
+reset role;
+reset request.jwt.claims;
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000e111","app_metadata":{"role":"site_manager"}}';
+
+do $$
+declare v_event_id uuid;
+begin
+  select id into v_event_id from public.emergency_events where employee_id = '00000000-0000-0000-0000-00000000e112' order by triggered_at desc limit 1;
+
+  begin
+    perform public.respond_to_emergency(v_event_id);
+    raise exception 'SECURITY_FAILURE: a site_manager marked their own emergency as responding';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: a site_manager cannot respond to their own emergency, even once another ops-tier user has acknowledged it (%)', sqlerrm;
+  end;
+
+  begin
+    perform public.resolve_emergency(v_event_id, 'self-resolving');
+    raise exception 'SECURITY_FAILURE: a site_manager resolved their own emergency';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      raise notice 'PASS: a site_manager cannot resolve their own emergency (%)', sqlerrm;
+  end;
+end $$;
+
+reset role;
+reset request.jwt.claims;
+
+-- ---------------------------------------------------------------------------
 -- Escalation: tenant-configurable chain, cron-only sweep, self-approval-free
 -- (no client can invoke it, only the automatic sweep advances a level).
 

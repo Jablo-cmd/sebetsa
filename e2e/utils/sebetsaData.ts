@@ -180,6 +180,7 @@ export function buildAttendanceRecordRow(overrides: Partial<Record<string, unkno
     overtime_minutes: null,
     recorded_by: null,
     notes: null,
+    gps_verification_status: 'not_applicable',
     created_at: '2026-09-12T08:00:00Z',
     updated_at: '2026-09-12T08:00:00Z',
     ...overrides,
