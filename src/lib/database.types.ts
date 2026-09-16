@@ -789,6 +789,159 @@ export type Database = {
           },
         ]
       }
+      quotes: {
+        Row: {
+          client_id: string
+          converted_to_contract_id: string | null
+          created_at: string
+          discount_amount: number
+          exclusions: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          assumptions: string | null
+          prepared_by: string | null
+          quote_number: string
+          site_id: string | null
+          status: Database["public"]["Enums"]["quote_status"]
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          tenant_id: string
+          total_amount: number
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          client_id: string
+          converted_to_contract_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          exclusions?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          assumptions?: string | null
+          prepared_by?: string | null
+          quote_number: string
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          tenant_id: string
+          total_amount?: number
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          client_id?: string
+          converted_to_contract_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          exclusions?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          assumptions?: string | null
+          prepared_by?: string | null
+          quote_number?: string
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          tenant_id?: string
+          total_amount?: number
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_converted_to_contract_id_fkey"
+            columns: ["converted_to_contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_line_items: {
+        Row: {
+          category: Database["public"]["Enums"]["quote_line_category"]
+          created_at: string
+          description: string
+          id: string
+          line_total: number
+          quantity: number
+          quote_id: string
+          sort_order: number
+          tenant_id: string
+          unit_rate: number
+          updated_at: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["quote_line_category"]
+          created_at?: string
+          description: string
+          id?: string
+          quantity: number
+          quote_id: string
+          sort_order?: number
+          tenant_id: string
+          unit_rate: number
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["quote_line_category"]
+          created_at?: string
+          description?: string
+          id?: string
+          quantity?: number
+          quote_id?: string
+          sort_order?: number
+          tenant_id?: string
+          unit_rate?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_line_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_line_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_areas: {
         Row: {
           created_at: string
@@ -4280,6 +4433,18 @@ export type Database = {
         }
         Returns: Database["public"]["Tables"]["task_templates"]["Row"]
       }
+      recompute_quote_totals: {
+        Args: { p_quote_id: string }
+        Returns: Database["public"]["Tables"]["quotes"]["Row"]
+      }
+      convert_quote_to_contract: {
+        Args: {
+          p_quote_id: string
+          p_contract_number: string
+          p_start_date: string
+        }
+        Returns: Database["public"]["Tables"]["contracts"]["Row"]
+      }
       assign_asset: {
         Args: {
           p_asset_id: string
@@ -5450,6 +5615,8 @@ export type Database = {
       contract_status: "draft" | "active" | "expiring" | "expired" | "suspended" | "terminated"
       contract_billing_frequency: "weekly" | "monthly" | "quarterly" | "annually" | "once_off"
       contract_party_responsibility: "contractor" | "client" | "shared"
+      quote_status: "draft" | "sent" | "viewed" | "negotiation" | "approved" | "rejected" | "expired" | "cancelled"
+      quote_line_category: "labour" | "consumables" | "equipment" | "transport" | "overhead" | "other"
       document_status:
         | "uploaded"
         | "pending_review"
@@ -5708,6 +5875,8 @@ export const Constants = {
       contract_status: ["draft", "active", "expiring", "expired", "suspended", "terminated"],
       contract_billing_frequency: ["weekly", "monthly", "quarterly", "annually", "once_off"],
       contract_party_responsibility: ["contractor", "client", "shared"],
+      quote_status: ["draft", "sent", "viewed", "negotiation", "approved", "rejected", "expired", "cancelled"],
+      quote_line_category: ["labour", "consumables", "equipment", "transport", "overhead", "other"],
       document_status: [
         "uploaded",
         "pending_review",

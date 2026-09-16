@@ -46,6 +46,14 @@ export type ScopeOfWorkItemRow = TableRow<'scope_of_work_items'>;
 export type ScopeOfWorkItemInsert = TableInsert<'scope_of_work_items'>;
 export type ScopeOfWorkItemUpdate = TableUpdate<'scope_of_work_items'>;
 
+export type QuoteRow = TableRow<'quotes'>;
+export type QuoteInsert = TableInsert<'quotes'>;
+export type QuoteUpdate = TableUpdate<'quotes'>;
+
+export type QuoteLineItemRow = TableRow<'quote_line_items'>;
+export type QuoteLineItemInsert = TableInsert<'quote_line_items'>;
+export type QuoteLineItemUpdate = TableUpdate<'quote_line_items'>;
+
 export type DepartmentRow = TableRow<'departments'>;
 export type DepartmentInsert = TableInsert<'departments'>;
 export type DepartmentUpdate = TableUpdate<'departments'>;

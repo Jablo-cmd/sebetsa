@@ -178,6 +178,8 @@ const ContractDetailPage = named(
   () => import('@/features/orgStructure/pages/ContractDetailPage'),
   'ContractDetailPage',
 );
+const QuotesPage = named(() => import('@/features/quotes/pages/QuotesPage'), 'QuotesPage');
+const QuoteDetailPage = named(() => import('@/features/quotes/pages/QuoteDetailPage'), 'QuoteDetailPage');
 const MyPatrolsPage = named(() => import('@/features/patrols/pages/MyPatrolsPage'), 'MyPatrolsPage');
 const PatrolOversightPage = named(
   () => import('@/features/patrols/pages/PatrolOversightPage'),
@@ -361,6 +363,8 @@ export function AppRoutes() {
                 <Route path="/sites/:id" element={<SiteDetailPage />} />
                 <Route path="/contracts" element={<ContractsPage />} />
                 <Route path="/contracts/:id" element={<ContractDetailPage />} />
+                <Route path="/quotes" element={<QuotesPage />} />
+                <Route path="/quotes/:id" element={<QuoteDetailPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="patrol.view" />}>
