@@ -189,6 +189,40 @@ Authoritative technical map of Sebetsa as it exists in the repository today (aud
 | Known gaps | **Confirmed fully orphaned**: both functions reference tables/RPCs that don't exist in the live schema — any invocation fails at the first database call. `payments-initiate` still uses Funda360's schema shape (`school_id`, a `learners` table, "School fees" line-item text). The provider adapters themselves implement genuine, good-quality constant-time signature verification for all 5 gateways — that part is real engineering, just unreachable. **HIGH**: `payments-initiate` leaks raw exception text to callers; the entire settlement safety net (signature-gate enforcement, amount re-verification, idempotency) is described only in code comments referencing `settle_payment_intent()`, which was never written; CORS is wildcarded on the one function meant to be browser-invoked. CI still `deno check`s these files. |
 | Status | ⚫ Not production-ready. Do not deploy or wire up until the schema is either ported for real or the functions are removed — and the three defects above are fixed regardless, since they'd ship live on day one otherwise. |
 
+## GPS Field Presence & Guard Tours (added post-audit)
+
+| | |
+|---|---|
+| Routes | `/attendance/mine` (GPS-aware clock-in/out), `/attendance/location-exceptions`, `/patrols`, `/patrols/oversight` |
+| Tables | `site_geofences`, `attendance_location_events`, `attendance_location_exceptions`, `checkpoints`, `patrol_routes`, `patrol_route_checkpoints`, `patrol_runs`, `patrol_checkpoint_scans` |
+| Key RPCs | `clock_in`/`clock_out` (extended with GPS params, server-computed verification), `request_attendance_location_exception`, `decide_attendance_location_exception`, `start_patrol`, `scan_checkpoint`, `complete_patrol`, `get_patrol_summary` |
+| RLS | Every table `FORCE ROW LEVEL SECURITY` + tenant-ref trigger; location evidence restricted to the operations tier and the employee's own rows |
+| Tests | RLS: `domain13_gps_guard_tours.sql` (344 lines, passing). Unit: none new (the geofence/sequence logic lives server-side, exercised by RLS tests). E2E: none new for this domain specifically — see [`ENTERPRISE_OPERATIONS_EXPANSION_REPORT.md`](./ENTERPRISE_OPERATIONS_EXPANSION_REPORT.md) §4 for why. |
+| Status | 🟢 Implemented and RLS-tested this pass; not verified against a hosted Supabase project or CI (no access in this session). |
+
+## Operations Command Centre & Emergency Response (added post-audit)
+
+| | |
+|---|---|
+| Routes | `/command-centre`, `/command-centre/alerts`, `/emergencies`, panic button (global, ungated) |
+| Tables | `operational_alerts`, `emergency_events`, `emergency_responses`, `emergency_escalation_policies`, `notification_deliveries` |
+| Key RPCs | `get_command_centre_snapshot`, `acknowledge_operational_alert`/`resolve_operational_alert`/`reopen_operational_alert`, `trigger_emergency`/`acknowledge_emergency`/`respond_to_emergency`/`resolve_emergency`, `escalate_overdue_emergencies` |
+| RLS | Sensitive (location + identity) tables restricted to the operations tier + the triggering employee's own row; a real self-approval finding (an operations-tier user acting on their own emergency) was found and fixed in this pass — see the report §1/§3. |
+| Tests | RLS: `domain14_command_centre_emergency.sql` (541 lines, passing, including the 4 self-approval assertions added post-fix). |
+| Status | 🟢 Implemented and RLS-tested this pass, including one real security fix; not verified against a hosted Supabase project or CI. |
+
+## Workforce Intelligence & AI (added post-audit)
+
+| | |
+|---|---|
+| Routes | `/intelligence`, `/schedule/recommendations` |
+| Tables | `ai_query_log`, `shift_recommendations` |
+| Key RPCs | `log_ai_query`, `get_understaffed_sites`/`get_employees_absent_now`/`get_expiring_qualifications`/`get_declining_sla_contracts`/`get_overtime_spike_employees`/`get_site_incident_ranking`, `generate_shift_recommendations`, `decide_shift_recommendation` |
+| RLS | RLS-riding, `SECURITY INVOKER` insight functions (no separate role-check duplicated); `ai_query_log`/`shift_recommendations` both tenant + actor scoped |
+| Tests | RLS: `domain15_workforce_intelligence.sql` (282 lines, passing). Unit: `matchIntent.test.ts` (9 tests, passing) for the AI assistant's intent router — the one genuinely new pure TypeScript function this pass introduced. |
+| Known gaps | No LLM provider is configured anywhere in this repository — the "AI assistant" is a real, tested, whitelisted-tool router, not a language model; see the report for why this is the honest, complete thing to ship without one. |
+| Status | 🟢 Implemented, RLS- and unit-tested this pass; not verified against a hosted Supabase project or CI. |
+
 ---
 
 ## Cross-cutting infrastructure
