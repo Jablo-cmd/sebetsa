@@ -9,13 +9,20 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useMyEmployee } from '@/features/employees/hooks/useMyEmployee';
 import { useMyAttendance } from '@/features/attendance/hooks/useMyAttendance';
+import { useMyLocationExceptions } from '@/features/attendance/hooks/useMyLocationExceptions';
 import { useShifts } from '@/features/scheduling/hooks/useShifts';
 import { attendanceService } from '@/features/attendance/services/attendanceService';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 import { retryOnNetworkError } from '@/lib/retry';
 import { useDeviceLocation } from '@/lib/useDeviceLocation';
-import type { GpsVerificationStatus } from '@/features/attendance/types/attendance.types';
+import type { GpsVerificationStatus, AttendanceLocationExceptionStatus } from '@/features/attendance/types/attendance.types';
 import type { StatusTone } from '@/components/ui/StatusBadge';
+
+const EXCEPTION_STATUS_TONE: Record<AttendanceLocationExceptionStatus, StatusTone> = {
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'danger',
+};
 
 const GPS_STATUS_LABEL: Record<GpsVerificationStatus, string> = {
   verified: 'Location verified',
@@ -63,6 +70,7 @@ const STATUS_LABEL: Record<string, string> = {
 export function MyAttendancePage() {
   const { data: employee, isLoading: employeeLoading, error: employeeError } = useMyEmployee();
   const { openRecord, openBreak, isLoading: attendanceLoading, error: attendanceError, refetch } = useMyAttendance(employee?.id);
+  const { exceptions: myExceptions, refetch: refetchExceptions } = useMyLocationExceptions(employee?.id);
 
   const todayRange = useMemo(() => {
     const start = new Date();
@@ -127,6 +135,7 @@ export function MyAttendancePage() {
       setExceptionReason('');
       setShowExceptionForm(false);
       setExceptionRequested(true);
+      void refetchExceptions();
     } catch (error) {
       setActionError(getDbErrorMessage(error, 'Failed to submit the location exception request.'));
     } finally {
@@ -297,6 +306,24 @@ export function MyAttendancePage() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {myExceptions.length > 0 && (
+            <div className="rounded-xl border border-border bg-surface-raised p-4">
+              <p className="mb-2 text-sm font-medium text-content-primary">Your GPS exception requests</p>
+              <ul className="flex flex-col gap-2">
+                {myExceptions.map((exception) => (
+                  <li key={exception.id} className="flex items-start justify-between gap-3 text-sm">
+                    <div>
+                      <p className="text-content-secondary">{exception.reason}</p>
+                      <p className="text-xs text-content-tertiary">{new Date(exception.createdAt).toLocaleDateString()}</p>
+                      {exception.reviewNotes && <p className="mt-1 text-xs text-content-tertiary">Supervisor note: {exception.reviewNotes}</p>}
+                    </div>
+                    <StatusBadge label={exception.status} tone={EXCEPTION_STATUS_TONE[exception.status]} />
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

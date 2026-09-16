@@ -84,7 +84,7 @@ export function AiAssistantPage() {
     intelligenceService
       .getMyQueryLog(user.id)
       .then(setEntries)
-      .catch(() => undefined);
+      .catch((err) => setError(getDbErrorMessage(err, 'Failed to load your conversation history.')));
   }, [user]);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
+import { TextField } from '@/components/ui/TextField';
 import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganizationNotice';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useOperationalAlerts } from '@/features/commandCentre/hooks/useOperationalAlerts';
@@ -30,6 +31,8 @@ export function OperationalAlertsPage() {
   const { alerts, isLoading, error, refetch } = useOperationalAlerts(organization?.id, statusFilter);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyAlertId, setBusyAlertId] = useState<string | null>(null);
+  const [reopeningAlertId, setReopeningAlertId] = useState<string | null>(null);
+  const [reopenReason, setReopenReason] = useState('');
 
   if (!organization) return <NoActiveOrganizationNotice resource="operational alerts" />;
 
@@ -54,6 +57,22 @@ export function OperationalAlertsPage() {
       void refetch();
     } catch (err) {
       setActionError(getDbErrorMessage(err, 'Failed to resolve the alert.'));
+    } finally {
+      setBusyAlertId(null);
+    }
+  };
+
+  const handleReopen = async (alertId: string) => {
+    if (!reopenReason.trim()) return;
+    setBusyAlertId(alertId);
+    setActionError(null);
+    try {
+      await commandCentreService.reopenAlert(alertId, reopenReason.trim());
+      setReopeningAlertId(null);
+      setReopenReason('');
+      void refetch();
+    } catch (err) {
+      setActionError(getDbErrorMessage(err, 'Failed to reopen the alert.'));
     } finally {
       setBusyAlertId(null);
     }
@@ -94,7 +113,7 @@ export function OperationalAlertsPage() {
                 <p className="text-sm text-content-primary">{alert.message}</p>
                 <p className="text-xs text-content-tertiary">{new Date(alert.createdAt).toLocaleString()}</p>
               </div>
-              {alert.status !== 'resolved' && (
+              {alert.status !== 'resolved' ? (
                 <div className="flex gap-2">
                   {alert.status === 'open' && (
                     <Button variant="secondary" className="h-9" onClick={() => void handleAcknowledge(alert.id)} isLoading={busyAlertId === alert.id}>
@@ -105,6 +124,29 @@ export function OperationalAlertsPage() {
                     Resolve
                   </Button>
                 </div>
+              ) : reopeningAlertId === alert.id ? (
+                <div className="flex flex-col gap-2 sm:w-64">
+                  <TextField label="Reason for reopening" value={reopenReason} onChange={(event) => setReopenReason(event.target.value)} />
+                  <div className="flex gap-2">
+                    <Button className="h-9" onClick={() => void handleReopen(alert.id)} isLoading={busyAlertId === alert.id} disabled={!reopenReason.trim()}>
+                      Confirm reopen
+                    </Button>
+                    <Button variant="ghost" className="h-9" onClick={() => setReopeningAlertId(null)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  variant="secondary"
+                  className="h-9"
+                  onClick={() => {
+                    setReopeningAlertId(alert.id);
+                    setReopenReason('');
+                  }}
+                >
+                  Reopen
+                </Button>
               )}
             </li>
           ))}
