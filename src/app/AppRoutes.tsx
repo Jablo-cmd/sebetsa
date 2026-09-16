@@ -185,6 +185,29 @@ const SiteSurveyDetailPage = named(
   () => import('@/features/siteSurveys/pages/SiteSurveyDetailPage'),
   'SiteSurveyDetailPage',
 );
+const ServiceRequestsPage = named(
+  () => import('@/features/variationOrders/pages/ServiceRequestsPage'),
+  'ServiceRequestsPage',
+);
+const VariationOrdersPage = named(
+  () => import('@/features/variationOrders/pages/VariationOrdersPage'),
+  'VariationOrdersPage',
+);
+const VariationOrderDetailPage = named(
+  () => import('@/features/variationOrders/pages/VariationOrderDetailPage'),
+  'VariationOrderDetailPage',
+);
+const InvoicesPage = named(() => import('@/features/billing/pages/InvoicesPage'), 'InvoicesPage');
+const InvoiceDetailPage = named(() => import('@/features/billing/pages/InvoiceDetailPage'), 'InvoiceDetailPage');
+const InspectionsPage = named(() => import('@/features/cleaningQa/pages/InspectionsPage'), 'InspectionsPage');
+const InspectionDetailPage = named(
+  () => import('@/features/cleaningQa/pages/InspectionDetailPage'),
+  'InspectionDetailPage',
+);
+const InspectionTemplatesPage = named(
+  () => import('@/features/cleaningQa/pages/InspectionTemplatesPage'),
+  'InspectionTemplatesPage',
+);
 const MyPatrolsPage = named(() => import('@/features/patrols/pages/MyPatrolsPage'), 'MyPatrolsPage');
 const PatrolOversightPage = named(
   () => import('@/features/patrols/pages/PatrolOversightPage'),
@@ -372,6 +395,23 @@ export function AppRoutes() {
                 <Route path="/quotes/:id" element={<QuoteDetailPage />} />
                 <Route path="/site-surveys" element={<SiteSurveysPage />} />
                 <Route path="/site-surveys/:id" element={<SiteSurveyDetailPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="variation.view" />}>
+                <Route path="/service-requests" element={<ServiceRequestsPage />} />
+                <Route path="/variation-orders" element={<VariationOrdersPage />} />
+                <Route path="/variation-orders/:id" element={<VariationOrderDetailPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="billing.view" />}>
+                <Route path="/invoices" element={<InvoicesPage />} />
+                <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
+              </Route>
+
+              <Route element={<RequirePermission permission="inspection.view" />}>
+                <Route path="/inspections" element={<InspectionsPage />} />
+                <Route path="/inspections/:id" element={<InspectionDetailPage />} />
+                <Route path="/inspection-templates" element={<InspectionTemplatesPage />} />
               </Route>
 
               <Route element={<RequirePermission permission="patrol.view" />}>

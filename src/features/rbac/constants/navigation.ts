@@ -68,6 +68,16 @@ export const NAV_MODEL: NavGroupDef[] = [
     ],
   },
   {
+    label: 'Commercial',
+    items: [
+      { label: 'Service Requests', path: '/service-requests', icon: ClipboardListIcon, permission: 'variation.view', end: true },
+      { label: 'Variation Orders', path: '/variation-orders', icon: ClipboardListIcon, permission: 'variation.view', end: true },
+      { label: 'Invoices', path: '/invoices', icon: ClipboardListIcon, permission: 'billing.view', end: true },
+      { label: 'Cleaning QA', path: '/inspections', icon: CheckIcon, permission: 'inspection.view', end: true },
+      { label: 'QA Templates', path: '/inspection-templates', icon: ClipboardListIcon, permission: 'inspection.manage', end: true },
+    ],
+  },
+  {
     label: 'Workforce',
     items: [
       { label: 'Employees', path: '/employees', icon: BriefcaseIcon, permission: 'employee.view', end: true },

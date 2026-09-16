@@ -3344,6 +3344,7 @@ export type Database = {
           name: string
           reorder_threshold: number | null
           sku: string
+          standard_unit_cost: number | null
           tenant_id: string
           unit: string
           updated_at: string
@@ -3356,6 +3357,7 @@ export type Database = {
           name: string
           reorder_threshold?: number | null
           sku: string
+          standard_unit_cost?: number | null
           tenant_id: string
           unit?: string
           updated_at?: string
@@ -3368,6 +3370,7 @@ export type Database = {
           name?: string
           reorder_threshold?: number | null
           sku?: string
+          standard_unit_cost?: number | null
           tenant_id?: string
           unit?: string
           updated_at?: string
@@ -4208,6 +4211,1056 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: []
+      }
+      client_portal_users: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          profile_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          profile_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          profile_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_users_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_users_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          site_id: string | null
+          contract_id: string | null
+          requested_by: string | null
+          request_type: Database["public"]["Enums"]["service_request_type"]
+          description: string
+          requested_date: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["service_request_status"]
+          origin: Database["public"]["Enums"]["service_request_origin"]
+          resolved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          site_id?: string | null
+          contract_id?: string | null
+          requested_by?: string | null
+          request_type?: Database["public"]["Enums"]["service_request_type"]
+          description: string
+          requested_date?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["service_request_status"]
+          origin?: Database["public"]["Enums"]["service_request_origin"]
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          site_id?: string | null
+          contract_id?: string | null
+          requested_by?: string | null
+          request_type?: Database["public"]["Enums"]["service_request_type"]
+          description?: string
+          requested_date?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["service_request_status"]
+          origin?: Database["public"]["Enums"]["service_request_origin"]
+          resolved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      variation_orders: {
+        Row: {
+          id: string
+          tenant_id: string
+          service_request_id: string | null
+          client_id: string
+          contract_id: string
+          site_id: string
+          title: string
+          description: string | null
+          reason: string | null
+          status: Database["public"]["Enums"]["variation_order_status"]
+          quote_id: string | null
+          approved_by: string | null
+          approved_at: string | null
+          task_id: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          service_request_id?: string | null
+          client_id: string
+          contract_id: string
+          site_id: string
+          title: string
+          description?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["variation_order_status"]
+          quote_id?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          task_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          service_request_id?: string | null
+          client_id?: string
+          contract_id?: string
+          site_id?: string
+          title?: string
+          description?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["variation_order_status"]
+          quote_id?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          task_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          completed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "variation_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "variation_orders_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_number_counters: {
+        Row: {
+          tenant_id: string
+          last_number: number
+        }
+        Insert: {
+          tenant_id: string
+          last_number?: number
+        }
+        Update: {
+          tenant_id?: string
+          last_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_number_counters_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          contract_id: string | null
+          site_id: string | null
+          variation_order_id: string | null
+          invoice_number: string
+          source: Database["public"]["Enums"]["invoice_source"]
+          billing_period_start: string | null
+          billing_period_end: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          currency: string
+          tax_rate: number
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          amount_paid: number
+          amount_outstanding: number
+          issue_date: string | null
+          due_date: string | null
+          notes: string | null
+          void_reason: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          contract_id?: string | null
+          site_id?: string | null
+          variation_order_id?: string | null
+          invoice_number: string
+          source?: Database["public"]["Enums"]["invoice_source"]
+          billing_period_start?: string | null
+          billing_period_end?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          currency?: string
+          tax_rate?: number
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          amount_paid?: number
+          issue_date?: string | null
+          due_date?: string | null
+          notes?: string | null
+          void_reason?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          contract_id?: string | null
+          site_id?: string | null
+          variation_order_id?: string | null
+          invoice_number?: string
+          source?: Database["public"]["Enums"]["invoice_source"]
+          billing_period_start?: string | null
+          billing_period_end?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          currency?: string
+          tax_rate?: number
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          amount_paid?: number
+          issue_date?: string | null
+          due_date?: string | null
+          notes?: string | null
+          void_reason?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_variation_order_id_fkey"
+            columns: ["variation_order_id"]
+            isOneToOne: false
+            referencedRelation: "variation_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_lines: {
+        Row: {
+          id: string
+          tenant_id: string
+          invoice_id: string
+          description: string
+          quantity: number
+          unit_price: number
+          line_total: number
+          sort_order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          invoice_id: string
+          description: string
+          quantity: number
+          unit_price: number
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          invoice_id?: string
+          description?: string
+          quantity?: number
+          unit_price?: number
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          id: string
+          tenant_id: string
+          invoice_id: string
+          amount: number
+          payment_date: string
+          method: string | null
+          reference: string | null
+          notes: string | null
+          recorded_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          invoice_id: string
+          amount: number
+          payment_date: string
+          method?: string | null
+          reference?: string | null
+          notes?: string | null
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          invoice_id?: string
+          amount?: number
+          payment_date?: string
+          method?: string | null
+          reference?: string | null
+          notes?: string | null
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_templates: {
+        Row: {
+          id: string
+          tenant_id: string
+          name: string
+          description: string | null
+          category: string | null
+          pass_threshold: number
+          is_active: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          name: string
+          description?: string | null
+          category?: string | null
+          pass_threshold?: number
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          name?: string
+          description?: string | null
+          category?: string | null
+          pass_threshold?: number
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_template_items: {
+        Row: {
+          id: string
+          tenant_id: string
+          template_id: string
+          area_label: string
+          criterion: string
+          max_score: number
+          weight: number
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          template_id: string
+          area_label: string
+          criterion: string
+          max_score?: number
+          weight?: number
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          template_id?: string
+          area_label?: string
+          criterion?: string
+          max_score?: number
+          weight?: number
+          sort_order?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_template_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_template_items_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspections: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id: string | null
+          variation_order_id: string | null
+          template_id: string
+          inspector_id: string | null
+          status: Database["public"]["Enums"]["inspection_status"]
+          scheduled_at: string | null
+          started_at: string | null
+          completed_at: string | null
+          closed_at: string | null
+          overall_score: number | null
+          passed: boolean | null
+          notes: string | null
+          reinspection_of: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id?: string | null
+          variation_order_id?: string | null
+          template_id: string
+          inspector_id?: string | null
+          status?: Database["public"]["Enums"]["inspection_status"]
+          scheduled_at?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          closed_at?: string | null
+          overall_score?: number | null
+          passed?: boolean | null
+          notes?: string | null
+          reinspection_of?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          site_id?: string
+          contract_id?: string | null
+          variation_order_id?: string | null
+          template_id?: string
+          inspector_id?: string | null
+          status?: Database["public"]["Enums"]["inspection_status"]
+          scheduled_at?: string | null
+          started_at?: string | null
+          completed_at?: string | null
+          closed_at?: string | null
+          overall_score?: number | null
+          passed?: boolean | null
+          notes?: string | null
+          reinspection_of?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_variation_order_id_fkey"
+            columns: ["variation_order_id"]
+            isOneToOne: false
+            referencedRelation: "variation_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_reinspection_of_fkey"
+            columns: ["reinspection_of"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_results: {
+        Row: {
+          id: string
+          tenant_id: string
+          inspection_id: string
+          template_item_id: string
+          score: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          inspection_id: string
+          template_item_id: string
+          score: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          inspection_id?: string
+          template_item_id?: string
+          score?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_results_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_results_template_item_id_fkey"
+            columns: ["template_item_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_template_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      defects: {
+        Row: {
+          id: string
+          tenant_id: string
+          inspection_id: string
+          inspection_result_id: string | null
+          severity: Database["public"]["Enums"]["defect_severity"]
+          description: string
+          area_label: string | null
+          responsible_team_id: string | null
+          due_date: string | null
+          status: Database["public"]["Enums"]["defect_status"]
+          corrective_action: string | null
+          resolution_notes: string | null
+          resolved_by: string | null
+          resolved_at: string | null
+          verified_by: string | null
+          verified_at: string | null
+          reinspection_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          inspection_id: string
+          inspection_result_id?: string | null
+          severity?: Database["public"]["Enums"]["defect_severity"]
+          description: string
+          area_label?: string | null
+          responsible_team_id?: string | null
+          due_date?: string | null
+          status?: Database["public"]["Enums"]["defect_status"]
+          corrective_action?: string | null
+          resolution_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          verified_by?: string | null
+          verified_at?: string | null
+          reinspection_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          inspection_id?: string
+          inspection_result_id?: string | null
+          severity?: Database["public"]["Enums"]["defect_severity"]
+          description?: string
+          area_label?: string | null
+          responsible_team_id?: string | null
+          due_date?: string | null
+          status?: Database["public"]["Enums"]["defect_status"]
+          corrective_action?: string | null
+          resolution_notes?: string | null
+          resolved_by?: string | null
+          resolved_at?: string | null
+          verified_by?: string | null
+          verified_at?: string | null
+          reinspection_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defects_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_inspection_result_id_fkey"
+            columns: ["inspection_result_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_responsible_team_id_fkey"
+            columns: ["responsible_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "defects_reinspection_id_fkey"
+            columns: ["reinspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_cost_rates: {
+        Row: {
+          id: string
+          tenant_id: string
+          employee_id: string
+          hourly_rate: number
+          overtime_multiplier: number
+          effective_from: string
+          effective_to: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          employee_id: string
+          hourly_rate: number
+          overtime_multiplier?: number
+          effective_from: string
+          effective_to?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          employee_id?: string
+          hourly_rate?: number
+          overtime_multiplier?: number
+          effective_from?: string
+          effective_to?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_cost_rates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_cost_rates_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_entries: {
+        Row: {
+          id: string
+          tenant_id: string
+          contract_id: string | null
+          site_id: string
+          variation_order_id: string | null
+          category: Database["public"]["Enums"]["cost_entry_category"]
+          description: string
+          amount: number
+          cost_date: string
+          recorded_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          contract_id?: string | null
+          site_id: string
+          variation_order_id?: string | null
+          category?: Database["public"]["Enums"]["cost_entry_category"]
+          description: string
+          amount: number
+          cost_date: string
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          contract_id?: string | null
+          site_id?: string
+          variation_order_id?: string | null
+          category?: Database["public"]["Enums"]["cost_entry_category"]
+          description?: string
+          amount?: number
+          cost_date?: string
+          recorded_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_entries_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_entries_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_entries_variation_order_id_fkey"
+            columns: ["variation_order_id"]
+            isOneToOne: false
+            referencedRelation: "variation_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_report_generations: {
+        Row: {
+          id: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id: string | null
+          period_start: string
+          period_end: string
+          generated_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          client_id: string
+          site_id: string
+          contract_id?: string | null
+          period_start: string
+          period_end: string
+          generated_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          client_id?: string
+          site_id?: string
+          contract_id?: string | null
+          period_start?: string
+          period_end?: string
+          generated_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_report_generations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_report_generations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_report_generations_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_report_generations_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -5707,6 +6760,173 @@ export type Database = {
           tenant_id: string
         }
       }
+      provision_client_portal_login: {
+        Args: {
+          p_client_id: string
+          p_email: string
+          p_first_name: string
+          p_last_name: string
+          p_phone?: string | null
+        }
+        Returns: { user_id: string; temporary_password: string }[]
+      }
+      submit_service_request: {
+        Args: {
+          p_request_type: Database["public"]["Enums"]["service_request_type"]
+          p_description: string
+          p_site_id?: string | null
+          p_contract_id?: string | null
+          p_requested_date?: string | null
+          p_priority?: Database["public"]["Enums"]["task_priority"]
+        }
+        Returns: Database["public"]["Tables"]["service_requests"]["Row"]
+      }
+      assess_service_request: {
+        Args: {
+          p_request_id: string
+          p_title: string
+          p_description?: string | null
+          p_reason?: string | null
+        }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      link_variation_quote: {
+        Args: { p_variation_id: string; p_quote_id: string }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      mark_variation_quoted: {
+        Args: { p_variation_id: string }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      client_decide_variation: {
+        Args: { p_variation_id: string; p_approve: boolean }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      schedule_variation_work: {
+        Args: {
+          p_variation_id: string
+          p_assignee_id?: string | null
+          p_due_at?: string | null
+        }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      transition_variation_status: {
+        Args: {
+          p_variation_id: string
+          p_new_status: Database["public"]["Enums"]["variation_order_status"]
+        }
+        Returns: Database["public"]["Tables"]["variation_orders"]["Row"]
+      }
+      recompute_invoice_totals: {
+        Args: { p_invoice_id: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      issue_invoice: {
+        Args: { p_invoice_id: string; p_issue_date: string; p_due_date: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      void_invoice: {
+        Args: { p_invoice_id: string; p_reason: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      record_payment: {
+        Args: {
+          p_invoice_id: string
+          p_amount: number
+          p_payment_date: string
+          p_method?: string | null
+          p_reference?: string | null
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      create_draft_invoice: {
+        Args: {
+          p_client_id: string
+          p_contract_id?: string | null
+          p_site_id?: string | null
+          p_tax_rate?: number
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      generate_contract_billing_invoice: {
+        Args: {
+          p_contract_id: string
+          p_billing_period_start: string
+          p_billing_period_end: string
+        }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      create_variation_invoice: {
+        Args: { p_variation_id: string }
+        Returns: Database["public"]["Tables"]["invoices"]["Row"]
+      }
+      start_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      submit_inspection_result: {
+        Args: {
+          p_inspection_id: string
+          p_template_item_id: string
+          p_score: number
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["inspection_results"]["Row"]
+      }
+      complete_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      create_defect: {
+        Args: {
+          p_inspection_id: string
+          p_description: string
+          p_severity?: Database["public"]["Enums"]["defect_severity"]
+          p_area_label?: string | null
+          p_responsible_team_id?: string | null
+          p_due_date?: string | null
+          p_inspection_result_id?: string | null
+        }
+        Returns: Database["public"]["Tables"]["defects"]["Row"]
+      }
+      resolve_defect: {
+        Args: {
+          p_defect_id: string
+          p_resolution_notes: string
+          p_corrective_action?: string | null
+        }
+        Returns: Database["public"]["Tables"]["defects"]["Row"]
+      }
+      verify_defect: {
+        Args: { p_defect_id: string }
+        Returns: Database["public"]["Tables"]["defects"]["Row"]
+      }
+      close_inspection: {
+        Args: { p_inspection_id: string }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      schedule_reinspection: {
+        Args: { p_defect_id: string; p_scheduled_at?: string | null }
+        Returns: Database["public"]["Tables"]["inspections"]["Row"]
+      }
+      get_contract_profitability: {
+        Args: {
+          p_contract_id: string
+          p_period_start: string
+          p_period_end: string
+        }
+        Returns: {
+          revenue: number
+          labour_cost: number
+          consumables_cost: number
+          equipment_cost: number
+          other_cost: number
+          gross_contribution: number
+          gross_margin_pct: number | null
+        }[]
+      }
     }
     Enums: {
       attendance_status:
@@ -5859,6 +7079,27 @@ export type Database = {
       emergency_status: "triggered" | "acknowledged" | "responding" | "resolved"
       insight_kind: "rule_based" | "ai_generated"
       shift_recommendation_status: "suggested" | "accepted" | "rejected" | "published"
+      service_request_type: "additional_cleaning" | "deep_clean" | "complaint" | "emergency" | "other"
+      service_request_status: "requested" | "assessed" | "converted" | "rejected" | "cancelled"
+      service_request_origin: "client" | "internal"
+      variation_order_status:
+        | "draft"
+        | "assessed"
+        | "quoting"
+        | "quoted"
+        | "approved"
+        | "rejected"
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "invoiced"
+        | "cancelled"
+      invoice_status: "draft" | "issued" | "partially_paid" | "paid" | "void" | "cancelled"
+      invoice_source: "contract_billing" | "variation" | "manual"
+      inspection_status: "scheduled" | "in_progress" | "completed" | "closed"
+      defect_severity: "low" | "medium" | "high" | "critical"
+      defect_status: "open" | "in_progress" | "resolved" | "verified"
+      cost_entry_category: "equipment" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6051,6 +7292,28 @@ export const Constants = {
         "employee",
         "client_user",
       ],
+      service_request_type: ["additional_cleaning", "deep_clean", "complaint", "emergency", "other"],
+      service_request_status: ["requested", "assessed", "converted", "rejected", "cancelled"],
+      service_request_origin: ["client", "internal"],
+      variation_order_status: [
+        "draft",
+        "assessed",
+        "quoting",
+        "quoted",
+        "approved",
+        "rejected",
+        "scheduled",
+        "in_progress",
+        "completed",
+        "invoiced",
+        "cancelled",
+      ],
+      invoice_status: ["draft", "issued", "partially_paid", "paid", "void", "cancelled"],
+      invoice_source: ["contract_billing", "variation", "manual"],
+      inspection_status: ["scheduled", "in_progress", "completed", "closed"],
+      defect_severity: ["low", "medium", "high", "critical"],
+      defect_status: ["open", "in_progress", "resolved", "verified"],
+      cost_entry_category: ["equipment", "other"],
     },
   },
 } as const

@@ -19,6 +19,7 @@ import { contractDocumentService, type ContractDocument } from '@/features/orgSt
 import { useContractVersions } from '@/features/orgStructure/hooks/useContracts';
 import { CommercialTermsSection } from '@/features/orgStructure/components/CommercialTermsSection';
 import { ScopeOfWorkSection } from '@/features/orgStructure/components/ScopeOfWorkSection';
+import { ProfitabilitySection } from '@/features/jobCosting/components/ProfitabilitySection';
 import type { ContractStatus } from '@/features/orgStructure/types/orgStructure.types';
 import type { SlaMetricTypeEnum } from '@/lib/dbTypes';
 import { getDbErrorMessage } from '@/lib/dbErrors';
@@ -305,6 +306,10 @@ export function ContractDetailPage() {
       )}
 
       <ScopeOfWorkSection contract={contract} coveredSites={coveredSites} canManage={canManage} />
+
+      {organization && (
+        <ProfitabilitySection contract={contract} tenantId={organization.id} coveredSites={coveredSites} canView={can('job_costing.view')} />
+      )}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold text-content-primary">SLA performance</h2>

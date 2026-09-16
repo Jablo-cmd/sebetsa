@@ -245,3 +245,50 @@ export type AiQueryLogRow = TableRow<'ai_query_log'>;
 
 export type ShiftRecommendationStatusEnum = Database['public']['Enums']['shift_recommendation_status'];
 export type ShiftRecommendationRow = TableRow<'shift_recommendations'>;
+
+export type ClientPortalUserRow = TableRow<'client_portal_users'>;
+
+export type ServiceRequestRow = TableRow<'service_requests'>;
+export type ServiceRequestTypeEnum = Database['public']['Enums']['service_request_type'];
+export type ServiceRequestStatusEnum = Database['public']['Enums']['service_request_status'];
+export type ServiceRequestOriginEnum = Database['public']['Enums']['service_request_origin'];
+
+export type VariationOrderRow = TableRow<'variation_orders'>;
+export type VariationOrderStatusEnum = Database['public']['Enums']['variation_order_status'];
+
+export type InvoiceRow = TableRow<'invoices'>;
+export type InvoiceStatusEnum = Database['public']['Enums']['invoice_status'];
+export type InvoiceSourceEnum = Database['public']['Enums']['invoice_source'];
+
+export type InvoiceLineRow = TableRow<'invoice_lines'>;
+export type InvoiceLineInsert = TableInsert<'invoice_lines'>;
+
+export type PaymentRow = TableRow<'payments'>;
+
+export type InspectionTemplateRow = TableRow<'inspection_templates'>;
+export type InspectionTemplateInsert = TableInsert<'inspection_templates'>;
+export type InspectionTemplateUpdate = TableUpdate<'inspection_templates'>;
+
+export type InspectionTemplateItemRow = TableRow<'inspection_template_items'>;
+export type InspectionTemplateItemInsert = TableInsert<'inspection_template_items'>;
+
+export type InspectionRow = TableRow<'inspections'>;
+export type InspectionStatusEnum = Database['public']['Enums']['inspection_status'];
+export type InspectionInsert = TableInsert<'inspections'>;
+
+export type InspectionResultRow = TableRow<'inspection_results'>;
+
+export type DefectRow = TableRow<'defects'>;
+export type DefectSeverityEnum = Database['public']['Enums']['defect_severity'];
+export type DefectStatusEnum = Database['public']['Enums']['defect_status'];
+
+export type EmployeeCostRateRow = TableRow<'employee_cost_rates'>;
+export type EmployeeCostRateInsert = TableInsert<'employee_cost_rates'>;
+export type EmployeeCostRateUpdate = TableUpdate<'employee_cost_rates'>;
+
+export type CostEntryRow = TableRow<'cost_entries'>;
+export type CostEntryInsert = TableInsert<'cost_entries'>;
+export type CostEntryCategoryEnum = Database['public']['Enums']['cost_entry_category'];
+
+export type ServiceReportGenerationRow = TableRow<'service_report_generations'>;
+export type ServiceReportGenerationInsert = TableInsert<'service_report_generations'>;

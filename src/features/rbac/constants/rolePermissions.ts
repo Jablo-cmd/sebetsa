@@ -42,6 +42,23 @@ import type { Permission } from '@/features/rbac/types/permission.types';
  * an emergency (the panic button) is intentionally NOT gated by any
  * permission at all — every authenticated, tenant-gated user can reach it,
  * the same "no guard needed" posture as /dashboard and /notifications.
+ *
+ * variation.view/manage and inspection.view/manage (Commercial Revenue
+ * sprint) mirror can_manage_operations() — the same operational tier as
+ * team.manage/patrol.view — since variation_orders/service_requests/
+ * inspections/defects RLS write policies use that exact function. billing.*
+ * and job_costing.view instead mirror can_manage_org_structure() (a
+ * narrower tier: org admin + operations manager only), matching the
+ * invoices/employee_cost_rates/cost_entries RLS policies, which treat
+ * pricing and commercial cost data as more sensitive than day-to-day
+ * operations — a site_manager/supervisor can run an inspection or approve
+ * a variation's work order, but cannot see what it costs or bills at.
+ * There is no dedicated `finance` role in the user_role enum today; billing/
+ * job_costing access currently maps onto this same org-structure tier
+ * rather than a separate Finance role — a genuine, disclosed gap against
+ * the brief's RBAC ask, not a silent omission (see the final report).
+ * client_user carries none of these — the client portal is a dedicated,
+ * separately modelled nav/permission surface, not derived from this table.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   platform_administrator: [
@@ -93,6 +110,15 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'command_centre.view',
     'emergency.view',
     'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'billing.view',
+    'billing.manage',
+    'job_costing.view',
+    'client_portal.view',
+    'client_portal.manage',
   ],
   organization_administrator: [
     'organization.view',
@@ -142,6 +168,15 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'command_centre.view',
     'emergency.view',
     'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'billing.view',
+    'billing.manage',
+    'job_costing.view',
+    'client_portal.view',
+    'client_portal.manage',
   ],
   operations_manager: [
     'organization.view',
@@ -226,6 +261,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'command_centre.view',
     'emergency.view',
     'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'client_portal.view',
   ],
   site_manager: [
     'organization.view',
@@ -261,6 +301,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'command_centre.view',
     'emergency.view',
     'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
+    'client_portal.view',
   ],
   supervisor: [
     'organization.view',
@@ -294,6 +339,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'command_centre.view',
     'emergency.view',
     'intelligence.view',
+    'variation.view',
+    'variation.manage',
+    'inspection.view',
+    'inspection.manage',
   ],
   hr_user: [
     'organization.view',
