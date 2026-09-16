@@ -41,6 +41,7 @@ export type Database = {
           created_at: string
           early_departure_minutes: number | null
           employee_id: string
+          gps_verification_status: Database["public"]["Enums"]["gps_verification_status"]
           id: string
           late_minutes: number | null
           notes: string | null
@@ -59,6 +60,7 @@ export type Database = {
           created_at?: string
           early_departure_minutes?: number | null
           employee_id: string
+          gps_verification_status?: Database["public"]["Enums"]["gps_verification_status"]
           id?: string
           late_minutes?: number | null
           notes?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           created_at?: string
           early_departure_minutes?: number | null
           employee_id?: string
+          gps_verification_status?: Database["public"]["Enums"]["gps_verification_status"]
           id?: string
           late_minutes?: number | null
           notes?: string | null
@@ -3285,6 +3288,420 @@ export type Database = {
           },
         ]
       }
+      attendance_location_exceptions: {
+        Row: {
+          attendance_record_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_record_id: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          reason: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_record_id?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          reason?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patrol_routes: {
+        Row: {
+          active: boolean
+          allowed_start_window_minutes: number
+          completion_threshold_pct: number
+          created_at: string
+          expected_duration_minutes: number | null
+          id: string
+          name: string
+          site_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allowed_start_window_minutes?: number
+          completion_threshold_pct?: number
+          created_at?: string
+          expected_duration_minutes?: number | null
+          id?: string
+          name: string
+          site_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allowed_start_window_minutes?: number
+          completion_threshold_pct?: number
+          created_at?: string
+          expected_duration_minutes?: number | null
+          id?: string
+          name?: string
+          site_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patrol_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id: string
+          patrol_route_id: string
+          scanned_checkpoint_count: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id?: string
+          patrol_route_id: string
+          scanned_checkpoint_count?: number
+          site_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          expected_checkpoint_count?: number
+          id?: string
+          patrol_route_id?: string
+          scanned_checkpoint_count?: number
+          site_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      patrol_checkpoint_scans: {
+        Row: {
+          checkpoint_id: string | null
+          employee_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          patrol_run_id: string
+          risk_flags: Json
+          scan_method: Database["public"]["Enums"]["checkpoint_scan_type"]
+          scanned_at: string
+          scanned_code: string | null
+          sequence_number: number
+          tenant_id: string
+          verification_result: Database["public"]["Enums"]["checkpoint_scan_result"]
+        }
+        Insert: {
+          checkpoint_id?: string | null
+          employee_id: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          patrol_run_id: string
+          risk_flags?: Json
+          scan_method?: Database["public"]["Enums"]["checkpoint_scan_type"]
+          scanned_at?: string
+          scanned_code?: string | null
+          sequence_number: number
+          tenant_id: string
+          verification_result: Database["public"]["Enums"]["checkpoint_scan_result"]
+        }
+        Update: {
+          checkpoint_id?: string | null
+          employee_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          patrol_run_id?: string
+          risk_flags?: Json
+          scan_method?: Database["public"]["Enums"]["checkpoint_scan_type"]
+          scanned_at?: string
+          scanned_code?: string | null
+          sequence_number?: number
+          tenant_id?: string
+          verification_result?: Database["public"]["Enums"]["checkpoint_scan_result"]
+        }
+        Relationships: []
+      }
+      operational_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id?: string | null
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          message: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id?: string | null
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          message?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["alert_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      emergency_events: {
+        Row: {
+          accuracy_meters: number | null
+          device_context: Json
+          emergency_type: Database["public"]["Enums"]["emergency_type"]
+          employee_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          shift_id: string | null
+          site_id: string | null
+          tenant_id: string
+          triggered_at: string
+        }
+        Insert: {
+          accuracy_meters?: number | null
+          device_context?: Json
+          emergency_type?: Database["public"]["Enums"]["emergency_type"]
+          employee_id: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          shift_id?: string | null
+          site_id?: string | null
+          tenant_id: string
+          triggered_at?: string
+        }
+        Update: {
+          accuracy_meters?: number | null
+          device_context?: Json
+          emergency_type?: Database["public"]["Enums"]["emergency_type"]
+          employee_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          shift_id?: string | null
+          site_id?: string | null
+          tenant_id?: string
+          triggered_at?: string
+        }
+        Relationships: []
+      }
+      emergency_responses: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          emergency_event_id: string
+          escalation_level?: number
+          id?: string
+          last_escalated_at?: string | null
+          notes?: string | null
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responding_at?: string | null
+          responding_by?: string | null
+          status?: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          emergency_event_id?: string
+          escalation_level?: number
+          id?: string
+          last_escalated_at?: string | null
+          notes?: string | null
+          resolution_reason?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          responding_at?: string | null
+          responding_by?: string | null
+          status?: Database["public"]["Enums"]["emergency_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_query_log: {
+        Row: {
+          actor_profile_id: string
+          created_at: string
+          id: string
+          insight_kind: Database["public"]["Enums"]["insight_kind"]
+          matched_intent: string | null
+          query_text: string
+          response_text: string | null
+          tenant_id: string
+          tool_calls: Json
+        }
+        Insert: {
+          actor_profile_id: string
+          created_at?: string
+          id?: string
+          insight_kind?: Database["public"]["Enums"]["insight_kind"]
+          matched_intent?: string | null
+          query_text: string
+          response_text?: string | null
+          tenant_id: string
+          tool_calls?: Json
+        }
+        Update: {
+          actor_profile_id?: string
+          created_at?: string
+          id?: string
+          insight_kind?: Database["public"]["Enums"]["insight_kind"]
+          matched_intent?: string | null
+          query_text?: string
+          response_text?: string | null
+          tenant_id?: string
+          tool_calls?: Json
+        }
+        Relationships: []
+      }
+      shift_recommendations: {
+        Row: {
+          candidate_employee_id: string
+          decided_at: string | null
+          decided_by: string | null
+          ends_at: string
+          generated_at: string
+          id: string
+          published_shift_id: string | null
+          reasons: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }
+        Insert: {
+          candidate_employee_id: string
+          decided_at?: string | null
+          decided_by?: string | null
+          ends_at: string
+          generated_at?: string
+          id?: string
+          published_shift_id?: string | null
+          reasons?: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status?: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }
+        Update: {
+          candidate_employee_id?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          ends_at?: string
+          generated_at?: string
+          id?: string
+          published_shift_id?: string | null
+          reasons?: Json
+          score?: number
+          shift_date?: string
+          site_id?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -3362,13 +3779,25 @@ export type Database = {
         }
       }
       clock_in: {
-        Args: { p_employee_id: string; p_shift_id?: string; p_site_id: string }
+        Args: {
+          p_accuracy_meters?: number
+          p_client_captured_at?: string
+          p_device_context?: Json
+          p_employee_id: string
+          p_gps_denied?: boolean
+          p_latitude?: number
+          p_longitude?: number
+          p_offline_captured?: boolean
+          p_shift_id?: string
+          p_site_id: string
+        }
         Returns: {
           clock_in_at: string | null
           clock_out_at: string | null
           created_at: string
           early_departure_minutes: number | null
           employee_id: string
+          gps_verification_status: Database["public"]["Enums"]["gps_verification_status"]
           id: string
           late_minutes: number | null
           notes: string | null
@@ -3389,13 +3818,23 @@ export type Database = {
         }
       }
       clock_out: {
-        Args: { p_attendance_record_id: string }
+        Args: {
+          p_accuracy_meters?: number
+          p_attendance_record_id: string
+          p_client_captured_at?: string
+          p_device_context?: Json
+          p_gps_denied?: boolean
+          p_latitude?: number
+          p_longitude?: number
+          p_offline_captured?: boolean
+        }
         Returns: {
           clock_in_at: string | null
           clock_out_at: string | null
           created_at: string
           early_departure_minutes: number | null
           employee_id: string
+          gps_verification_status: Database["public"]["Enums"]["gps_verification_status"]
           id: string
           late_minutes: number | null
           notes: string | null
@@ -4327,6 +4766,416 @@ export type Database = {
         }
         Returns: undefined
       }
+      request_attendance_location_exception: {
+        Args: { p_attendance_record_id: string; p_reason: string }
+        Returns: {
+          attendance_record_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      decide_attendance_location_exception: {
+        Args: { p_approve: boolean; p_exception_id: string; p_review_notes?: string }
+        Returns: {
+          attendance_record_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          reason: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      start_patrol: {
+        Args: { p_patrol_route_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id: string
+          patrol_route_id: string
+          scanned_checkpoint_count: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+      }
+      scan_checkpoint: {
+        Args: {
+          p_checkpoint_code: string
+          p_latitude?: number
+          p_longitude?: number
+          p_patrol_run_id: string
+          p_scan_method?: Database["public"]["Enums"]["checkpoint_scan_type"]
+        }
+        Returns: {
+          run: {
+            completed_at: string | null
+            created_at: string
+            employee_id: string
+            expected_checkpoint_count: number
+            id: string
+            patrol_route_id: string
+            scanned_checkpoint_count: number
+            site_id: string
+            started_at: string
+            status: Database["public"]["Enums"]["patrol_run_status"]
+            tenant_id: string
+          }
+          scan: {
+            checkpoint_id: string | null
+            employee_id: string
+            id: string
+            latitude: number | null
+            longitude: number | null
+            patrol_run_id: string
+            risk_flags: Json
+            scan_method: Database["public"]["Enums"]["checkpoint_scan_type"]
+            scanned_at: string
+            scanned_code: string | null
+            sequence_number: number
+            tenant_id: string
+            verification_result: Database["public"]["Enums"]["checkpoint_scan_result"]
+          }
+        }[]
+      }
+      complete_patrol: {
+        Args: { p_patrol_run_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          expected_checkpoint_count: number
+          id: string
+          patrol_route_id: string
+          scanned_checkpoint_count: number
+          site_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["patrol_run_status"]
+          tenant_id: string
+        }
+      }
+      get_patrol_summary: {
+        Args: { p_since?: string; p_tenant_id: string }
+        Returns: {
+          active_patrols: number
+          completed_patrols: number
+          exception_rate: number
+          incomplete_patrols: number
+          late_checkpoints: number
+          missed_checkpoints: number
+        }[]
+      }
+      get_command_centre_snapshot: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          alerts_critical: number
+          alerts_open: number
+          compliance_expired: number
+          compliance_expiring_soon: number
+          contracts_active: number
+          contracts_sla_breaching: number
+          emergencies_active: number
+          incidents_critical: number
+          incidents_open: number
+          incidents_overdue: number
+          patrols_active: number
+          patrols_completed_today: number
+          patrols_missed: number
+          sites_total_active: number
+          sites_uncovered: number
+          sites_understaffed: number
+          tasks_overdue: number
+          tasks_verification_pending: number
+          workforce_absent: number
+          workforce_clocked_in: number
+          workforce_late: number
+          workforce_pending_exceptions: number
+          workforce_total_scheduled: number
+        }[]
+      }
+      acknowledge_operational_alert: {
+        Args: { p_alert_id: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      resolve_operational_alert: {
+        Args: { p_alert_id: string; p_resolution_notes?: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      reopen_operational_alert: {
+        Args: { p_alert_id: string; p_reason: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: Database["public"]["Enums"]["operational_alert_type"]
+          contract_id: string | null
+          created_at: string
+          employee_id: string | null
+          id: string
+          message: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      trigger_emergency: {
+        Args: {
+          p_accuracy_meters?: number
+          p_device_context?: Json
+          p_emergency_type?: Database["public"]["Enums"]["emergency_type"]
+          p_latitude?: number
+          p_longitude?: number
+          p_site_id?: string
+        }
+        Returns: {
+          accuracy_meters: number | null
+          device_context: Json
+          emergency_type: Database["public"]["Enums"]["emergency_type"]
+          employee_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          shift_id: string | null
+          site_id: string | null
+          tenant_id: string
+          triggered_at: string
+        }
+      }
+      acknowledge_emergency: {
+        Args: { p_emergency_event_id: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      respond_to_emergency: {
+        Args: { p_emergency_event_id: string; p_notes?: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      resolve_emergency: {
+        Args: { p_emergency_event_id: string; p_resolution_reason: string }
+        Returns: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          emergency_event_id: string
+          escalation_level: number
+          id: string
+          last_escalated_at: string | null
+          notes: string | null
+          resolution_reason: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          responding_at: string | null
+          responding_by: string | null
+          status: Database["public"]["Enums"]["emergency_status"]
+          tenant_id: string
+          updated_at: string
+        }
+      }
+      log_ai_query: {
+        Args: {
+          p_insight_kind?: Database["public"]["Enums"]["insight_kind"]
+          p_matched_intent: string
+          p_query_text: string
+          p_response_text: string
+          p_tool_calls: Json
+        }
+        Returns: {
+          actor_profile_id: string
+          created_at: string
+          id: string
+          insight_kind: Database["public"]["Enums"]["insight_kind"]
+          matched_intent: string | null
+          query_text: string
+          response_text: string | null
+          tenant_id: string
+          tool_calls: Json
+        }
+      }
+      get_understaffed_sites: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assigned_count: number
+          required_count: number
+          shortfall: number
+          site_id: string
+          site_name: string
+        }[]
+      }
+      get_employees_absent_now: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          minutes_overdue: number
+          shift_starts_at: string
+          site_id: string
+          site_name: string
+        }[]
+      }
+      get_expiring_qualifications: {
+        Args: { p_tenant_id: string; p_within_days?: number }
+        Returns: {
+          days_remaining: number
+          employee_id: string
+          employee_name: string
+          expiry_date: string
+          qualification_name: string
+        }[]
+      }
+      get_declining_sla_contracts: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          contract_id: string
+          contract_number: string
+          latest_value: number
+          period_end: string
+          sla_name: string
+          target_met: boolean
+          target_value: number
+        }[]
+      }
+      get_overtime_spike_employees: {
+        Args: { p_since?: string; p_tenant_id: string }
+        Returns: {
+          employee_id: string
+          employee_name: string
+          record_count: number
+          total_overtime_minutes: number
+        }[]
+      }
+      get_site_incident_ranking: {
+        Args: { p_since?: string; p_tenant_id: string }
+        Returns: {
+          critical_count: number
+          incident_count: number
+          site_id: string
+          site_name: string
+        }[]
+      }
+      generate_shift_recommendations: {
+        Args: { p_ends_at: string; p_shift_date: string; p_site_id: string; p_starts_at: string }
+        Returns: {
+          candidate_employee_id: string
+          decided_at: string | null
+          decided_by: string | null
+          ends_at: string
+          generated_at: string
+          id: string
+          published_shift_id: string | null
+          reasons: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }[]
+      }
+      decide_shift_recommendation: {
+        Args: { p_accept: boolean; p_recommendation_id: string }
+        Returns: {
+          candidate_employee_id: string
+          decided_at: string | null
+          decided_by: string | null
+          ends_at: string
+          generated_at: string
+          id: string
+          published_shift_id: string | null
+          reasons: Json
+          score: number
+          shift_date: string
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_recommendation_status"]
+          tenant_id: string
+        }
+      }
     }
     Enums: {
       attendance_status:
@@ -4438,6 +5287,42 @@ export type Database = {
         | "hr_user"
         | "employee"
         | "client_user"
+      gps_verification_status:
+        | "verified"
+        | "outside_geofence"
+        | "low_accuracy"
+        | "location_unavailable"
+        | "pending_verification"
+        | "offline_pending"
+        | "manual_review"
+        | "not_applicable"
+      checkpoint_scan_type: "qr" | "nfc" | "manual"
+      patrol_run_status: "in_progress" | "completed" | "incomplete" | "abandoned"
+      checkpoint_scan_result:
+        | "valid"
+        | "wrong_sequence"
+        | "duplicate"
+        | "out_of_window"
+        | "invalid_checkpoint"
+        | "not_assigned"
+      alert_severity: "info" | "warning" | "critical"
+      alert_status: "open" | "acknowledged" | "resolved"
+      operational_alert_type:
+        | "site_understaffed"
+        | "employee_absent"
+        | "employee_late"
+        | "patrol_missed"
+        | "checkpoint_missed"
+        | "qualification_expired"
+        | "contract_sla_breach"
+        | "incident_overdue"
+        | "critical_task_overdue"
+        | "excessive_overtime"
+        | "emergency_active"
+      emergency_type: "panic" | "medical" | "security_threat" | "other"
+      emergency_status: "triggered" | "acknowledged" | "responding" | "resolved"
+      insight_kind: "rule_based" | "ai_generated"
+      shift_recommendation_status: "suggested" | "accepted" | "rejected" | "published"
     }
     CompositeTypes: {
       [_ in never]: never

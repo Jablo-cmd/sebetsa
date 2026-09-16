@@ -197,3 +197,29 @@ export type NotificationRow = TableRow<'notifications'>;
 export type AuditLogRow = TableRow<'audit_log'>;
 
 export type UserRoleEnum = Database['public']['Enums']['user_role'];
+
+export type GpsVerificationStatusEnum = Database['public']['Enums']['gps_verification_status'];
+export type AttendanceLocationExceptionRow = TableRow<'attendance_location_exceptions'>;
+
+export type PatrolRunStatusEnum = Database['public']['Enums']['patrol_run_status'];
+export type CheckpointScanTypeEnum = Database['public']['Enums']['checkpoint_scan_type'];
+export type CheckpointScanResultEnum = Database['public']['Enums']['checkpoint_scan_result'];
+export type PatrolRouteRow = TableRow<'patrol_routes'>;
+export type PatrolRunRow = TableRow<'patrol_runs'>;
+export type PatrolCheckpointScanRow = TableRow<'patrol_checkpoint_scans'>;
+
+export type AlertSeverityEnum = Database['public']['Enums']['alert_severity'];
+export type AlertStatusEnum = Database['public']['Enums']['alert_status'];
+export type OperationalAlertTypeEnum = Database['public']['Enums']['operational_alert_type'];
+export type OperationalAlertRow = TableRow<'operational_alerts'>;
+
+export type EmergencyTypeEnum = Database['public']['Enums']['emergency_type'];
+export type EmergencyStatusEnum = Database['public']['Enums']['emergency_status'];
+export type EmergencyEventRow = TableRow<'emergency_events'>;
+export type EmergencyResponseRow = TableRow<'emergency_responses'>;
+
+export type InsightKindEnum = Database['public']['Enums']['insight_kind'];
+export type AiQueryLogRow = TableRow<'ai_query_log'>;
+
+export type ShiftRecommendationStatusEnum = Database['public']['Enums']['shift_recommendation_status'];
+export type ShiftRecommendationRow = TableRow<'shift_recommendations'>;

@@ -31,6 +31,17 @@ import type { Permission } from '@/features/rbac/types/permission.types';
  * employee always manages their OWN availability via the RLS self-service
  * carve-out regardless of permissions here (mirrors profile.update_own).
  * Keep this file and those RLS policies in sync if either changes.
+ *
+ * patrol.view/command_centre.view/emergency.view/intelligence.view (Domain
+ * 13/14/15) mirror can_manage_operations() exactly — the same operational
+ * tier as team.manage/scheduling.manage, again excluding hr_user — except
+ * patrol.view is additionally granted to `employee`, matching
+ * attendance.view: an employee always has RLS-scoped access to execute
+ * their OWN patrol (start/scan/complete) regardless of this permission
+ * list; the ops-tier holders instead see the oversight summary. Triggering
+ * an emergency (the panic button) is intentionally NOT gated by any
+ * permission at all — every authenticated, tenant-gated user can reach it,
+ * the same "no guard needed" posture as /dashboard and /notifications.
  */
 export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
   platform_administrator: [
@@ -78,6 +89,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
   ],
   organization_administrator: [
     'organization.view',
@@ -123,6 +138,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
   ],
   operations_manager: [
     'organization.view',
@@ -166,6 +185,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
   ],
   regional_manager: [
     'organization.view',
@@ -199,6 +222,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
   ],
   site_manager: [
     'organization.view',
@@ -230,6 +257,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
   ],
   supervisor: [
     'organization.view',
@@ -259,6 +290,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'inventory.manage',
     'procurement.view',
     'procurement.manage',
+    'patrol.view',
+    'command_centre.view',
+    'emergency.view',
+    'intelligence.view',
   ],
   hr_user: [
     'organization.view',
@@ -282,6 +317,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly Permission[]> = {
     'reports.view',
     'reports.export',
   ],
-  employee: ['scheduling.view', 'availability.view', 'attendance.view', 'task.view', 'leave.view', 'document.view', 'incident.view', 'procurement.view', 'development.view'],
+  employee: ['scheduling.view', 'availability.view', 'attendance.view', 'task.view', 'leave.view', 'document.view', 'incident.view', 'procurement.view', 'development.view', 'patrol.view'],
   client_user: [],
 };

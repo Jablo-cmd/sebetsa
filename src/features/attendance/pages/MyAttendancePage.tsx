@@ -5,6 +5,7 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { LoadingBlock } from '@/components/ui/LoadingBlock';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useMyEmployee } from '@/features/employees/hooks/useMyEmployee';
 import { useMyAttendance } from '@/features/attendance/hooks/useMyAttendance';
@@ -12,6 +13,34 @@ import { useShifts } from '@/features/scheduling/hooks/useShifts';
 import { attendanceService } from '@/features/attendance/services/attendanceService';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 import { retryOnNetworkError } from '@/lib/retry';
+import { useDeviceLocation } from '@/lib/useDeviceLocation';
+import type { GpsVerificationStatus } from '@/features/attendance/types/attendance.types';
+import type { StatusTone } from '@/components/ui/StatusBadge';
+
+const GPS_STATUS_LABEL: Record<GpsVerificationStatus, string> = {
+  verified: 'Location verified',
+  outside_geofence: 'Outside site geofence',
+  low_accuracy: 'GPS accuracy too low',
+  location_unavailable: 'Location unavailable',
+  pending_verification: 'No geofence configured',
+  offline_pending: 'Captured offline — pending sync',
+  manual_review: 'Flagged for review',
+  not_applicable: 'Clocked in by a manager',
+};
+
+const GPS_STATUS_TONE: Record<GpsVerificationStatus, StatusTone> = {
+  verified: 'success',
+  outside_geofence: 'warning',
+  low_accuracy: 'warning',
+  location_unavailable: 'warning',
+  pending_verification: 'neutral',
+  offline_pending: 'info',
+  manual_review: 'warning',
+  not_applicable: 'neutral',
+};
+
+/** GPS states a supervisor-reviewed exception makes sense for — see attendance_location_exceptions' own invalid_request check. */
+const EXCEPTION_ELIGIBLE_STATUSES: GpsVerificationStatus[] = ['outside_geofence', 'location_unavailable', 'low_accuracy'];
 
 function formatMinutes(minutes: number | null): string {
   if (minutes === null) return '—';
@@ -49,6 +78,10 @@ export function MyAttendancePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [correctionReason, setCorrectionReason] = useState('');
   const [showCorrectionForm, setShowCorrectionForm] = useState(false);
+  const [exceptionReason, setExceptionReason] = useState('');
+  const [showExceptionForm, setShowExceptionForm] = useState(false);
+  const [exceptionRequested, setExceptionRequested] = useState(false);
+  const { isReading: isReadingLocation, read: readLocation } = useDeviceLocation();
 
   const isLoading = employeeLoading || attendanceLoading;
 
@@ -56,8 +89,12 @@ export function MyAttendancePage() {
     if (!employee) return;
     setIsSubmitting(true);
     setActionError(null);
+    setExceptionRequested(false);
     try {
-      await retryOnNetworkError(() => attendanceService.clockIn(employee.id, todaysShift?.siteId ?? employee.homeSiteId ?? '', todaysShift?.id));
+      const location = await readLocation();
+      await retryOnNetworkError(() =>
+        attendanceService.clockIn(employee.id, todaysShift?.siteId ?? employee.homeSiteId ?? '', todaysShift?.id, location),
+      );
       void refetch();
     } catch (error) {
       setActionError(getDbErrorMessage(error, 'Failed to clock in.'));
@@ -71,10 +108,27 @@ export function MyAttendancePage() {
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await retryOnNetworkError(() => attendanceService.clockOut(openRecord.id));
+      const location = await readLocation();
+      await retryOnNetworkError(() => attendanceService.clockOut(openRecord.id, location));
       void refetch();
     } catch (error) {
       setActionError(getDbErrorMessage(error, 'Failed to clock out.'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRequestLocationException = async () => {
+    if (!openRecord || !exceptionReason.trim()) return;
+    setIsSubmitting(true);
+    setActionError(null);
+    try {
+      await attendanceService.requestLocationException(openRecord.id, exceptionReason.trim());
+      setExceptionReason('');
+      setShowExceptionForm(false);
+      setExceptionRequested(true);
+    } catch (error) {
+      setActionError(getDbErrorMessage(error, 'Failed to submit the location exception request.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -136,9 +190,10 @@ export function MyAttendancePage() {
                     {new Date(todaysShift.endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 )}
-                <Button className="mt-4 w-full" onClick={() => void handleClockIn()} isLoading={isSubmitting}>
+                <Button className="mt-4 w-full" onClick={() => void handleClockIn()} isLoading={isSubmitting || isReadingLocation}>
                   Clock in
                 </Button>
+                <p className="mt-2 text-xs text-content-tertiary">We'll ask for your location to confirm you're on site.</p>
               </>
             ) : (
               <>
@@ -151,15 +206,53 @@ export function MyAttendancePage() {
                 {openRecord.lateMinutes && <p className="mt-1 text-xs text-warning-600">{openRecord.lateMinutes} minute(s) late</p>}
                 {openBreak && <p className="mt-1 text-xs text-content-tertiary">On break since {new Date(openBreak.breakStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>}
 
+                <div className="mt-3">
+                  <StatusBadge label={GPS_STATUS_LABEL[openRecord.gpsVerificationStatus]} tone={GPS_STATUS_TONE[openRecord.gpsVerificationStatus]} />
+                </div>
+
                 <div className="mt-4 flex flex-col gap-2">
                   <Button variant="secondary" onClick={() => void handleBreak()} isLoading={isSubmitting}>
                     {openBreak ? 'End break' : 'Start break'}
                   </Button>
-                  <Button onClick={() => void handleClockOut()} isLoading={isSubmitting} disabled={Boolean(openBreak)}>
+                  <Button onClick={() => void handleClockOut()} isLoading={isSubmitting || isReadingLocation} disabled={Boolean(openBreak)}>
                     Clock out
                   </Button>
                   {openBreak && <p className="text-xs text-content-tertiary">End your break before clocking out.</p>}
                 </div>
+
+                {EXCEPTION_ELIGIBLE_STATUSES.includes(openRecord.gpsVerificationStatus) && (
+                  <div className="mt-4 rounded-lg border border-warning-500/30 bg-warning-50 p-3 text-left dark:bg-warning-500/10">
+                    {exceptionRequested ? (
+                      <p className="text-xs font-medium text-warning-600">Your location exception request has been submitted for supervisor review.</p>
+                    ) : !showExceptionForm ? (
+                      <>
+                        <p className="text-xs text-warning-600">
+                          We couldn't confirm you were at the site. If this is wrong (e.g. your GPS was inaccurate), you can ask a supervisor to review it.
+                        </p>
+                        <Button variant="ghost" className="mt-2 h-9" onClick={() => setShowExceptionForm(true)}>
+                          Request a location exception
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <TextField
+                          label="Why should this be reviewed?"
+                          placeholder="e.g. the site entrance has poor GPS reception"
+                          value={exceptionReason}
+                          onChange={(event) => setExceptionReason(event.target.value)}
+                        />
+                        <div className="flex gap-2">
+                          <Button className="h-9" onClick={() => void handleRequestLocationException()} isLoading={isSubmitting} disabled={!exceptionReason.trim()}>
+                            Submit
+                          </Button>
+                          <Button variant="ghost" className="h-9" onClick={() => setShowExceptionForm(false)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>

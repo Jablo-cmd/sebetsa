@@ -32,10 +32,18 @@ const RAISED_MESSAGE_PATTERNS: Array<[RegExp, string]> = [
   [/^email_taken:/i, 'That email address is already registered.'],
   [/^already_accepted:/i, 'This invitation has already been used. Please sign in instead.'],
   [/^invalid_state:/i, 'This invitation is no longer valid.'],
-  [/^expired:/i, 'This invitation has expired. Ask your school to send a new one.'],
-  [/^inactive_account:/i, 'This account is not active. Contact your school for help.'],
+  [/^expired:/i, 'This invitation has expired. Ask your organization admin to send a new one.'],
+  [/^inactive_account:/i, 'This account is not active. Contact your organization admin for help.'],
   [/^invalid_role:/i, 'This profile is not a guardian account.'],
   [/^unauthenticated:/i, 'Your session has expired. Please open the invitation link again.'],
+  [/^inactive_employee:/i, 'This employee is terminated or suspended and cannot perform this action.'],
+  [/^cross_tenant_reference:/i, 'This record does not belong to your organization.'],
+  [/^invalid_transition:/i, "That action isn't valid for the current status."],
+  [/^invalid_sequence:/i, "That action isn't valid right now."],
+  [/^invalid_request:/i, 'This request is not valid.'],
+  [/^not_assigned:/i, "You aren't currently assigned to this site."],
+  [/^already_clocked_in:/i, 'You already have an open attendance record.'],
+  [/^already_in_progress:/i, 'You already have this in progress.'],
 ];
 
 /** Common Postgres SQLSTATE codes surfaced via constraints, not custom RAISE EXCEPTION text. */

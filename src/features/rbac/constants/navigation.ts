@@ -3,6 +3,7 @@ import type { UserRole } from '@/features/auth/types/auth.types';
 import type { Permission } from '@/features/rbac/types/permission.types';
 import { hasAnyPermission } from '@/features/rbac/utils/permissionHelpers';
 import {
+  AlertTriangleIcon,
   BriefcaseIcon,
   BuildingIcon,
   CalendarIcon,
@@ -14,6 +15,9 @@ import {
   GraduationCapIcon,
   GridIcon,
   LayersIcon,
+  MegaphoneIcon,
+  ShieldIcon,
+  SparklesIcon,
   UsersIcon,
 } from '@/components/ui/icons';
 
@@ -78,6 +82,7 @@ export const NAV_MODEL: NavGroupDef[] = [
       { label: 'Schedule', path: '/schedule', icon: CalendarIcon, permission: 'scheduling.view', end: true },
       { label: 'My Schedule', path: '/schedule/mine', icon: CalendarIcon },
       { label: 'Shift Definitions', path: '/schedule/definitions', icon: ClipboardListIcon, permission: 'scheduling.manage' },
+      { label: 'Scheduling Recommendations', path: '/schedule/recommendations', icon: SparklesIcon, permission: 'scheduling.manage' },
       { label: 'Availability', path: '/schedule/availability', icon: CheckIcon, permission: 'availability.view' },
       { label: 'Attendance', path: '/attendance', icon: CheckIcon, permission: 'attendance.view' },
       { label: 'My Attendance', path: '/attendance/mine', icon: CheckIcon, permission: 'attendance.view', end: true },
@@ -112,6 +117,17 @@ export const NAV_MODEL: NavGroupDef[] = [
     items: [
       { label: 'Incidents', path: '/incidents', icon: ClipboardListIcon, permission: 'incident.view', end: true },
       { label: 'Compliance', path: '/compliance', icon: CheckIcon, permission: 'compliance.view', end: true },
+    ],
+  },
+  {
+    label: 'Field Operations',
+    items: [
+      { label: 'My Patrols', path: '/patrols', icon: ShieldIcon, permission: 'patrol.view', end: true },
+      { label: 'Patrol Oversight', path: '/patrols/oversight', icon: ShieldIcon, permission: 'command_centre.view' },
+      { label: 'Command Centre', path: '/command-centre', icon: GridIcon, permission: 'command_centre.view', end: true },
+      { label: 'Emergency Response', path: '/emergencies', icon: AlertTriangleIcon, permission: 'emergency.view' },
+      { label: 'Operational Alerts', path: '/command-centre/alerts', icon: MegaphoneIcon, permission: 'command_centre.view' },
+      { label: 'AI Assistant', path: '/intelligence', icon: SparklesIcon, permission: 'intelligence.view', end: true },
     ],
   },
   {

@@ -1,6 +1,13 @@
 import { supabase } from '@/lib/supabase';
 import { fetchAllRows } from '@/lib/pagination';
-import type { AttendanceRecordRow, AttendanceRecordInsert, AttendanceBreakRow, AttendanceCorrectionRow, AttendancePolicyRow } from '@/lib/dbTypes';
+import type {
+  AttendanceRecordRow,
+  AttendanceRecordInsert,
+  AttendanceBreakRow,
+  AttendanceCorrectionRow,
+  AttendancePolicyRow,
+  AttendanceLocationExceptionRow,
+} from '@/lib/dbTypes';
 import type {
   AttendanceRecord,
   AttendanceEntry,
@@ -10,6 +17,8 @@ import type {
   AttendanceCorrection,
   AttendanceCorrectionField,
   AttendancePolicy,
+  AttendanceLocationException,
+  DeviceLocation,
 } from '@/features/attendance/types/attendance.types';
 import { tallyStatusCounts } from '@/features/attendance/utils/calculations';
 
@@ -28,6 +37,23 @@ function toAttendanceRecord(row: AttendanceRecordRow): AttendanceRecord {
     workedMinutes: row.worked_minutes,
     overtimeMinutes: row.overtime_minutes,
     notes: row.notes,
+    gpsVerificationStatus: row.gps_verification_status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toAttendanceLocationException(row: AttendanceLocationExceptionRow): AttendanceLocationException {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    attendanceRecordId: row.attendance_record_id,
+    employeeId: row.employee_id,
+    reason: row.reason,
+    status: row.status as AttendanceLocationException['status'],
+    reviewedBy: row.reviewed_by,
+    reviewedAt: row.reviewed_at,
+    reviewNotes: row.review_notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -84,16 +110,87 @@ async function getOpenAttendanceForEmployee(employeeId: string): Promise<Attenda
   return data ? toAttendanceRecord(data) : null;
 }
 
-async function clockIn(employeeId: string, siteId: string, shiftId?: string): Promise<AttendanceRecord> {
-  const { data, error } = await supabase.rpc('clock_in', { p_employee_id: employeeId, p_site_id: siteId, p_shift_id: shiftId });
+/**
+ * `location` is `null` when the device denied/could not produce a read —
+ * still a real, honest outcome the server records as `location_unavailable`
+ * evidence, never silently treated as "inside the geofence". The server
+ * (not this function) is the sole authority on the resulting
+ * gps_verification_status — see clock_in()'s own comments.
+ */
+async function clockIn(
+  employeeId: string,
+  siteId: string,
+  shiftId: string | undefined,
+  location: DeviceLocation | null,
+): Promise<AttendanceRecord> {
+  const { data, error } = await supabase.rpc('clock_in', {
+    p_employee_id: employeeId,
+    p_site_id: siteId,
+    p_shift_id: shiftId,
+    p_latitude: location?.latitude,
+    p_longitude: location?.longitude,
+    p_accuracy_meters: location?.accuracyMeters ?? undefined,
+    p_client_captured_at: location?.capturedAt,
+    p_gps_denied: location === null,
+  });
   if (error) throw error;
   return toAttendanceRecord(data);
 }
 
-async function clockOut(attendanceRecordId: string): Promise<AttendanceRecord> {
-  const { data, error } = await supabase.rpc('clock_out', { p_attendance_record_id: attendanceRecordId });
+async function clockOut(attendanceRecordId: string, location: DeviceLocation | null): Promise<AttendanceRecord> {
+  const { data, error } = await supabase.rpc('clock_out', {
+    p_attendance_record_id: attendanceRecordId,
+    p_latitude: location?.latitude,
+    p_longitude: location?.longitude,
+    p_accuracy_meters: location?.accuracyMeters ?? undefined,
+    p_client_captured_at: location?.capturedAt,
+    p_gps_denied: location === null,
+  });
   if (error) throw error;
   return toAttendanceRecord(data);
+}
+
+/** Requests a supervisor-reviewed exception for a clock-in that failed GPS verification — the original evidence is never altered, only a decision layered on top. */
+async function requestLocationException(attendanceRecordId: string, reason: string): Promise<AttendanceLocationException> {
+  const { data, error } = await supabase.rpc('request_attendance_location_exception', {
+    p_attendance_record_id: attendanceRecordId,
+    p_reason: reason,
+  });
+  if (error) throw error;
+  return toAttendanceLocationException(data);
+}
+
+async function decideLocationException(exceptionId: string, approve: boolean, reviewNotes?: string): Promise<AttendanceLocationException> {
+  const { data, error } = await supabase.rpc('decide_attendance_location_exception', {
+    p_exception_id: exceptionId,
+    p_approve: approve,
+    p_review_notes: reviewNotes,
+  });
+  if (error) throw error;
+  return toAttendanceLocationException(data);
+}
+
+/** Pending GPS exceptions across the tenant, for supervisor review. */
+async function getPendingLocationExceptions(tenantId: string): Promise<AttendanceLocationException[]> {
+  const { data, error } = await supabase
+    .from('attendance_location_exceptions')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data.map(toAttendanceLocationException);
+}
+
+/** The caller's own GPS exception requests, most recent first. */
+async function getMyLocationExceptions(employeeId: string): Promise<AttendanceLocationException[]> {
+  const { data, error } = await supabase
+    .from('attendance_location_exceptions')
+    .select('*')
+    .eq('employee_id', employeeId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data.map(toAttendanceLocationException);
 }
 
 async function startBreak(attendanceRecordId: string): Promise<AttendanceBreak> {
@@ -292,6 +389,10 @@ export const attendanceService = {
   getOpenAttendanceForEmployee,
   clockIn,
   clockOut,
+  requestLocationException,
+  decideLocationException,
+  getPendingLocationExceptions,
+  getMyLocationExceptions,
   startBreak,
   endBreak,
   getOpenBreak,
