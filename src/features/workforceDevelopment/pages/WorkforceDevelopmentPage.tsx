@@ -37,8 +37,16 @@ export function WorkforceDevelopmentPage() {
 
   const loadCatalogues = useCallback(async () => {
     if (!organization) return;
-    setSkills(await workforceDevelopmentService.getSkills(organization.id));
-    setPrograms(await workforceDevelopmentService.getTrainingPrograms(organization.id));
+    try {
+      const [s, p] = await Promise.all([
+        workforceDevelopmentService.getSkills(organization.id),
+        workforceDevelopmentService.getTrainingPrograms(organization.id),
+      ]);
+      setSkills(s);
+      setPrograms(p);
+    } catch (err) {
+      setError(getDbErrorMessage(err, 'Failed to load the skills and training catalogues.'));
+    }
   }, [organization]);
 
   const loadEmployeeData = useCallback(async () => {
@@ -71,7 +79,11 @@ export function WorkforceDevelopmentPage() {
 
   const searchEmployees = async (query: string) => {
     setEmployeeSearch(query);
-    setCandidates(await employeeService.searchEmployeeCandidates(organization.id, query));
+    try {
+      setCandidates(await employeeService.searchEmployeeCandidates(organization.id, query));
+    } catch (err) {
+      setError(getDbErrorMessage(err, 'Failed to search employees.'));
+    }
   };
 
   const handleCreateSkill = async () => {
