@@ -36,7 +36,7 @@ if [ "$ready" != true ]; then
 fi
 
 psql_exec < "$SCRIPT_DIR/00_auth_stub.sql"
-psql_exec -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;"
+psql_exec -c "CREATE ROLE anon NOLOGIN; CREATE ROLE service_role NOLOGIN;"
 psql_exec < "$SCRIPT_DIR/01_test_util.sql"
 for migration in "$MIGRATIONS_DIR"/*.sql; do
   echo "Applying $(basename "$migration")"
