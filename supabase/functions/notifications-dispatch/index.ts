@@ -37,6 +37,26 @@ interface NotificationRow {
 
 type AdapterResult = { ok: true; providerMessageId: string | null } | { ok: false; error: string };
 
+/** Constant-time comparison of the dispatch secret (hash first so length does not leak). */
+async function secretMatches(provided: string | null): Promise<boolean> {
+  if (dispatchSecret.length === 0 || provided === null) return false;
+  const enc = new TextEncoder();
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(provided)),
+    crypto.subtle.digest('SHA-256', enc.encode(dispatchSecret)),
+  ]);
+  const x = new Uint8Array(a);
+  const y = new Uint8Array(b);
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
+}
+
+/** Structured, secret-free log line for log drains/alerting. */
+function log(event: string, fields: Record<string, unknown> = {}) {
+  console.log(JSON.stringify({ ts: new Date().toISOString(), fn: 'notifications-dispatch', event, ...fields }));
+}
+
 function channelConfigured(channel: DeliveryRow['channel']): boolean {
   if (channel === 'email') return RESEND_API_KEY.length > 0 && RESEND_FROM.length > 0;
   if (channel === 'sms') return TWILIO_ACCOUNT_SID.length > 0 && TWILIO_AUTH_TOKEN.length > 0 && TWILIO_SMS_FROM.length > 0;
@@ -83,7 +103,8 @@ async function deliver(row: DeliveryRow, notification: NotificationRow): Promise
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
-  if (dispatchSecret.length === 0 || req.headers.get('x-dispatch-secret') !== dispatchSecret) {
+  if (!(await secretMatches(req.headers.get('x-dispatch-secret')))) {
+    log('unauthorized');
     return json({ error: 'unauthorized' }, 401);
   }
 
@@ -103,7 +124,10 @@ Deno.serve(async (req) => {
     p_worker_id: workerId,
     p_lease_seconds: 300,
   });
-  if (error) return json({ error: error.message }, 500);
+  if (error) {
+    log('claim_failed', { code: error.code });
+    return json({ error: 'claim_failed' }, 500);
+  }
 
   const rows = (pending ?? []) as DeliveryRow[];
   const result = { scanned: rows.length, sent: 0, failed: 0, skippedUnconfigured: 0 };
@@ -168,5 +192,6 @@ Deno.serve(async (req) => {
     }
   }
 
+  log('batch_complete', { workerId, ...result });
   return json({ ok: true, ...result });
 });

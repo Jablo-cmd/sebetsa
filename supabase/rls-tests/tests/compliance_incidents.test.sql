@@ -257,9 +257,17 @@ do $$
 declare v_id uuid;
 begin
   select id into v_id from public.compliance_records where requirement_id = '00000000-0000-0000-0000-000000006901' limit 1;
-  -- site_manager IS a can_manage_operations() tier member, so this should succeed (re-verification/adjustment).
-  perform public.verify_compliance_record(v_id, false);
-  raise notice 'PASS: site_manager (operations tier) can also verify compliance records';
+  -- This site_manager is the record's responsible person: although the role is a
+  -- can_manage_operations() tier member, verifying their own record is blocked.
+  begin
+    perform public.verify_compliance_record(v_id, false);
+    raise exception 'SECURITY_FAILURE: responsible person verified their own compliance record';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      if sqlerrm not like 'separation_of_duties%' then raise exception 'FAIL: expected separation_of_duties, got %', sqlerrm; end if;
+      raise notice 'PASS: responsible person cannot verify their own compliance record (%)', sqlerrm;
+  end;
 end $$;
 
 reset role;

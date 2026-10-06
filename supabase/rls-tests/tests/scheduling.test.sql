@@ -315,6 +315,12 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-0000000000a6', '00000000-0000-0000-0000-0000000000a1', 'HR', 'User', 'hr-a@example.com', 'hr_user', 'active');
 
 set local role authenticated;
+set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
+select public.grant_user_scope('00000000-0000-0000-0000-0000000000a5', 'site', '00000000-0000-0000-0000-000000004001');
+
+reset role;
+reset request.jwt.claims;
+set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a5","app_metadata":{"role":"supervisor"}}';
 
 insert into public.shifts (tenant_id, site_id, employee_id, starts_at, ends_at)

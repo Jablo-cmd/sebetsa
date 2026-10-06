@@ -252,7 +252,26 @@ begin
   set local role authenticated;
   set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
 
+  -- The uploader (this hr_user) cannot verify their own upload...
+  begin
+    perform public.verify_document(v_doc.id, true);
+    raise exception 'SECURITY_FAILURE: uploader verified their own document';
+  exception
+    when others then
+      if sqlerrm like 'SECURITY_FAILURE%' then raise; end if;
+      if sqlerrm not like 'separation_of_duties%' then raise exception 'FAIL: expected separation_of_duties, got %', sqlerrm; end if;
+  end;
+
+  -- ...a different manager can.
+  reset role;
+  reset request.jwt.claims;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000013a","app_metadata":{"role":"operations_manager"}}';
   perform public.verify_document(v_doc.id, true);
+  reset role;
+  reset request.jwt.claims;
+  set local role authenticated;
+  set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
 
   select count(*) into v_count_before from public.employee_documents where employee_id = '00000000-0000-0000-0000-00000000017a';
 
