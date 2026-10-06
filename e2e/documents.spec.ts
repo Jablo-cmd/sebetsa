@@ -107,9 +107,9 @@ test('viewing a document opens a short-lived signed URL, never a stored public l
   const popupPromise = page.waitForEvent('popup');
   await page.getByRole('row', { name: /chemical-handling/ }).getByRole('button', { name: 'View' }).click();
   const popup = await popupPromise;
-  await popup.waitForLoadState();
 
-  expect(popup.url()).toContain('/storage/v1/object/sign/employee-documents/');
+  // The signed-URL response is a file; don't wait for a document load, only for the navigation target.
+  await expect.poll(() => popup.url()).toContain('/storage/v1/object/sign/employee-documents/');
   expect(popup.url()).toContain('token=');
   expect(backend.table('employee_documents').some((d) => String(d.storage_path).includes('token'))).toBe(false);
   await popup.close();

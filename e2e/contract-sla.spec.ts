@@ -198,8 +198,8 @@ test('opening a contract document uses a short-lived signed URL', async ({ page,
   const popupPromise = page.waitForEvent('popup');
   await page.getByRole('button', { name: 'Open signed-agreement.pdf' }).click();
   const popup = await popupPromise;
-  await popup.waitForLoadState();
-  expect(popup.url()).toContain('/storage/v1/object/sign/contract-documents/');
+  // The signed-URL response is a file; don't wait for a document load, only for the navigation target.
+  await expect.poll(() => popup.url()).toContain('/storage/v1/object/sign/contract-documents/');
   expect(popup.url()).toContain('token=');
 });
 

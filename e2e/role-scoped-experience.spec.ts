@@ -85,6 +85,8 @@ for (const role of Object.keys(NAV) as SignInAs[]) {
       await expect(page.getByText('Brightway Facilities (Demo)').first()).toBeVisible();
     }
 
+    // Navigation is resolved asynchronously (profile → role → permissions); wait for it to settle.
+    await expect(sidebar(page).getByRole('link')).toHaveCount(NAV[role].length);
     const links = await sidebar(page).getByRole('link').evaluateAll((els) => els.map((el) => ({ label: (el.textContent ?? '').trim(), href: el.getAttribute('href') ?? '' })));
     expect(links.map((l) => l.label).sort()).toEqual([...NAV[role]].sort());
 
