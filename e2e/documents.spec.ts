@@ -104,15 +104,13 @@ test('a failed replacement restores the previous version', async ({ page, app })
 test('viewing a document opens a short-lived signed URL, never a stored public link', async ({ page, app }) => {
   const backend = await app.open('employee');
   await page.goto('/documents');
-  const popupPromise = page.waitForEvent('popup');
+  // The popup receives a file, whose popup URL is not reliable across browser builds. Assert on the
+  // request the app makes for it: a short-lived signed URL under the private bucket.
+  const signedRequest = page.context().waitForEvent('request', (r) => r.method() === 'GET' && r.url().includes('/storage/v1/object/sign/employee-documents/'));
   await page.getByRole('row', { name: /chemical-handling/ }).getByRole('button', { name: 'View' }).click();
-  const popup = await popupPromise;
-
-  // The signed-URL response is a file; don't wait for a document load, only for the navigation target.
-  await expect.poll(() => popup.url()).toContain('/storage/v1/object/sign/employee-documents/');
-  expect(popup.url()).toContain('token=');
+  const url = (await signedRequest).url();
+  expect(url).toContain('token=');
   expect(backend.table('employee_documents').some((d) => String(d.storage_path).includes('token'))).toBe(false);
-  await popup.close();
 });
 
 test('replacing a document archives the old version and creates the next, unverified version', async ({ page, app }) => {

@@ -195,12 +195,9 @@ test('opening a contract document uses a short-lived signed URL', async ({ page,
   await page.goto(`/contracts/${ID.contractHarbour}`);
   await page.getByLabel(/Upload a document/).setInputFiles(PDF('signed-agreement.pdf'));
   await expect(page.getByText('signed-agreement.pdf')).toBeVisible();
-  const popupPromise = page.waitForEvent('popup');
+  const signedRequest = page.context().waitForEvent('request', (r) => r.method() === 'GET' && r.url().includes('/storage/v1/object/sign/contract-documents/'));
   await page.getByRole('button', { name: 'Open signed-agreement.pdf' }).click();
-  const popup = await popupPromise;
-  // The signed-URL response is a file; don't wait for a document load, only for the navigation target.
-  await expect.poll(() => popup.url()).toContain('/storage/v1/object/sign/contract-documents/');
-  expect(popup.url()).toContain('token=');
+  expect((await signedRequest).url()).toContain('token=');
 });
 
 test('roles that cannot manage org structure get a read-only contract page', async ({ page, app }) => {
