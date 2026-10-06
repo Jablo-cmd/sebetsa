@@ -56,11 +56,6 @@ for migration in "$MIGRATIONS_DIR"/*.sql; do
   psql_exec < "$migration"
 done
 
-for fixture in "$SCRIPT_DIR"/02_fixtures.sql "$SCRIPT_DIR"/04_employee_fixtures.sql "$SCRIPT_DIR"/06_employee_provisioning_fixtures.sql "$SCRIPT_DIR"/09_attendance_fixtures.sql; do
-  echo "Loading $(basename "$fixture")"
-  psql_exec < "$fixture"
-done
-
 for test_file in "$SCRIPT_DIR"/tests/*.test.sql; do
   echo "Testing $(basename "$test_file")"
   psql_exec < "$test_file"
