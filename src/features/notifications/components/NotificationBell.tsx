@@ -4,7 +4,7 @@ import { useNotifications } from '@/features/notifications/hooks/useNotification
 import { BellIcon } from '@/components/ui/icons';
 
 export interface NotificationBellProps {
-  /** Staff and guardians land in different layouts (DashboardLayout vs. ParentLayout), so each header supplies its own route. */
+  /** Route of the notifications list the bell links to. */
   to: string;
 }
 

@@ -1,7 +1,7 @@
 -- Sebetsa Phase N — Compliance, Safety & Incident Management: RLS/RPC checks.
 --
 --   supabase start
---   cat supabase/rls-tests/compliance_incidents.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/compliance_incidents.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

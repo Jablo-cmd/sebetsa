@@ -2,7 +2,7 @@
 -- concurrency checks.
 --
 --   supabase start
---   cat supabase/rls-tests/tasks_workflows.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/tasks_workflows.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

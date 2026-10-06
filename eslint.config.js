@@ -19,7 +19,6 @@ export default [
       'supabase/.temp',
       'supabase/.branches',
       'supabase/functions',
-      'docs/funda360-reference-other',
     ],
   },
   js.configs.recommended,

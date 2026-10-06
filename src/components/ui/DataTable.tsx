@@ -24,7 +24,7 @@ export interface DataTableProps<T> {
 /**
  * A generic table shell (FND-UX-004) — the exact markup shape every
  * hand-rolled `*Table` component in this app already converged on
- * independently (LearnersTable, EmployeesTable, ArchivedTimetableEntriesTable,
+ * independently (EmployeesTable, SitesTable, ContractsTable,
  * etc.: `TableScrollContainer` + `border-b border-border text-xs uppercase
  * tracking-wide` header + `border-b border-border last:border-0` rows +
  * `px-4 py-3` cells), extracted so a NEW table doesn't have to re-derive

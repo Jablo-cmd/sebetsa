@@ -68,7 +68,7 @@
   /* WCAG AA fix (FND-SEC-007): the previous value (34 150 94) measured
      3.75:1 against white and 3.357:1 against its own translucent
      background (bg-success-500/10) — both under the 4.5:1 floor (e.g. the
-     Dashboard "Online" status text, the "Paid" fee-status badge). This
+     Dashboard "Online" status text, success status badges). This
      value measures 5.884:1 against white and 5.26:1 against the /10
      background. */
   --success-500: 18 115 71;

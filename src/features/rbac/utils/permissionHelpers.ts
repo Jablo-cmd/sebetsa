@@ -24,7 +24,7 @@ export function hasAllPermissions(role: UserRole | null | undefined, permissions
   return permissions.every((permission) => hasPermission(role, permission));
 }
 
-/** Alias for hasPermission — reads better at call sites, e.g. `can(role, 'school.manage')`. */
+/** Alias for hasPermission — reads better at call sites, e.g. `can(role, 'employee.manage')`. */
 export function can(role: UserRole | null | undefined, permission: Permission): boolean {
   return hasPermission(role, permission);
 }

@@ -1,10 +1,10 @@
 -- Sebetsa Phase I — Attendance & Time Management: RLS / lifecycle /
 -- concurrency / leave-integration checks. Same pattern as
--- supabase/rls-tests/leave.sql — a real, repeatable psql script against
+-- supabase/rls-tests/tests/leave.test.sql — a real, repeatable psql script against
 -- actual RLS policies/triggers/constraints/RPCs, not a mock.
 --
 --   supabase start
---   cat supabase/rls-tests/attendance_time_management.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/attendance_time_management.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

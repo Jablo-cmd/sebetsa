@@ -33,7 +33,7 @@ export function UsersPage() {
     <PageContainer>
       <PageHeader
         title="Users"
-        description="Manage the staff accounts at your school."
+        description="Manage the user accounts in your organisation."
         action={
           canManage && (
             <div className="w-full sm:w-auto sm:min-w-[9rem]">

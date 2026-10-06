@@ -1,7 +1,7 @@
 -- Sebetsa Phase P — Client, Contract & SLA Management: RLS/RPC checks.
 --
 --   supabase start
---   cat supabase/rls-tests/client_contract_sla.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/client_contract_sla.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

@@ -10,8 +10,9 @@ export function canManageUsers(actorRole: UserRole | null): boolean {
 /**
  * Can the actor manage this SPECIFIC target user? Reuses the existing role
  * hierarchy (isAtLeast) rather than a new one: an actor may only manage
- * users at or below their own seniority — a principal can manage teachers
- * but not another principal or a school owner.
+ * users at or below their own seniority — an organisation administrator
+ * can manage site managers, but a site manager cannot manage an
+ * organisation administrator.
  */
 export function canManageUser(actorRole: UserRole | null, targetRole: UserRole | null): boolean {
   if (!canManageUsers(actorRole)) return false;

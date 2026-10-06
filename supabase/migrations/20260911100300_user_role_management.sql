@@ -1,11 +1,10 @@
 -- Sebetsa Phase C — User & Role Management
 --
--- Sebetsa's role set (distinct from Funda360's education roles). Chosen to
+-- Sebetsa's role set. Chosen to
 -- match the operational hierarchy: Organisation > Region > Client > Site >
 -- Workforce. `profiles.role` is a denormalized mirror of the JWT
 -- app_metadata.role claim (the real authorization source of truth), kept in
--- sync exclusively through admin_update_user_role()/admin_create_user() —
--- same mechanism as Funda360's 20260802151501_user_role_management.sql.
+-- sync exclusively through admin_update_user_role()/admin_create_user().
 
 create extension if not exists pgcrypto;
 

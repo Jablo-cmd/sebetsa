@@ -52,12 +52,10 @@ async function getUserById(userId: string): Promise<Profile | null> {
  * Privileged: creates the auth account + profile via the admin_create_user
  * RPC (see supabase/migrations). tenantId is normally omitted — the RPC
  * falls back to the caller's own current_tenant_id(), correct for a
- * tenant-scoped admin provisioning within their own school. A
+ * tenant-scoped admin provisioning within their own organisation. A
  * platform-level caller has no tenant of their own (current_tenant_id()
- * is always null for them), so provisioning a brand-new school's very
- * first user — nothing else here would create it — requires passing the
- * target school id explicitly; only the onboarding wizard does this
- * (SchoolOnboardingWizardPage), the general Add User modal never does.
+ * is always null for them), so provisioning a brand-new organisation's
+ * first user requires passing the target organisation id explicitly.
  */
 async function createUser(input: CreateUserInput): Promise<CreateUserResult> {
   const { data, error } = await supabase.rpc('admin_create_user', {

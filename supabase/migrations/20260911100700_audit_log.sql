@@ -1,5 +1,5 @@
 -- Sebetsa Phase C — Audit Log Foundation
--- Pattern reused from Funda360's audit_log.sql: append-only, written only by
+-- Append-only, written only by
 -- SECURITY DEFINER functions (never by a direct client INSERT), so a
 -- compromised session can never forge or tamper with the trail.
 
@@ -95,8 +95,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- Employee lifecycle RPCs (audited), mirroring Funda360's
--- terminate_employee/reactivate_employee shape.
+-- Employee lifecycle RPCs (audited): terminate_employee/reactivate_employee.
 
 create or replace function public.can_manage_employees(target_tenant_id uuid)
 returns boolean

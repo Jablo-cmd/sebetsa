@@ -1,7 +1,7 @@
 -- Sebetsa Phase O — Procurement, Inventory & Asset Management: RLS/RPC checks.
 --
 --   supabase start
---   cat supabase/rls-tests/procurement_inventory_assets.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/procurement_inventory_assets.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

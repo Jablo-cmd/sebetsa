@@ -77,8 +77,7 @@ create trigger attendance_records_set_updated_at
   for each row
   execute function public.set_updated_at();
 
--- Leave requests (carried forward from Funda360's staff leave-management
--- shape, generalized off "staff" onto employees).
+-- Leave requests (per employee).
 create table public.leave_requests (
   id            uuid primary key default gen_random_uuid(),
   tenant_id     uuid not null references public.organizations (id) on delete cascade,

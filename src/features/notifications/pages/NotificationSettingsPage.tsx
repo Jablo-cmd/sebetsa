@@ -85,7 +85,7 @@ export function NotificationSettingsPage() {
               onChange={(e) => setPrefs({ ...prefs, whatsappEnabled: e.target.checked })}
             />
             <p className="text-xs text-content-tertiary">
-              A channel only delivers if your school has enabled it and a delivery provider is configured. Until then,
+              A channel only delivers if your organisation has enabled it and a delivery provider is configured. Until then,
               messages still reach you in-app.
             </p>
           </fieldset>

@@ -18,7 +18,7 @@ export interface UseEmployeesListResult {
   refetch: () => Promise<void>;
 }
 
-export function useEmployeesList(schoolId: string | undefined): UseEmployeesListResult {
+export function useEmployeesList(tenantId: string | undefined): UseEmployeesListResult {
   const [filters, setFiltersState] = useState<EmployeesListFilters>({});
   const [page, setPage] = useState(1);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -27,14 +27,14 @@ export function useEmployeesList(schoolId: string | undefined): UseEmployeesList
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!schoolId) {
+    if (!tenantId) {
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
     setError(null);
     try {
-      const result = await employeeService.getEmployees(schoolId, filters, page, PAGE_SIZE);
+      const result = await employeeService.getEmployees(tenantId, filters, page, PAGE_SIZE);
       setEmployees(result.employees);
       setTotalCount(result.totalCount);
     } catch (err) {
@@ -42,7 +42,7 @@ export function useEmployeesList(schoolId: string | undefined): UseEmployeesList
     } finally {
       setIsLoading(false);
     }
-  }, [schoolId, filters, page]);
+  }, [tenantId, filters, page]);
 
   useEffect(() => {
     void load();

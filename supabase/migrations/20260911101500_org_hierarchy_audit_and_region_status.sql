@@ -7,10 +7,9 @@
 --    around in the UI.
 --
 -- 2. regions/clients/sites/contracts are plain RLS-gated table writes (no
---    RPC front door), the same shape Funda360's audit_log_from_trigger()
---    was built for (see its own migration comment) — that generic trigger
---    body doesn't exist yet in Sebetsa (only the explicit write_audit_log()
---    RPC insertion point was carried over). Added here and attached to
+--    RPC front door), the shape a generic audit_log_from_trigger()
+--    suits — that generic trigger body did not exist yet (only the
+--    explicit write_audit_log() RPC insertion point). Added here and attached to
 --    exactly these four tables by name — a deliberate allowlist, not a
 --    blanket every-table trigger.
 

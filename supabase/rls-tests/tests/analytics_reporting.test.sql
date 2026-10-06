@@ -9,7 +9,7 @@
 -- the function runs.
 --
 --   supabase start
---   cat supabase/rls-tests/analytics_reporting.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/analytics_reporting.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

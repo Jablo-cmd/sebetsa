@@ -26,22 +26,6 @@ async function requestPasswordReset(email: string): Promise<void> {
   if (error) throw error;
 }
 
-/**
- * Delivers a guardian's account-activation link. Same Supabase recovery
- * mechanism as requestPasswordReset (no new email infrastructure), just
- * redirecting to /activate-account instead of /reset-password — see
- * AuthProvider's PASSWORD_RECOVERY handler for how the two routes stay
- * distinct despite sharing one underlying flow. Called by
- * guardianInvitationService right after send_guardian_invitation() records
- * the invitation — that RPC has no route to GoTrue's mailer itself.
- */
-async function sendAccountActivationEmail(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: appUrl('/activate-account'),
-  });
-  if (error) throw error;
-}
-
 async function updatePassword(newPassword: string): Promise<void> {
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
@@ -57,7 +41,6 @@ export const authService = {
   signInWithPassword,
   signOut,
   requestPasswordReset,
-  sendAccountActivationEmail,
   updatePassword,
   resendVerificationEmail,
 };

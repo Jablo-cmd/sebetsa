@@ -3,7 +3,7 @@
 -- everything else is an aggregation layer over already-tested tables).
 --
 --   supabase start
---   cat supabase/rls-tests/workforce_site_operations.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/workforce_site_operations.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

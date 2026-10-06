@@ -69,9 +69,7 @@ create trigger leave_requests_validate_leave_type_tenant_ref
   execute function public.validate_leave_request_leave_type_tenant_ref();
 
 -- ---------------------------------------------------------------------------
--- Lifecycle enforcement. Mirrors the Funda360 leave_management prior art
--- (docs/funda360-reference-migrations/20260829230000_leave_management.sql):
--- force every INSERT to 'pending' regardless of caller-supplied status, and
+-- Lifecycle enforcement: force every INSERT to 'pending' regardless of caller-supplied status, and
 -- derive decided_by/decided_at/cancelled_by/cancelled_at server-side the
 -- instant status actually changes — never trusted from the client.
 

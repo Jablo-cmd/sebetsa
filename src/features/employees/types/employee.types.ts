@@ -7,8 +7,7 @@ export type EntityStatus = Database['public']['Enums']['entity_status'];
 /**
  * Roles provisionable through Employee Management's login-provisioning flow
  * (admin_create_user) — deliberately every non-platform role, since
- * Sebetsa's employee-to-user relationship is 1:1-or-none, not a fixed
- * subset the way Funda360's was.
+ * Sebetsa's employee-to-user relationship is 1:1-or-none.
  */
 export const PROVISIONABLE_ROLES = [
   'organization_administrator',

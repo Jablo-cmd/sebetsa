@@ -72,7 +72,7 @@ export function ForgotPasswordForm() {
         label="Email address"
         type="email"
         autoComplete="username"
-        placeholder="you@school.edu"
+        placeholder="you@company.example"
         required
         error={errors.email?.message}
         {...register('email')}

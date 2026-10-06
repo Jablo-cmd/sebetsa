@@ -178,7 +178,7 @@ site_url = "http://localhost:5173"
 # honoured if that exact URL appears in this list — an unlisted path
 # elsewhere silently falls back to the bare site_url rather than erroring.
 # Since site_url above is now this project's real dev origin
-# (http://localhost:5173), guardian activation and staff password-reset
+# (http://localhost:5173), invite activation and password-reset
 # already work at that origin without needing an entry here — the two
 # localhost:5173 lines are kept anyway as explicit, self-documenting
 # allow-list entries rather than relying on that origin-match leniency,
@@ -276,12 +276,12 @@ enabled = false
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
-# Funda360 branding for the recovery email — shared by staff "forgot
-# password" and guardian account activation, since both flows send this
-# same Supabase email type (resetPasswordForEmail) with different
-# redirectTo destinations. See supabase/migrations/20260827090000_guardian_invitations.sql.
+# Sebetsa branding for the recovery email — shared by "forgot password"
+# and invite-link account activation, since both flows use the same
+# Supabase email type with different redirectTo destinations
+# (/reset-password, /activate-account).
 [auth.email.template.recovery]
-subject = "Continue to your Funda360 account"
+subject = "Continue to your Sebetsa account"
 content_path = "./supabase/templates/recovery.html"
 
 # Uncomment to customize notification email template
@@ -335,11 +335,10 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
-# FND-ARCH-003: enabled so school_owner/principal/finance_manager/
-# accountant/platform admins can actually set up the two-factor
-# authentication the app now supports (src/features/mfa/) — disabled by
-# default in a fresh Supabase CLI config, which is why enrollment silently
-# failed until this was found and fixed here. The equivalent toggle needs
+# Enabled so the privileged roles listed in
+# src/features/rbac/constants/mfaRequiredRoles.ts can enrol the TOTP
+# two-factor authentication the app enforces (src/features/mfa/) — it is
+# disabled by default in a fresh Supabase CLI config. The equivalent toggle needs
 # enabling in the hosted project's Auth settings (Authentication >
 # Providers > Multi-Factor Authentication) before this works there too —
 # this file only configures the local dev stack.

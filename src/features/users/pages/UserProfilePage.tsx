@@ -88,7 +88,7 @@ export function UserProfilePage() {
           </div>
           <div>
             <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">
-              School association
+              Organisation
             </dt>
             <dd className="mt-1 text-sm text-content-primary">
               {user.tenantId ? (currentOrganization?.name ?? 'Your organization') : 'No organization assigned (platform-level account)'}

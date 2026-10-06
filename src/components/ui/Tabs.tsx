@@ -10,12 +10,9 @@ export interface TabsProps<K extends string> {
 }
 
 /**
- * FND-UX-003: extracted from the identical hand-rolled tab bar that used
- * to live independently in LearnerProfilePage and ParentChildProfilePage
- * (byte-for-byte the same markup/classes in both) — a real duplication
- * this audit flagged, not a speculative one. Generic over the tab-key
- * union so each caller keeps its own exhaustively-checked `TabKey` type;
- * this component only needs to know it's a string.
+ * Shared tab bar. Generic over the tab-key union so each caller keeps its
+ * own exhaustively-checked `TabKey` type; this component only needs to
+ * know it's a string.
  *
  * Deliberately keeps the original `aria-current="page"` semantics rather
  * than introducing a full `role="tab"`/`role="tabpanel"` ARIA pattern —

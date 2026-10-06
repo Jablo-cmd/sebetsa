@@ -2,8 +2,7 @@
 -- Creates `profiles`: personal/contact details for an authenticated user,
 -- plus the `tenant_id` that scopes them to an organization.
 --
--- Deliberately excludes a `role` column here for the same reason as Funda360
--- (supabase/migrations/20260802125402_create_profiles.sql): role is
+-- Deliberately excludes a `role` column here: role is
 -- security-sensitive and lives in the JWT's app_metadata; profiles.role
 -- (added in 20260911100300_user_role_management.sql) is only a denormalized
 -- mirror for listing/filtering.

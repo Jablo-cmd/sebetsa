@@ -1,8 +1,6 @@
 -- Sebetsa Phase C — Multi-Tenant Foundation
 -- Row Level Security base: every query against a tenant-scoped table is
 -- filtered to the caller's own tenant, enforced in Postgres itself.
--- Pattern reused verbatim from Funda360
--- (supabase/migrations/20260802125403_row_level_security.sql).
 
 create or replace function public.current_tenant_id()
 returns uuid

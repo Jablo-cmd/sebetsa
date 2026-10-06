@@ -2,11 +2,11 @@
 -- workforce hierarchy (departments, positions, employees, teams,
 -- team_members, site_assignments).
 --
--- Same pattern as supabase/rls-tests/org_hierarchy.sql — a real, repeatable
+-- Same pattern as supabase/rls-tests/tests/org_hierarchy.test.sql — a real, repeatable
 -- psql script against actual RLS policies and triggers, not a mock. Run:
 --
 --   supabase start
---   cat supabase/rls-tests/workforce_management.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/workforce_management.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- Covers what org_hierarchy.sql doesn't: cross-tenant *relationship*
 -- rejection (an employee whose department/position/site points at another

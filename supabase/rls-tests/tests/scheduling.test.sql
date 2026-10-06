@@ -3,12 +3,12 @@
 -- shift_substitutions, attendance_records, leave_requests,
 -- employee_availability, employee_availability_exceptions).
 --
--- Same pattern as supabase/rls-tests/workforce_management.sql — a real,
+-- Same pattern as supabase/rls-tests/tests/workforce_management.test.sql — a real,
 -- repeatable psql script against actual RLS policies/triggers/constraints,
 -- not a mock. Run:
 --
 --   supabase start
---   cat supabase/rls-tests/scheduling.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/scheduling.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

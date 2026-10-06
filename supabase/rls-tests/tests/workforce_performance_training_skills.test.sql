@@ -1,7 +1,7 @@
 -- Sebetsa Phase Q — Workforce Performance, Training & Skills: RLS/RPC checks.
 --
 --   supabase start
---   cat supabase/rls-tests/workforce_performance_training_skills.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/workforce_performance_training_skills.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

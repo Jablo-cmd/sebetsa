@@ -3,12 +3,12 @@
 -- leave_requests extensions, leave_balances, leave_balance_transactions,
 -- employee_availability_exceptions.leave_request_id, shifts leave guard).
 --
--- Same pattern as supabase/rls-tests/scheduling.sql — a real, repeatable
+-- Same pattern as supabase/rls-tests/tests/scheduling.test.sql — a real, repeatable
 -- psql script against actual RLS policies/triggers/constraints/RPCs, not a
 -- mock. Run:
 --
 --   supabase start
---   cat supabase/rls-tests/leave.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/leave.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- One transaction, always rolled back.
 

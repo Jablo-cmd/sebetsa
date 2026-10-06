@@ -71,7 +71,7 @@ export function MfaChallengePage() {
         </Button>
 
         <p className="text-center text-xs text-content-tertiary">
-          Lost access to your authenticator app? Contact your school administrator.
+          Lost access to your authenticator app? Contact your organisation administrator.
         </p>
 
         <Button type="button" variant="ghost" onClick={() => void signOut()}>

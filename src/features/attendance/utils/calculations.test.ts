@@ -90,7 +90,7 @@ describe('calculateAverageRate', () => {
   });
 
   it('excludes null rates rather than treating them as zero', () => {
-    // A learner/class with no qualifying days must not drag the average down to look like 0% attendance
+    // An employee/site with no qualifying shifts must not drag the average down to look like 0% attendance
     expect(calculateAverageRate([100, null, 50])).toBe(75);
   });
 

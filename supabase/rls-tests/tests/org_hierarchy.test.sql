@@ -1,15 +1,12 @@
 -- Sebetsa Phase E — RLS / tenant-isolation checks for the organisation
 -- hierarchy (regions, clients, sites, contracts).
 --
--- Not wired into an automated CI job yet (Funda360's full pgTAP-style
--- harness — auth stubs, fixtures, run.sh — was archived as reference at
--- docs/funda360-reference-other/rls-tests/ rather than rebuilt this phase;
--- that's Phase K scope). This is a real, repeatable psql script exercising
--- the actual RLS policies against a local Postgres, not a mock — run it
--- with:
+-- Executed in CI by supabase/rls-tests/run.sh. This is a real, repeatable
+-- psql script exercising the actual RLS policies against Postgres, not a
+-- mock. It can also be run against a local Supabase stack with:
 --
 --   supabase start
---   cat supabase/rls-tests/org_hierarchy.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
+--   cat supabase/rls-tests/tests/org_hierarchy.test.sql | docker exec -i supabase_db_sebetsa psql -U postgres -d postgres
 --
 -- Every check either prints its own PASS notice or raises an exception
 -- (visible as a hard psql error), so a clean run with no ERROR lines is a
