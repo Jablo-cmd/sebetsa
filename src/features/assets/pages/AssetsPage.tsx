@@ -6,6 +6,9 @@ import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganization
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
+import { useSitesList } from '@/features/attendance/hooks/useSitesList';
+import { useEmployeeNames } from '@/features/employees/hooks/useEmployeeNames';
+import { AssignAssetModal } from '@/features/assets/components/AssignAssetModal';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { assetService } from '@/features/assets/services/assetService';
 import { ASSET_STATUS_LABELS } from '@/features/assets/types/assets.types';
@@ -23,14 +26,42 @@ const STATUS_TONES: Record<AssetStatusEnum, StatusTone> = {
   disposed: 'neutral',
 };
 
-/** Asset register: create, view lifecycle status. Assignment/return happen
- * via RPC from a per-row action rather than a separate modal, keeping the
- * page focused for this operational-management-tier audience. */
+/** Asset register and lifecycle. Each row offers only the moves the status
+ * allows (mirroring the database's asset state machine): assign to / return
+ * from an employee, maintenance, damaged/lost, retire, dispose. The database
+ * enforces the same rules and records every change in the audit trail. */
+const ROW_ACTIONS: Partial<Record<AssetStatusEnum, { label: string; to: AssetStatusEnum }[]>> = {
+  available: [
+    { label: 'Send to maintenance', to: 'maintenance' },
+    { label: 'Retire', to: 'retired' },
+  ],
+  assigned: [
+    { label: 'Report damaged', to: 'damaged' },
+    { label: 'Report lost', to: 'lost' },
+  ],
+  maintenance: [
+    { label: 'Return to service', to: 'available' },
+    { label: 'Retire', to: 'retired' },
+  ],
+  damaged: [
+    { label: 'Send to maintenance', to: 'maintenance' },
+    { label: 'Retire', to: 'retired' },
+  ],
+  lost: [
+    { label: 'Mark recovered', to: 'available' },
+    { label: 'Retire', to: 'retired' },
+  ],
+  retired: [{ label: 'Dispose', to: 'disposed' }],
+};
+
 export function AssetsPage() {
   const organization = useCurrentOrganization();
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { sites } = useSitesList(organization?.id);
+  const [siteId, setSiteId] = useState('');
+  const [assigning, setAssigning] = useState<Asset | null>(null);
   const [assetNumber, setAssetNumber] = useState('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
@@ -53,6 +84,8 @@ export function AssetsPage() {
     void load();
   }, [load]);
 
+  const custodianNames = useEmployeeNames(assets.map((asset) => asset.custodianEmployeeId).filter((id): id is string => Boolean(id)));
+
   if (!organization) return <NoActiveOrganizationNotice resource="assets" />;
 
   const handleCreate = async () => {
@@ -60,7 +93,8 @@ export function AssetsPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      await assetService.createAsset({ tenantId: organization.id, assetNumber: assetNumber.trim(), name: name.trim(), category: category.trim() });
+      await assetService.createAsset({ tenantId: organization.id, assetNumber: assetNumber.trim(), name: name.trim(), category: category.trim(), siteId: siteId || undefined });
+      setSiteId('');
       setAssetNumber('');
       setName('');
       setCategory('');
@@ -69,6 +103,16 @@ export function AssetsPage() {
       setError(getDbErrorMessage(err, 'Failed to create the asset.'));
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleReturn = async (assetId: string) => {
+    setError(null);
+    try {
+      await assetService.returnAsset(assetId);
+      void load();
+    } catch (err) {
+      setError(getDbErrorMessage(err, 'Failed to return the asset.'));
     }
   };
 
@@ -94,6 +138,15 @@ export function AssetsPage() {
           <TextField label="Asset number" placeholder="AST-001" value={assetNumber} onChange={(event) => setAssetNumber(event.target.value)} />
           <TextField label="Name" placeholder="Floor buffer" value={name} onChange={(event) => setName(event.target.value)} />
           <TextField label="Category" placeholder="equipment" value={category} onChange={(event) => setCategory(event.target.value)} />
+          <label className="flex flex-col gap-1 text-sm">
+            Site
+            <select value={siteId} onChange={(event) => setSiteId(event.target.value)} className="focus-ring h-11 rounded-lg border border-border-strong bg-surface-raised px-3">
+              <option value="">No specific site</option>
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>{site.name}</option>
+              ))}
+            </select>
+          </label>
           <Button onClick={() => void handleCreate()} isLoading={isSubmitting} disabled={!assetNumber.trim() || !name.trim() || !category.trim()}>
             Add
           </Button>
@@ -111,6 +164,8 @@ export function AssetsPage() {
               <tr className="border-b border-border text-xs uppercase text-content-secondary">
                 <th className="px-3 py-2">Asset</th>
                 <th className="px-3 py-2">Category</th>
+                <th className="px-3 py-2">Site</th>
+                <th className="px-3 py-2">Custodian</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2 text-right">Actions</th>
               </tr>
@@ -120,19 +175,23 @@ export function AssetsPage() {
                 <tr key={asset.id} className="border-b border-border last:border-0">
                   <td className="px-3 py-2.5">{asset.assetNumber} — {asset.name}</td>
                   <td className="px-3 py-2.5">{asset.category}</td>
+                  <td className="px-3 py-2.5">{asset.siteId ? sites.find((site) => site.id === asset.siteId)?.name ?? '—' : '—'}</td>
+                  <td className="px-3 py-2.5">{asset.custodianEmployeeId ? custodianNames[asset.custodianEmployeeId] ?? '—' : '—'}</td>
                   <td className="px-3 py-2.5">
                     <StatusBadge label={ASSET_STATUS_LABELS[asset.status]} tone={STATUS_TONES[asset.status]} />
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     {asset.status === 'available' && (
-                      <Button variant="ghost" onClick={() => void handleTransition(asset.id, 'maintenance')}>Send to maintenance</Button>
+                      <Button variant="ghost" onClick={() => setAssigning(asset)}>Assign</Button>
                     )}
-                    {asset.status === 'maintenance' && (
-                      <Button variant="ghost" onClick={() => void handleTransition(asset.id, 'available')}>Return to service</Button>
+                    {asset.status === 'assigned' && (
+                      <Button variant="ghost" onClick={() => void handleReturn(asset.id)}>Return</Button>
                     )}
-                    {asset.status === 'retired' && (
-                      <Button variant="ghost" onClick={() => void handleTransition(asset.id, 'disposed')}>Dispose</Button>
-                    )}
+                    {(ROW_ACTIONS[asset.status] ?? []).map((action) => (
+                      <Button key={action.label} variant="ghost" onClick={() => void handleTransition(asset.id, action.to)}>
+                        {action.label}
+                      </Button>
+                    ))}
                   </td>
                 </tr>
               ))}
@@ -140,6 +199,13 @@ export function AssetsPage() {
           </table>
         </div>
       )}
+      <AssignAssetModal
+        isOpen={assigning !== null}
+        onClose={() => setAssigning(null)}
+        asset={assigning}
+        tenantId={organization.id}
+        onAssigned={() => void load()}
+      />
     </PageContainer>
   );
 }

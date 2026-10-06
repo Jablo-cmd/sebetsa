@@ -37,6 +37,13 @@ async function getBalance(itemId: string, siteId: string): Promise<number> {
   return data ?? 0;
 }
 
+/** Stock levels for every item at one site in a single request. Items with no movements at the site are absent (treat as 0). */
+async function getBalances(siteId: string): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('get_inventory_balances', { p_site_id: siteId });
+  if (error) throw error;
+  return Object.fromEntries((data ?? []).map((row) => [row.item_id, Number(row.balance)]));
+}
+
 async function recordMovement(input: { itemId: string; siteId: string; movementType: InventoryMovementTypeEnum; quantity: number; reference?: string }): Promise<void> {
   const { error } = await supabase.rpc('record_inventory_movement', {
     p_item_id: input.itemId,
@@ -52,5 +59,6 @@ export const inventoryService = {
   getItems,
   createItem,
   getBalance,
+  getBalances,
   recordMovement,
 };

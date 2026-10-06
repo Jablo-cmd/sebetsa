@@ -4693,6 +4693,13 @@ export type Database = {
         Args: { p_item_id: string; p_site_id: string }
         Returns: number
       }
+      get_inventory_balances: {
+        Args: { p_site_id: string }
+        Returns: {
+          balance: number
+          item_id: string
+        }[]
+      }
       get_leave_affected_shifts: {
         Args: { p_leave_request_id: string }
         Returns: {

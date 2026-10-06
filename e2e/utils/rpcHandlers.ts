@@ -500,6 +500,10 @@ const operations: Record<string, RpcHandler> = {
     return created;
   },
   get_inventory_balance: (a, ctx) => balance(ctx, a.p_item_id, a.p_site_id),
+  get_inventory_balances: (a, ctx) => {
+    const itemIds = [...new Set(ctx.backend.visible('inventory_movements').filter((m) => m.site_id === a.p_site_id).map((m) => m.item_id))];
+    return itemIds.map((item_id) => ({ item_id, balance: balance(ctx, item_id, a.p_site_id) }));
+  },
   assign_asset: (a, ctx) => {
     const asset = row(ctx, 'assets', a.p_asset_id, 'asset');
     require_(ctx, MANAGE_OPS, 'cannot assign assets');

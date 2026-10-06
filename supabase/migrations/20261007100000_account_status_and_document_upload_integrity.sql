@@ -335,3 +335,24 @@ create trigger attendance_records_set_actor before insert or update on public.at
   for each row execute function public.set_actor_column('recorded_by');
 
 revoke execute on function public.set_actor_column() from public, anon, authenticated;
+
+-- One round trip for a whole site's stock levels (the app used to call
+-- get_inventory_balance once per item). SECURITY INVOKER: RLS on
+-- inventory_movements scopes it to what the caller may see.
+create or replace function public.get_inventory_balances(p_site_id uuid)
+returns table (item_id uuid, balance numeric)
+language sql
+stable
+as $$
+  select m.item_id,
+         coalesce(sum(case
+           when m.movement_type in ('receipt', 'transfer_in', 'return', 'adjustment') then m.quantity
+           when m.movement_type in ('issue', 'transfer_out') then -m.quantity
+         end), 0)
+  from public.inventory_movements m
+  where m.site_id = p_site_id
+  group by m.item_id
+$$;
+
+revoke execute on function public.get_inventory_balances(uuid) from public, anon;
+grant execute on function public.get_inventory_balances(uuid) to authenticated, service_role;
