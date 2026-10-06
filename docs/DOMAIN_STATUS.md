@@ -1,42 +1,60 @@
-# Sebetsa Enterprise Delivery Status
+# Sebetsa delivery status
 
-**Rule:** one enterprise control is not marked complete until it is implemented, verified, tested, documented and safe to release.
+**Rule:** a control is not marked GREEN unless it passed. Evidence is labelled by *where* it was obtained, because they are not interchangeable:
 
-Last reconciled: 2026-10-06.
+- **Repo** — present in source and reviewed.
+- **Local** — executed on a developer machine / harness (PostgreSQL 16 locally).
+- **CI** — executed by GitHub Actions on the branch (`workflow_dispatch`, PostgreSQL 17 service).
+- **Live** — verified against the hosted Supabase project, hosting and providers.
+- **Blocked** — cannot be established without access this repository does not have.
 
-## Current platform domains
+Last reconciled: 2026-10-06, commit `8918193` (CI run 121; see the final report for its outcome).
 
-- Workforce & employee management — CLOSED
-- Organisation hierarchy — CLOSED
-- Scheduling & availability — CLOSED
-- Attendance — CLOSED
-- Leave management — CLOSED
-- Tasks & operational workflows — CLOSED
-- Site operations — CLOSED
-- Documents & employee records — CLOSED
-- Compliance & incidents — CLOSED
-- Procurement, inventory & assets — CLOSED
-- Client contracts & SLA — CLOSED
-- Performance, training & skills — CLOSED
-- Reporting & management intelligence — CLOSED
+## Product areas
 
-## Enterprise hardening
+| Area | Repo | Local | CI |
+| ---- | ---- | ----- | -- |
+| Workforce & employees | ✔ | E2E + RLS | E2E + RLS |
+| Organisation structure (regions, clients, sites, contracts, teams, site assignments) | ✔ | E2E + RLS | E2E + RLS |
+| Access scopes (region/site/team) with management UI | ✔ | E2E + RLS | E2E + RLS |
+| Scheduling, shift definitions, availability | ✔ | E2E + RLS | E2E + RLS |
+| Attendance & corrections | ✔ | E2E + RLS | E2E + RLS |
+| Leave | ✔ | E2E + RLS | E2E + RLS |
+| Tasks (incl. creation), checklists, evidence, verification | ✔ | E2E + RLS | E2E + RLS |
+| Site operations | ✔ | E2E | E2E |
+| Documents (employee, contract) | ✔ | E2E + RLS | E2E + RLS |
+| Compliance & incidents | ✔ | E2E + RLS | E2E + RLS |
+| Procurement, inventory, assets (incl. maintenance log) | ✔ | E2E + RLS | E2E + RLS |
+| Contracts & SLA | ✔ | E2E + RLS | E2E + RLS |
+| Skills, qualifications, training, performance | ✔ | E2E + RLS | E2E + RLS |
+| Reports & CSV export, dashboards | ✔ | E2E | E2E |
+| Notifications (in-app, preferences) | ✔ | E2E + RLS | E2E + RLS |
+| External delivery (email/SMS/WhatsApp): producer trigger, outbox, worker logic | ✔ | RLS + Deno | RLS + Deno |
+| Accessibility sweep, phone-viewport layout | ✔ | E2E | E2E |
 
-- Repository identity purification — IN PROGRESS
-- Production release gate — IMPLEMENTED
-- Node/runtime modernization — IMPLEMENTED
-- Notification outbox reliability — IMPLEMENTED IN SOURCE; LIVE WORKER VERIFICATION PENDING
-- Security governance — IMPLEMENTED
-- Demo dataset — IMPLEMENTED
-- Branch protection — BLOCKED ON GITHUB INTEGRATION PERMISSION
-- Live Supabase security certification — BLOCKED UNTIL SEBETSA PROJECT IS CONNECTED
-- Production domain/secrets verification — BLOCKED UNTIL HOSTING CONFIGURATION IS PROVIDED
-- BCDR restore test — PENDING LIVE ENVIRONMENT
-- Scope-aware region/client/site authorization certification — PENDING LIVE TEST
-- Enterprise observability certification — PENDING
-- GPS/geofencing/tours/offline field layer — NEXT PRODUCT BUILD
-- Command centre — NEXT PRODUCT BUILD
+## Platform controls
+
+| Control | State |
+| ------- | ----- |
+| RLS + FORCE RLS on every table; no anon grants; definer functions pin `search_path` | Repo + Local + CI (catalogue suite) |
+| Scope-aware authorisation (restrictive policies, fail closed) | Repo + Local + CI |
+| Separation of duties (13 rules, guard triggers) | Repo + Local + CI |
+| Immutable, categorised audit trail; retention rule defined | Repo + Local + CI. Purge not scheduled. |
+| Deactivated accounts locked out in the database | Repo + Local + CI |
+| Generated types and E2E schema match migrations | CI (`--check`) |
+| CI chain with release gate, least privilege, deploy-only-from-main | Repo; run on a branch via CI. The deploy job itself has never run (needs `main` + secrets). |
+| MFA enforced server-side | **Not implemented** (documented open risk) |
+| External message delivery to real providers | **Blocked** — needs deployed function, schedule, provider credentials |
+| Live RLS/grant state of the hosted project | **Blocked** — needs the live project |
+| Backups, PITR, restore drill, RPO/RTO | **Blocked** |
+| Branch protection / required checks | **Blocked** — GitHub integration permission |
+| Production domain, secrets presence | **Blocked** — hosting configuration not provided; none is assumed |
+| Frontend error reporting, uptime, alerting | **Absent** |
+| GPS / geofencing / tours / offline | Not built (roadmap P3) |
+| Command centre | Not built (roadmap P1) |
+
+See [SECURITY_MODEL.md](./SECURITY_MODEL.md), [BCDR_OBSERVABILITY.md](./BCDR_OBSERVABILITY.md) and [ROADMAP.md](./ROADMAP.md).
 
 ## Release definition
 
-Sebetsa is not declared enterprise-certified until the remaining live controls above are verified in the actual production environment. Source code alone is insufficient evidence for hosted configuration, live database policy state, secrets, backups, branch protection or external provider behaviour.
+Sebetsa is not declared enterprise-certified until the Blocked and Absent rows above are closed in the real environment. Source code alone cannot evidence hosted configuration, live policy state, secrets, backups, branch protection or provider behaviour.
