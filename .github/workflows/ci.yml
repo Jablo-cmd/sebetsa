@@ -70,7 +70,7 @@ jobs:
       # password (see the script) — no repository secrets are used or
       # required for this job.
       - name: Run RLS regression suite
-        run: supabase/rls-tests/run.sh
+        run: bash supabase/rls-tests/run.sh
 
   e2e:
     name: Playwright end-to-end suite
