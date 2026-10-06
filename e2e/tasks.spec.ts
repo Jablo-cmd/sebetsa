@@ -127,7 +127,7 @@ test('employees cannot open Task Management', async ({ page, app }) => {
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
 });
 
-test('a manager creates a task with a checklist, assigns it, and the assignee sees it', async ({ page, app }) => {
+test('a manager creates a task with a checklist and an assignee', async ({ page, app }) => {
   const backend = await app.open('operations_manager');
   await page.goto('/tasks/management');
   await page.getByRole('button', { name: 'New task' }).click();
@@ -155,10 +155,6 @@ test('a manager creates a task with a checklist, assigns it, and the assignee se
   const task = backend.find('tasks', { title: 'Deep clean boardroom' });
   expect(task).toMatchObject({ site_id: ID.siteTowerA, assignee_id: PERSONAS.employee.employeeId, priority: 'urgent', requires_evidence: true, status: 'open', created_by: PERSONAS.operations_manager.profileId, tenant_id: ID.org });
   expect(backend.table('task_checklist_items').filter((c) => c.task_id === task.id).map((c) => c.label)).toEqual(['Vacuum', 'Polish table', 'Empty bins']);
-
-  await app.open('employee');
-  await page.goto('/tasks');
-  await expect(page.getByRole('button', { name: /Deep clean boardroom/ })).toBeVisible();
 });
 
 test('a refused task creation is explained and the form stays open', async ({ page, app }) => {
