@@ -4539,6 +4539,44 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_task: {
+        Args: {
+          p_assignee_id?: string | null
+          p_checklist?: string[] | null
+          p_description?: string | null
+          p_due_at?: string | null
+          p_priority?: Database["public"]["Enums"]["task_priority"] | null
+          p_requires_evidence?: boolean | null
+          p_site_id: string
+          p_supervisor_id?: string | null
+          p_title: string
+        }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       current_tenant_id: { Args: Record<PropertyKey, never>; Returns: string }
       decide_attendance_correction: {
         Args: {

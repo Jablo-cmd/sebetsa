@@ -158,7 +158,36 @@ async function createTemplate(
   return toTemplate(data);
 }
 
+export interface CreateTaskInput {
+  siteId: string;
+  title: string;
+  description?: string;
+  priority: Task['priority'];
+  dueAt?: string;
+  assigneeId?: string;
+  requiresEvidence: boolean;
+  checklist: string[];
+}
+
+/** Creates the task and its checklist in one database transaction, under the caller's own RLS and site scope. */
+async function createTask(input: CreateTaskInput): Promise<Task> {
+  const { data, error } = await supabase.rpc('create_task', {
+    p_site_id: input.siteId,
+    p_title: input.title,
+    p_description: input.description ?? null,
+    p_priority: input.priority,
+    p_due_at: input.dueAt ?? null,
+    p_assignee_id: input.assigneeId ?? null,
+    p_supervisor_id: null,
+    p_requires_evidence: input.requiresEvidence,
+    p_checklist: input.checklist,
+  });
+  if (error) throw error;
+  return toTask(data);
+}
+
 export const taskService = {
+  createTask,
   getTasks,
   getChecklistItems,
   toggleChecklistItem,

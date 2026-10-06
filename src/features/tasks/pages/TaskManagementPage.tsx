@@ -1,3 +1,4 @@
+import { NewTaskModal } from '@/features/tasks/components/NewTaskModal';
 import { useState } from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -26,6 +27,7 @@ export function TaskManagementPage() {
   const organization = useCurrentOrganization();
   const { tasks, isLoading, error, refetch } = useTasks(organization?.id);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState<'generate' | 'escalate' | null>(null);
 
@@ -63,7 +65,8 @@ export function TaskManagementPage() {
         title="Task Management"
         description="All operational tasks across your sites."
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setIsNewTaskOpen(true)}>New task</Button>
             <Button variant="secondary" onClick={() => void handleGenerate()} isLoading={isRunning === 'generate'}>
               Generate recurring tasks
             </Button>
@@ -110,6 +113,8 @@ export function TaskManagementPage() {
           </table>
         </div>
       )}
+
+      <NewTaskModal isOpen={isNewTaskOpen} onClose={() => setIsNewTaskOpen(false)} tenantId={organization.id} onCreated={() => void refetch()} />
 
       <TaskDetailModal
         isOpen={selectedTask !== null}

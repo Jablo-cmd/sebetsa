@@ -278,6 +278,22 @@ const tasks: Record<string, RpcHandler> = {
     }
     return overdue;
   },
+  create_task: (a, ctx) => {
+    const site = row(ctx, 'sites', a.p_site_id, 'site');
+    require_(ctx, MANAGE_OPS, 'new row violates row-level security policy for table "tasks"');
+    if (['regional_manager', 'site_manager', 'supervisor'].includes(String(ctx.session.role)) && !ctx.backend.canAccessSite(String(site.id))) ctx.fail('new row violates row-level security policy for table "tasks"', '42501', 403);
+    const title = String(a.p_title ?? '').trim();
+    if (!title) ctx.fail('invalid_configuration: a task needs a title');
+    const task = insert(ctx, 'tasks', {
+      tenant_id: site.tenant_id, site_id: site.id, assignee_id: a.p_assignee_id ?? null, supervisor_id: a.p_supervisor_id ?? null, title,
+      description: String(a.p_description ?? '').trim() || null, priority: a.p_priority ?? 'normal', status: 'open', due_at: a.p_due_at ?? null,
+      completed_at: null, completed_by: null, team_id: null, requires_evidence: Boolean(a.p_requires_evidence), created_by: ctx.session.userId,
+    });
+    (((a.p_checklist as string[] | null) ?? []).map((l) => l.trim()).filter(Boolean)).forEach((label, i) =>
+      insert(ctx, 'task_checklist_items', { tenant_id: site.tenant_id, task_id: task.id, label, sort_order: i + 1, is_completed: false, completed_by: null, completed_at: null, notes: null }),
+    );
+    return task;
+  },
   generate_recurring_tasks: (_a, ctx) => {
     require_(ctx, MANAGE_OPS, 'cannot generate tasks for this tenant');
     const today = ctx.now.slice(0, 10);

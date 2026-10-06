@@ -1,5 +1,5 @@
 import { test, expect } from './utils/test';
-import { ID, PERSONAS } from './utils/sebetsaFixtures';
+import { ID, PERSONAS, dateOffset } from './utils/sebetsaFixtures';
 
 test('My Tasks lists only my tasks, most urgent due date first', async ({ page, app }) => {
   await app.open('employee');
@@ -125,4 +125,70 @@ test('employees cannot open Task Management', async ({ page, app }) => {
   await app.open('employee');
   await page.goto('/tasks/management');
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
+});
+
+test('a manager creates a task with a checklist, assigns it, and the assignee sees it', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/tasks/management');
+  await page.getByRole('button', { name: 'New task' }).click();
+  const dialog = page.getByRole('dialog');
+
+  await dialog.getByRole('button', { name: 'Create task' }).click();
+  await expect(dialog.getByText('Title is required')).toBeVisible();
+  await expect(dialog.getByText('Site is required')).toBeVisible();
+  expect(backend.requests.filter((r) => r.rpc === 'create_task')).toEqual([]);
+
+  await dialog.getByLabel('Title').fill('Deep clean boardroom');
+  await dialog.getByLabel('Description').fill('Before the client visit');
+  await dialog.getByLabel('Site', { exact: false }).first().selectOption(ID.siteTowerA);
+  await dialog.getByLabel('Priority').selectOption('urgent');
+  await dialog.getByLabel('Due date').fill(dateOffset(2));
+  await dialog.getByLabel('Assign to (optional)').fill('Thabo');
+  await dialog.getByRole('button', { name: /Thabo Nkosi/ }).click();
+  await expect(dialog.getByText('Selected: Thabo Nkosi')).toBeVisible();
+  await dialog.getByLabel('Checklist (one item per line)').fill('Vacuum\n\nPolish table\nEmpty bins');
+  await dialog.getByLabel('Evidence is required to complete this task').check();
+  await dialog.getByRole('button', { name: 'Create task' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  await expect(page.getByRole('row', { name: /Deep clean boardroom/ })).toContainText('urgent');
+  const task = backend.find('tasks', { title: 'Deep clean boardroom' });
+  expect(task).toMatchObject({ site_id: ID.siteTowerA, assignee_id: PERSONAS.employee.employeeId, priority: 'urgent', requires_evidence: true, status: 'open', created_by: PERSONAS.operations_manager.profileId, tenant_id: ID.org });
+  expect(backend.table('task_checklist_items').filter((c) => c.task_id === task.id).map((c) => c.label)).toEqual(['Vacuum', 'Polish table', 'Empty bins']);
+
+  await app.open('employee');
+  await page.goto('/tasks');
+  await expect(page.getByRole('button', { name: /Deep clean boardroom/ })).toBeVisible();
+});
+
+test('a refused task creation is explained and the form stays open', async ({ page, app }) => {
+  const backend = await app.open('operations_manager', {
+    rpc: { create_task: (_a, ctx) => ctx.fail('new row violates row-level security policy for table "tasks"', '42501', 403) },
+  });
+  await page.goto('/tasks/management');
+  await page.getByRole('button', { name: 'New task' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Title').fill('Nope');
+  await dialog.getByLabel('Site', { exact: false }).first().selectOption(ID.siteTowerA);
+  await dialog.getByRole('button', { name: 'Create task' }).click();
+  await expect(dialog.getByRole('alert')).toContainText("You don't have permission");
+  await expect(dialog.getByLabel('Title')).toHaveValue('Nope');
+  expect(backend.table('tasks').filter((t) => t.title === 'Nope')).toHaveLength(0);
+});
+
+test('a scoped site manager can create tasks only at their own site', async ({ page, app }) => {
+  const backend = await app.open('site_manager');
+  await page.goto('/tasks/management');
+  await page.getByRole('button', { name: 'New task' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Title').fill('At the atrium');
+  await dialog.getByLabel('Site', { exact: false }).first().selectOption(ID.siteAtrium);
+  await dialog.getByRole('button', { name: 'Create task' }).click();
+  await expect(dialog.getByRole('alert')).toBeVisible();
+  expect(backend.table('tasks').filter((t) => t.title === 'At the atrium')).toHaveLength(0);
+
+  await dialog.getByLabel('Site', { exact: false }).first().selectOption(ID.siteTowerA);
+  await dialog.getByRole('button', { name: 'Create task' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('tasks', { title: 'At the atrium' }).site_id).toBe(ID.siteTowerA);
 });
