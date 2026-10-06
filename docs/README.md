@@ -22,7 +22,3 @@ Database authorization is authoritative. Tenant-scoped data uses PostgreSQL RLS 
 ## Release rule
 
 A release is not complete because the UI builds. It must pass typecheck, lint, unit tests, Edge Function checks, RLS regression tests, E2E, production configuration validation and dependency/security checks.
-
-## Documentation integrity
-
-Funda360 reference material that was intentionally retained for engineering-pattern comparison is clearly marked as reference material and must never be used as Sebetsa production configuration, deployment identity, authentication branding or database authority.
