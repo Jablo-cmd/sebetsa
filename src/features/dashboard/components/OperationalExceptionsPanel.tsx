@@ -22,6 +22,7 @@ const toneForCritical = (count: number): StatPanelTone => (count > 0 ? 'danger' 
 export function OperationalExceptionsPanel({ tenantId }: OperationalExceptionsPanelProps) {
   const [metrics, setMetrics] = useState<OperationalMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,14 +30,16 @@ export function OperationalExceptionsPanel({ tenantId }: OperationalExceptionsPa
     const periodStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
     setIsLoading(true);
+    setFailed(false);
     reportsService
       .getOperationalMetrics(tenantId, periodStart, periodEnd)
       .then((result) => {
         if (!cancelled) setMetrics(result);
       })
       .catch(() => {
-        // A dashboard widget failing to load shouldn't break the page —
-        // it simply renders nothing rather than an error banner.
+        // A failing widget must not break the page, but it must not look like
+        // "no exceptions" either — say the figures are unavailable.
+        if (!cancelled) setFailed(true);
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -46,6 +49,13 @@ export function OperationalExceptionsPanel({ tenantId }: OperationalExceptionsPa
     };
   }, [tenantId]);
 
+  if (failed) {
+    return (
+      <p role="status" className="rounded-xl border border-border bg-surface-raised p-4 text-sm text-content-secondary">
+        Operational figures are unavailable right now. Reload to try again.
+      </p>
+    );
+  }
   if (!isLoading && !metrics) return null;
 
   return (
