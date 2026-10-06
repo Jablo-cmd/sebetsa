@@ -158,12 +158,15 @@ export interface UseContractSiteIdsResult {
   siteIds: string[];
   isLoading: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 export function useContractSiteIds(contractId: string | undefined): UseContractSiteIdsResult {
   const [siteIds, setSiteIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const refetch = useCallback(() => setReloadKey((key) => key + 1), []);
 
   useEffect(() => {
     if (!contractId) {
@@ -172,6 +175,7 @@ export function useContractSiteIds(contractId: string | undefined): UseContractS
     }
     let cancelled = false;
     setIsLoading(true);
+    setError(null);
     contractService
       .getContractSiteIds(contractId)
       .then((result) => {
@@ -186,7 +190,7 @@ export function useContractSiteIds(contractId: string | undefined): UseContractS
     return () => {
       cancelled = true;
     };
-  }, [contractId]);
+  }, [contractId, reloadKey]);
 
-  return { siteIds, isLoading, error };
+  return { siteIds, isLoading, error, refetch };
 }

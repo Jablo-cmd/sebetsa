@@ -51,6 +51,7 @@ const RAISED_MESSAGE_PATTERNS: Array<[RegExp, string]> = [
   [/^email_taken:/i, 'That email address is already registered.'],
   [/^invalid_file_type:/i, 'That file type is not allowed.'],
   [/^file_too_large:/i, 'That file is too large.'],
+  [/^invalid_reference:/i, 'One of the selected records does not belong to the chosen client.'],
   [/^invalid_configuration:/i, 'This action is not available with the current configuration.'],
   [/^audit_log_immutable:/i, 'Audit history cannot be changed.'],
 ];

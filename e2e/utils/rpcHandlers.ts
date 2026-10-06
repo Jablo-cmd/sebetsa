@@ -354,6 +354,35 @@ const documents: Record<string, RpcHandler> = {
     audit(ctx, d.tenant_id, 'document_upload_cancelled', 'employee_documents', d.id);
     return null;
   },
+  cancel_contract_document_upload: (a, ctx) => {
+    const d = row(ctx, 'contract_documents', a.p_document_id, 'contract document');
+    if (d.uploaded_by !== ctx.session.userId) ctx.fail('insufficient_privilege: only the uploader can cancel an upload', '42501', 403);
+    require_(ctx, ORG_STRUCT, 'cannot manage documents for this contract');
+    if (ctx.backend.uploads.some((u) => u.bucket === 'contract-documents' && u.path === d.storage_path)) ctx.fail('invalid_transition: the file was uploaded, so the document cannot be cancelled');
+    ctx.backend.tables.set('contract_documents', ctx.backend.table('contract_documents').filter((x) => x !== d));
+    audit(ctx, d.tenant_id, 'contract_document_upload_cancelled', 'contract_documents', d.id);
+    return null;
+  },
+  set_contract_sites: (a, ctx) => {
+    const contract = row(ctx, 'contracts', a.p_contract_id, 'contract');
+    require_(ctx, ORG_STRUCT, 'cannot manage this contract');
+    const ids = (a.p_site_ids as string[] | null) ?? [];
+    // Validate everything first: the real function is one transaction, so a bad id changes nothing.
+    for (const siteId of ids) {
+      const site = ctx.backend.visible('sites').find((x) => x.id === siteId);
+      if (!site) ctx.fail('not_found: contract or site does not exist or is not visible');
+      if (site!.tenant_id !== contract.tenant_id) ctx.fail(`cross_tenant_reference: contract ${contract.id} and site ${siteId} must belong to tenant ${contract.tenant_id}`);
+      if (site!.client_id !== contract.client_id) ctx.fail(`invalid_reference: site ${siteId} does not belong to the contract's client`);
+    }
+    const links = ctx.backend.table('contract_sites');
+    ctx.backend.tables.set('contract_sites', links.filter((l) => l.contract_id !== contract.id || ids.includes(String(l.site_id))));
+    for (const siteId of ids) {
+      if (!ctx.backend.table('contract_sites').some((l) => l.contract_id === contract.id && l.site_id === siteId)) {
+        ctx.backend.table('contract_sites').push({ contract_id: contract.id, site_id: siteId, tenant_id: contract.tenant_id, created_at: ctx.now });
+      }
+    }
+    return null;
+  },
   verify_document: (a, ctx) => {
     const d = row(ctx, 'employee_documents', a.p_document_id, 'document');
     require_(ctx, MANAGE_EMP, 'cannot verify documents for this tenant');
@@ -371,8 +400,9 @@ const documents: Record<string, RpcHandler> = {
     require_(ctx, ORG_STRUCT, 'cannot manage contract documents');
     checkFile(ctx, a);
     const id = ctx.backend.newId();
+    const version = Math.max(0, ...ctx.backend.table('contract_documents').filter((d) => d.contract_id === contract.id).map((d) => Number(d.version))) + 1;
     return insert(ctx, 'contract_documents', {
-      id, tenant_id: contract.tenant_id, contract_id: contract.id, file_name: a.p_file_name, mime_type: a.p_mime_type, file_size_bytes: a.p_file_size_bytes,
+      id, version, tenant_id: contract.tenant_id, contract_id: contract.id, file_name: a.p_file_name, mime_type: a.p_mime_type, file_size_bytes: a.p_file_size_bytes,
       storage_path: `${contract.tenant_id}/${contract.id}/${id}-${safeName(a.p_file_name)}`, uploaded_by: ctx.session.userId,
     });
   },
@@ -683,10 +713,51 @@ const reporting: Record<string, RpcHandler> = {
   },
   compute_sla_measurement: (a, ctx) => {
     const sla = row(ctx, 'sla_definitions', a.p_sla_definition_id, 'SLA definition');
-    const all = ctx.backend.visible('tasks').filter((t) => !sla.site_id || t.site_id === sla.site_id);
-    const done = all.filter((t) => ['completed', 'verified'].includes(String(t.status))).length;
-    const actual = all.length ? Math.round((done / all.length) * 1000) / 10 : 0;
-    return insert(ctx, 'sla_measurements', { tenant_id: sla.tenant_id, sla_definition_id: sla.id, period_start: a.p_period_start, period_end: a.p_period_end, actual_value: actual, is_met: actual >= Number(sla.target_value), computed_by: ctx.session.userId });
+    require_(ctx, MANAGE_OPS, 'cannot compute SLA measurements for this tenant');
+    if (!sla.site_id) ctx.fail('invalid_configuration: this SLA definition has no site to measure against');
+    if (String(a.p_period_end) < String(a.p_period_start)) ctx.fail('invalid_period: period_end must not be before period_start');
+    const b = ctx.backend;
+    const start = String(a.p_period_start);
+    const end = String(a.p_period_end);
+    const inPeriod = (ts: unknown) => !!ts && String(ts).slice(0, 10) >= start && String(ts).slice(0, 10) <= end;
+    const pct = (part: number, whole: number) => (whole ? (100 * part) / whole : 0);
+    let measured: number;
+    switch (sla.metric_type) {
+      case 'staffing_fulfillment': {
+        const shifts = b.visible('shifts').filter((s) => s.site_id === sla.site_id && inPeriod(s.starts_at));
+        const records = b.visible('attendance_records');
+        // left join: a shift with no attendance record still counts once
+        const rows = shifts.flatMap((s) => {
+          const own = records.filter((r) => r.shift_id === s.id);
+          return own.length ? own : [{ status: null }];
+        });
+        measured = pct(rows.filter((r) => r.status === 'present' || r.status === 'late').length, rows.length);
+        break;
+      }
+      case 'task_completion_rate': {
+        const tasks = b.visible('tasks').filter((t) => t.site_id === sla.site_id && inPeriod(t.due_at));
+        measured = pct(tasks.filter((t) => ['completed', 'verified'].includes(String(t.status))).length, tasks.length);
+        break;
+      }
+      case 'incident_response_hours': {
+        const closed = b.visible('incidents').filter((i) => i.site_id === sla.site_id && i.status === 'closed' && inPeriod(i.closed_at));
+        measured = closed.length ? closed.reduce((sum, i) => sum + (Date.parse(String(i.closed_at)) - Date.parse(String(i.created_at))) / 3_600_000, 0) / closed.length : 0;
+        break;
+      }
+      case 'compliance_completion_rate': {
+        const records = b.visible('compliance_records').filter((r) => r.site_id === sla.site_id && r.due_date && String(r.due_date) >= start && String(r.due_date) <= end);
+        measured = pct(records.filter((r) => r.status === 'compliant').length, records.length);
+        break;
+      }
+      default:
+        return ctx.fail(`invalid_configuration: unhandled metric_type ${sla.metric_type}`);
+    }
+    measured = Math.round(measured * 100) / 100;
+    const target = Number(sla.target_value);
+    const met = sla.threshold_operator === 'gte' ? measured >= target : measured <= target;
+    const created = insert(ctx, 'sla_measurements', { tenant_id: sla.tenant_id, sla_definition_id: sla.id, period_start: a.p_period_start, period_end: a.p_period_end, measured_value: measured, target_met: met, computed_by: ctx.session.userId, computed_at: ctx.now });
+    audit(ctx, sla.tenant_id, 'sla_measurement_computed', 'sla_measurements', created.id);
+    return created;
   },
 };
 

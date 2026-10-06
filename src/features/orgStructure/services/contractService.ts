@@ -109,16 +109,10 @@ async function getContractSiteIds(contractId: string): Promise<string[]> {
   return data.map((row) => row.site_id);
 }
 
-async function setContractSites(tenantId: string, contractId: string, siteIds: string[]): Promise<void> {
-  const { error: deleteError } = await supabase.from('contract_sites').delete().eq('contract_id', contractId);
-  if (deleteError) throw deleteError;
-
-  if (siteIds.length === 0) return;
-
-  const { error: insertError } = await supabase
-    .from('contract_sites')
-    .insert(siteIds.map((siteId) => ({ contract_id: contractId, site_id: siteId, tenant_id: tenantId })));
-  if (insertError) throw insertError;
+/** Replaces the contract's sites in one transaction (see set_contract_sites): a failure leaves the existing links untouched. */
+async function setContractSites(_tenantId: string, contractId: string, siteIds: string[]): Promise<void> {
+  const { error } = await supabase.rpc('set_contract_sites', { p_contract_id: contractId, p_site_ids: siteIds });
+  if (error) throw error;
 }
 
 function toInsertPayload(tenantId: string, input: CreateContractInput): ContractInsert {
@@ -139,7 +133,12 @@ async function createContract(tenantId: string, input: CreateContractInput): Pro
   if (error) throw error;
   const contract = toContract(data);
   if (input.siteIds && input.siteIds.length > 0) {
-    await setContractSites(tenantId, contract.id, input.siteIds);
+    try {
+      await setContractSites(tenantId, contract.id, input.siteIds);
+    } catch (err) {
+      console.error(err);
+      throw new Error(`Contract ${contract.contractNumber} was created, but its sites could not be linked. Open the contract and edit it to add the sites.`);
+    }
   }
   return contract;
 }

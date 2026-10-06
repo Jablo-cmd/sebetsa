@@ -44,7 +44,11 @@ async function uploadDocument(contractId: string, file: File): Promise<ContractD
   if (slotError) throw slotError;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(slot.storage_path, file, { contentType: file.type });
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    // Don't leave a record pointing at a file that never arrived.
+    await supabase.rpc('cancel_contract_document_upload', { p_document_id: slot.id });
+    throw uploadError;
+  }
 
   return toDocument(slot);
 }

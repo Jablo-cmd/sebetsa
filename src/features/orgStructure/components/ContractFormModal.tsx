@@ -70,10 +70,15 @@ export function ContractFormModal({ isOpen, onClose, tenantId, contract, clients
   useEffect(() => {
     if (!isOpen || !contract?.responsibleManagerId) return;
     let cancelled = false;
-    void contractService.searchManagerCandidates(tenantId, '').then((results) => {
-      const match = results.find((r) => r.id === contract.responsibleManagerId);
-      if (!cancelled && match) setSelectedManager(match);
-    });
+    contractService
+      .searchManagerCandidates(tenantId, '')
+      .then((results) => {
+        const match = results.find((r) => r.id === contract.responsibleManagerId);
+        if (!cancelled && match) setSelectedManager(match);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to load the responsible manager.'));
+      });
     return () => {
       cancelled = true;
     };
@@ -82,9 +87,14 @@ export function ContractFormModal({ isOpen, onClose, tenantId, contract, clients
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    void contractService.searchManagerCandidates(tenantId, managerSearch).then((results) => {
-      if (!cancelled) setManagerCandidates(results);
-    });
+    contractService
+      .searchManagerCandidates(tenantId, managerSearch)
+      .then((results) => {
+        if (!cancelled) setManagerCandidates(results);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to search managers.'));
+      });
     return () => {
       cancelled = true;
     };

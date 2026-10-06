@@ -4163,6 +4163,10 @@ export type Database = {
         Args: { target_tenant_id: string }
         Returns: boolean
       }
+      cancel_contract_document_upload: {
+        Args: { p_document_id: string }
+        Returns: undefined
+      }
       cancel_document_upload: {
         Args: { p_document_id: string }
         Returns: undefined
@@ -5149,6 +5153,10 @@ export type Database = {
       }
       seed_default_leave_types: {
         Args: { p_tenant_id: string }
+        Returns: undefined
+      }
+      set_contract_sites: {
+        Args: { p_contract_id: string; p_site_ids: string[] }
         Returns: undefined
       }
       set_employee_skill: {

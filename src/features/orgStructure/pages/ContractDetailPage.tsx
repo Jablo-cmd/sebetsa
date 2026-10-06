@@ -44,7 +44,7 @@ export function ContractDetailPage() {
   const organization = useCurrentOrganization();
   const { contract, isLoading, error, refetch } = useContract(id);
   const { client } = useClient(contract?.clientId);
-  const { siteIds } = useContractSiteIds(id);
+  const { siteIds, error: siteIdsError, refetch: refetchSiteIds } = useContractSiteIds(id);
   const { sites: allSites } = useAllSites(organization?.id);
   const { clients } = useAllClients(organization?.id);
 
@@ -71,6 +71,7 @@ export function ContractDetailPage() {
       setSlaDefinitions(definitions);
       const entries = await Promise.all(definitions.map(async (def) => [def.id, await slaService.getMeasurements(def.id)] as const));
       setMeasurements(Object.fromEntries(entries));
+      setSlaError(null);
     } catch (err) {
       setSlaError(getDbErrorMessage(err, 'Failed to load SLA data.'));
     }
@@ -163,12 +164,22 @@ export function ContractDetailPage() {
     }
   };
 
+  const handleOpenDocument = async (storagePath: string) => {
+    setDocumentsError(null);
+    try {
+      const url = await contractDocumentService.getSignedUrl(storagePath);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setDocumentsError(getDbErrorMessage(err, 'Failed to open the document.'));
+    }
+  };
+
   const handleUploadDocument = async (file: File) => {
     setIsUploading(true);
     setDocumentsError(null);
     try {
       await contractDocumentService.uploadDocument(contract.id, file);
-      void loadDocuments();
+      await loadDocuments();
     } catch (err) {
       setDocumentsError(getDbErrorMessage(err, 'Failed to upload the document.'));
     } finally {
@@ -251,6 +262,7 @@ export function ContractDetailPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold text-content-primary">Sites covered</h2>
+        {siteIdsError && <p className="text-sm font-medium text-danger-600">{siteIdsError}</p>}
         {coveredSites.length === 0 ? (
           <p className="rounded-card border border-border bg-surface-raised px-4 py-8 text-center text-sm text-content-tertiary">
             No sites linked to this contract yet.
@@ -334,7 +346,12 @@ export function ContractDetailPage() {
             {documents.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <span className="font-medium text-content-primary">{doc.fileName}</span>
-                <span className="text-xs text-content-tertiary">v{doc.version}</span>
+                <span className="flex items-center gap-3">
+                  <span className="text-xs text-content-tertiary">v{doc.version}</span>
+                  <Button variant="ghost" aria-label={`Open ${doc.fileName}`} onClick={() => void handleOpenDocument(doc.storagePath)}>
+                    Open
+                  </Button>
+                </span>
               </div>
             ))}
           </div>
@@ -365,7 +382,10 @@ export function ContractDetailPage() {
           contract={contract}
           clients={clients}
           sites={allSites}
-          onSaved={() => void refetch()}
+          onSaved={() => {
+            void refetch();
+            refetchSiteIds();
+          }}
         />
       )}
     </div>
