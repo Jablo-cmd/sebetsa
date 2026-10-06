@@ -37,6 +37,19 @@ fi
 
 psql_exec < "$SCRIPT_DIR/00_auth_stub.sql"
 psql_exec -c "CREATE ROLE anon NOLOGIN; CREATE ROLE service_role NOLOGIN;"
+psql_exec <<'SQL'
+CREATE SCHEMA storage;
+CREATE TABLE storage.buckets (id text primary key, name text not null, public boolean not null default false);
+CREATE TABLE storage.objects (
+  id uuid primary key default gen_random_uuid(),
+  bucket_id text not null references storage.buckets(id),
+  name text not null
+);
+CREATE OR REPLACE FUNCTION storage.foldername(name text)
+RETURNS text[] LANGUAGE sql IMMUTABLE AS $fn$
+  SELECT string_to_array(name, '/');
+$fn$;
+SQL
 psql_exec < "$SCRIPT_DIR/01_test_util.sql"
 for migration in "$MIGRATIONS_DIR"/*.sql; do
   echo "Applying $(basename "$migration")"
