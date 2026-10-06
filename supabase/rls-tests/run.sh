@@ -36,21 +36,15 @@ if [ "$ready" != true ]; then
 fi
 
 psql_exec < "$SCRIPT_DIR/00_auth_stub.sql"
-psql_exec <<'SQL'
-DO $
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon NOLOGIN; END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN CREATE ROLE service_role NOLOGIN; END IF;
-END $;
-SQL
+psql_exec -c "CREATE ROLE anon NOLOGIN; CREATE ROLE authenticated NOLOGIN; CREATE ROLE service_role NOLOGIN;"
 psql_exec < "$SCRIPT_DIR/01_test_util.sql"
 for migration in "$MIGRATIONS_DIR"/*.sql; do
   echo "Applying $(basename "$migration")"
   psql_exec < "$migration"
 done
 
-for fixture in "$SCRIPT_DIR"/02_fixtures.sql "$SCRIPT_DIR"/03_academic_fixtures.sql "$SCRIPT_DIR"/04_employee_fixtures.sql "$SCRIPT_DIR"/05_learner_fixtures.sql "$SCRIPT_DIR"/06_employee_provisioning_fixtures.sql "$SCRIPT_DIR"/07_guardian_emergency_contact_fixtures.sql "$SCRIPT_DIR"/08_teaching_assignment_fixtures.sql "$SCRIPT_DIR"/09_attendance_fixtures.sql "$SCRIPT_DIR"/10_assessment_fixtures.sql; do
+for fixture in "$SCRIPT_DIR"/02_fixtures.sql "$SCRIPT_DIR"/04_employee_fixtures.sql "$SCRIPT_DIR"/06_employee_provisioning_fixtures.sql "$SCRIPT_DIR"/09_attendance_fixtures.sql; do
+  echo "Loading $(basename "$fixture")"
   psql_exec < "$fixture"
 done
 
