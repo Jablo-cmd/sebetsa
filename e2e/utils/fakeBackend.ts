@@ -298,9 +298,10 @@ function splitTopLevel(input: string): string[] {
 
 const RESERVED_PARAMS = new Set(['select', 'order', 'limit', 'offset', 'on_conflict', 'columns']);
 
-function applyFilters(rows: Row[], query: Record<string, string>): Row[] {
+/** `entries` keeps repeated keys: `created_at=gte.A&created_at=lte.B` is two filters, not one. */
+function applyFilters(rows: Row[], entries: [string, string][]): Row[] {
   let result = rows;
-  for (const [key, raw] of Object.entries(query)) {
+  for (const [key, raw] of entries) {
     if (RESERVED_PARAMS.has(key)) continue;
     if (key === 'or') {
       const conditions = splitTopLevel(raw.replace(/^\(/, '').replace(/\)$/, ''));
@@ -497,7 +498,8 @@ export class FakeBackend {
 
   private async handleTable(route: Route, request: Request, table: string, url: URL): Promise<void> {
     const method = request.method();
-    const query = Object.fromEntries(url.searchParams.entries());
+    const queryEntries = [...url.searchParams.entries()];
+    const query = Object.fromEntries(queryEntries);
     const body = parseBody(request);
     this.requests.push({ method, path: url.pathname, query, body, table });
 
@@ -512,7 +514,7 @@ export class FakeBackend {
     const single = (request.headers()['accept'] ?? '').includes('vnd.pgrst.object');
 
     if (method === 'GET' || method === 'HEAD') {
-      const matched = applyFilters(this.visible(table), query);
+      const matched = applyFilters(this.visible(table), queryEntries);
       const total = matched.length;
       let rows = applyOrder(matched, query.order);
       const offset = Number(query.offset ?? 0);
@@ -520,7 +522,11 @@ export class FakeBackend {
       if (query.limit !== undefined) rows = rows.slice(0, Number(query.limit));
       const embedded = this.embed(rows, query.select ?? '*');
       const headers: Record<string, string> = {};
-      if (wantsCount) headers['content-range'] = `${rows.length ? `${offset}-${offset + rows.length - 1}` : '*'}/${total}`;
+      if (wantsCount) {
+        headers['content-range'] = `${rows.length ? `${offset}-${offset + rows.length - 1}` : '*'}/${total}`;
+        // Cross-origin: the browser only hands the count to supabase-js if the header is exposed.
+        headers['access-control-expose-headers'] = 'content-range';
+      }
       if (method === 'HEAD') return route.fulfill({ status: 200, headers });
       return respondRows(route, embedded, single, headers);
     }
@@ -549,7 +555,7 @@ export class FakeBackend {
     }
 
     if (method === 'PATCH') {
-      const targets = applyFilters(this.visible(table), query);
+      const targets = applyFilters(this.visible(table), queryEntries);
       const patch = body as Row;
       if ('tenant_id' in patch && targets.some((t) => t.tenant_id !== patch.tenant_id)) {
         this.fail('new row violates row-level security policy', '42501', 403);
@@ -564,7 +570,7 @@ export class FakeBackend {
     }
 
     if (method === 'DELETE') {
-      const targets = new Set(applyFilters(this.visible(table), query));
+      const targets = new Set(applyFilters(this.visible(table), queryEntries));
       this.deleteRows(table, targets);
       if (!wantsRepresentation) return route.fulfill({ status: 204 });
       return respondRows(route, [...targets], single);

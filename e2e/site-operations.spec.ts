@@ -1,88 +1,132 @@
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-import { seedSebetsaSession } from './utils/sebetsaAuth';
-import { installSebetsaMocks, buildProfileRow, fulfillJson } from './utils/sebetsaData';
+import { test, expect, expectNoSeriousViolations } from './utils/test';
+import { ID, TODAY } from './utils/sebetsaFixtures';
 
-async function expectNoSeriousViolations(page: import('@playwright/test').Page) {
-  const results = await new AxeBuilder({ page }).analyze();
-  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  if (serious.length > 0) console.log(JSON.stringify(serious, null, 2));
-  expect(serious, `${serious.length} serious/critical accessibility violation(s) — see console output`).toEqual([]);
-}
+import type { Page } from '@playwright/test';
 
-const SITE_ROW = { id: 'site-1', tenant_id: '22222222-2222-2222-2222-222222222222', client_id: 'client-1', name: 'Head Office', address: null, status: 'active', created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' };
+/** The value shown on a StatCard (the number under its label). */
+const stat = (page: Page, label: string) => page.getByText(label, { exact: true }).locator('xpath=following-sibling::p');
 
-test('site operations overview shows staffing counts for the selected site', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'operations_manager' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'operations_manager' }) });
-
-  await page.route('**/rest/v1/sites*', async (route) => {
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(route, [SITE_ROW]);
-  });
-
-  let call = 0;
-  await page.route('**/rest/v1/site_assignments*', async (route) => {
-    call += 1;
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-2/3', 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/shifts*', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-4/5', 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/attendance_records*', async (route) => {
-    const url = new URL(route.request().url());
-    const status = url.searchParams.get('status') ?? '';
-    const total = status.includes('present') ? 2 : status.includes('late') ? 1 : 0;
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': `0-0/${total}`, 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/tasks*', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-0/1', 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/site_staffing_requirements*', async (route) => {
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(route, [{ id: 'req-1', tenant_id: SITE_ROW.tenant_id, site_id: 'site-1', label: 'Guards', required_count: 4 }]);
-  });
-
-  await page.goto('/site-operations');
-  await expect(page.getByRole('heading', { name: 'Site Operations' })).toBeVisible();
-  await expect(page.getByText('Assigned')).toBeVisible();
-  await expect(page.getByText('Required', { exact: true })).toBeVisible();
-  void call;
+const attendanceToday = (id: number, status: string, employeeId: string) => ({
+  id: `00000000-0000-4000-8000-0028${String(id).padStart(8, '0')}`,
+  tenant_id: ID.org,
+  shift_id: null,
+  site_id: ID.siteTowerA,
+  employee_id: employeeId,
+  status,
+  clock_in_at: null,
+  clock_out_at: null,
+  recorded_by: null,
+  notes: null,
+  late_minutes: null,
+  early_departure_minutes: null,
+  worked_minutes: null,
+  overtime_minutes: null,
+  created_at: `${TODAY}T05:00:00.000Z`,
+  updated_at: `${TODAY}T05:00:00.000Z`,
 });
 
-test('an employee is blocked from Site Operations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });
-
-  await page.goto('/site-operations');
-  await expect(page).toHaveURL('http://localhost:5173/dashboard');
-});
-
-test('Site Operations has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'operations_manager' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'operations_manager' }) });
-  await page.route('**/rest/v1/sites*', async (route) => {
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(route, [SITE_ROW]);
-  });
-  await page.route('**/rest/v1/site_assignments*', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-0/0', 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/shifts*', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-0/0', 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/attendance_records*', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-0/0', 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/tasks*', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'content-range': '0-0/0', 'access-control-expose-headers': 'content-range' }, body: '[]' });
-  });
-  await page.route('**/rest/v1/site_staffing_requirements*', async (route) => {
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(route, []);
-  });
-
+test('the overview reports assigned, scheduled, open-task and staffing figures for the first site', async ({ page, app }) => {
+  await app.open('operations_manager');
   await page.goto('/site-operations');
   await expect(page.getByRole('heading', { name: 'Site Operations' })).toBeVisible();
+  await expect(page.getByLabel('Site')).toHaveValue(ID.siteTowerA);
+
+  await expect(stat(page, 'Assigned')).toHaveText('3');
+  await expect(stat(page, 'Scheduled today')).toHaveText('2');
+  await expect(stat(page, 'Open tasks')).toHaveText('2');
+  await expect(stat(page, 'Present')).toHaveText('0');
+  await expect(stat(page, 'Required')).toHaveText('3');
+  // Nobody has been marked present yet, so the whole requirement is a shortage.
+  await expect(stat(page, 'Shortage')).toHaveText('3');
   await expectNoSeriousViolations(page);
+});
+
+test('today\'s attendance is counted by status and reduces the shortage', async ({ page, app }) => {
+  await app.open('operations_manager', {
+    customize: (t) => {
+      t.attendance_records.push(
+        attendanceToday(1, 'present', ID.siteTowerA),
+        attendanceToday(2, 'present', ID.siteTowerA),
+        attendanceToday(3, 'late', ID.siteTowerA),
+        attendanceToday(4, 'absent', ID.siteTowerA),
+      );
+      // Yesterday's records must not leak into today's figures.
+      t.attendance_records.push({ ...attendanceToday(5, 'present', ID.siteTowerA), created_at: '2026-09-20T05:00:00.000Z' });
+    },
+  });
+  await page.goto('/site-operations');
+  await expect(stat(page, 'Present')).toHaveText('2');
+  await expect(stat(page, 'Late')).toHaveText('1');
+  await expect(stat(page, 'Absent')).toHaveText('1');
+  await expect(stat(page, 'Shortage')).toHaveText('1');
+});
+
+test('switching site reloads the figures for that site', async ({ page, app }) => {
+  await app.open('operations_manager');
+  await page.goto('/site-operations');
+  await expect(stat(page, 'Assigned')).toHaveText('3');
+  await page.getByLabel('Site').selectOption(ID.siteAtrium);
+  await expect(stat(page, 'Assigned')).toHaveText('0');
+  await expect(stat(page, 'Open tasks')).toHaveText('0');
+  // No requirement is configured for this site, so there is no shortage figure.
+  await expect(page.getByText('Required', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Shortage', { exact: true })).toHaveCount(0);
+});
+
+test('a manager adds a staffing requirement, then updates it by reusing the label', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/site-operations');
+  const save = page.getByRole('button', { name: 'Save' });
+  await expect(save).toBeDisabled();
+
+  await page.getByLabel('Label').fill('Night guards');
+  await page.getByLabel('Required count').fill('2');
+  await save.click();
+  await expect(stat(page, 'Required')).toHaveText('5');
+  await expect(page.getByText('Night guards')).toBeVisible();
+  await expect(page.getByLabel('Label')).toHaveValue('');
+  expect(backend.find('site_staffing_requirements', { label: 'Night guards' })).toMatchObject({ required_count: 2, site_id: ID.siteTowerA });
+
+  // Same label again updates in place rather than creating a duplicate.
+  await page.getByLabel('Label').fill('Day cleaners');
+  await page.getByLabel('Required count').fill('4');
+  await save.click();
+  await expect(stat(page, 'Required')).toHaveText('6');
+  expect(backend.table('site_staffing_requirements').filter((r) => r.label === 'Day cleaners')).toHaveLength(1);
+  expect(backend.find('site_staffing_requirements', { label: 'Day cleaners' })).toMatchObject({ required_count: 4 });
+});
+
+test('a failed save keeps the form and shows the error', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/site-operations');
+  backend.fault('site_staffing_requirements', { method: 'POST', times: 1 });
+  await page.getByLabel('Label').fill('Reception');
+  await page.getByLabel('Required count').fill('1');
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByText('Failed to save the staffing requirement.')).toBeVisible();
+  await expect(page.getByLabel('Label')).toHaveValue('Reception');
+  expect(backend.table('site_staffing_requirements')).toHaveLength(1);
+});
+
+test('a failed overview load is reported instead of showing zeros', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  backend.fault('shifts');
+  await page.goto('/site-operations');
+  await expect(page.getByText('Failed to load site workforce overview.')).toBeVisible();
+  await expect(page.getByText('Assigned', { exact: true })).toHaveCount(0);
+});
+
+test('HR can view the overview but not edit staffing requirements', async ({ page, app }) => {
+  await app.open('hr_user');
+  await page.goto('/site-operations');
+  await expect(stat(page, 'Assigned')).toHaveText('3');
+  await expect(page.getByRole('heading', { name: 'Staffing requirements' })).toHaveCount(0);
+});
+
+test('employees and clients are redirected away from Site Operations', async ({ page, app }) => {
+  for (const role of ['employee', 'client_user'] as const) {
+    await app.open(role);
+    await page.goto('/site-operations');
+    await expect(page).not.toHaveURL(/site-operations/);
+  }
 });

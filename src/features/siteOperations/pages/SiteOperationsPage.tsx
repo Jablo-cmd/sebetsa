@@ -39,7 +39,14 @@ export function SiteOperationsPage() {
 
   useEffect(() => {
     if (!organization || !siteId) return;
-    void siteOperationsService.getStaffingRequirements(organization.id, siteId).then(setRequirements);
+    setReqError(null);
+    siteOperationsService
+      .getStaffingRequirements(organization.id, siteId)
+      .then(setRequirements)
+      .catch((err: unknown) => {
+        setRequirements([]);
+        setReqError(getDbErrorMessage(err, 'Failed to load the staffing requirements.'));
+      });
   }, [organization, siteId]);
 
   if (!organization) return <NoActiveOrganizationNotice resource="site operations" />;
