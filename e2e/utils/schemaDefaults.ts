@@ -981,3 +981,1172 @@ export const COLUMN_DEFAULTS: Record<string, Record<string, unknown>> = {
     "is_active": true
   }
 };
+
+/** Unique keys (constraints and non-partial unique indexes): table -> column sets. */
+export const UNIQUE_KEYS: Record<string, string[][]> = {
+  "assets": [
+    [
+      "tenant_id",
+      "asset_number"
+    ]
+  ],
+  "attendance_policies": [
+    [
+      "tenant_id"
+    ]
+  ],
+  "compliance_requirements": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "contract_documents": [
+    [
+      "storage_path"
+    ]
+  ],
+  "contracts": [
+    [
+      "tenant_id",
+      "contract_number"
+    ]
+  ],
+  "departments": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "employee_availability": [
+    [
+      "employee_id",
+      "day_of_week",
+      "start_time"
+    ]
+  ],
+  "employee_availability_exceptions": [
+    [
+      "employee_id",
+      "exception_date"
+    ]
+  ],
+  "employee_documents": [
+    [
+      "storage_path"
+    ]
+  ],
+  "employee_skills": [
+    [
+      "employee_id",
+      "skill_id"
+    ]
+  ],
+  "employees": [
+    [
+      "tenant_id",
+      "employee_number"
+    ]
+  ],
+  "incident_affected_employees": [
+    [
+      "incident_id",
+      "employee_id"
+    ]
+  ],
+  "incidents": [
+    [
+      "reference_number"
+    ]
+  ],
+  "inventory_items": [
+    [
+      "tenant_id",
+      "sku"
+    ]
+  ],
+  "leave_balances": [
+    [
+      "tenant_id",
+      "employee_id",
+      "leave_type_id",
+      "period_year"
+    ]
+  ],
+  "leave_policies": [
+    [
+      "tenant_id",
+      "leave_type_id"
+    ]
+  ],
+  "leave_types": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "notification_deliveries": [
+    [
+      "notification_id",
+      "channel"
+    ]
+  ],
+  "positions": [
+    [
+      "tenant_id",
+      "title"
+    ]
+  ],
+  "regions": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "shift_definitions": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "site_staffing_requirements": [
+    [
+      "tenant_id",
+      "site_id",
+      "label"
+    ]
+  ],
+  "skills": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "teams": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "training_programs": [
+    [
+      "tenant_id",
+      "name"
+    ]
+  ],
+  "user_scopes": [
+    [
+      "profile_id",
+      "scope_type",
+      "scope_id"
+    ]
+  ]
+};
+
+/** Single-column foreign keys by parent table, with their ON DELETE action. */
+export const ON_DELETE: Record<string, { child: string; column: string; action: 'cascade' | 'set_null' | 'restrict' }[]> = {
+  "assets": [
+    {
+      "child": "asset_assignments",
+      "column": "asset_id",
+      "action": "cascade"
+    },
+    {
+      "child": "asset_maintenance_records",
+      "column": "asset_id",
+      "action": "cascade"
+    }
+  ],
+  "attendance_records": [
+    {
+      "child": "attendance_breaks",
+      "column": "attendance_record_id",
+      "action": "cascade"
+    },
+    {
+      "child": "attendance_corrections",
+      "column": "attendance_record_id",
+      "action": "cascade"
+    }
+  ],
+  "clients": [
+    {
+      "child": "client_contacts",
+      "column": "client_id",
+      "action": "cascade"
+    },
+    {
+      "child": "compliance_records",
+      "column": "client_id",
+      "action": "cascade"
+    },
+    {
+      "child": "contracts",
+      "column": "client_id",
+      "action": "cascade"
+    },
+    {
+      "child": "sites",
+      "column": "client_id",
+      "action": "cascade"
+    }
+  ],
+  "compliance_requirements": [
+    {
+      "child": "compliance_records",
+      "column": "requirement_id",
+      "action": "cascade"
+    }
+  ],
+  "contracts": [
+    {
+      "child": "compliance_records",
+      "column": "contract_id",
+      "action": "cascade"
+    },
+    {
+      "child": "contract_documents",
+      "column": "contract_id",
+      "action": "cascade"
+    },
+    {
+      "child": "contract_sites",
+      "column": "contract_id",
+      "action": "cascade"
+    },
+    {
+      "child": "incidents",
+      "column": "contract_id",
+      "action": "set_null"
+    },
+    {
+      "child": "sla_definitions",
+      "column": "contract_id",
+      "action": "cascade"
+    }
+  ],
+  "departments": [
+    {
+      "child": "employees",
+      "column": "department_id",
+      "action": "set_null"
+    },
+    {
+      "child": "positions",
+      "column": "department_id",
+      "action": "set_null"
+    }
+  ],
+  "employee_documents": [
+    {
+      "child": "employee_documents",
+      "column": "supersedes_document_id",
+      "action": "set_null"
+    },
+    {
+      "child": "employee_qualifications",
+      "column": "evidence_document_id",
+      "action": "set_null"
+    },
+    {
+      "child": "employee_skills",
+      "column": "evidence_document_id",
+      "action": "set_null"
+    }
+  ],
+  "employee_qualifications": [
+    {
+      "child": "training_enrollments",
+      "column": "resulting_qualification_id",
+      "action": "set_null"
+    }
+  ],
+  "employees": [
+    {
+      "child": "asset_assignments",
+      "column": "assigned_to_employee_id",
+      "action": "set_null"
+    },
+    {
+      "child": "assets",
+      "column": "custodian_employee_id",
+      "action": "set_null"
+    },
+    {
+      "child": "attendance_records",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "development_actions",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_availability",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_availability_exceptions",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_documents",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_qualifications",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_skills",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employees",
+      "column": "supervisor_id",
+      "action": "set_null"
+    },
+    {
+      "child": "incident_affected_employees",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_balance_transactions",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_balances",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_requests",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "performance_reviews",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "shift_substitutions",
+      "column": "original_employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "shift_substitutions",
+      "column": "substitute_employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "shifts",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "shifts",
+      "column": "supervisor_id",
+      "action": "set_null"
+    },
+    {
+      "child": "site_assignments",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_templates",
+      "column": "default_assignee_id",
+      "action": "set_null"
+    },
+    {
+      "child": "tasks",
+      "column": "assignee_id",
+      "action": "set_null"
+    },
+    {
+      "child": "tasks",
+      "column": "supervisor_id",
+      "action": "set_null"
+    },
+    {
+      "child": "team_members",
+      "column": "employee_id",
+      "action": "cascade"
+    },
+    {
+      "child": "teams",
+      "column": "lead_employee_id",
+      "action": "set_null"
+    },
+    {
+      "child": "training_enrollments",
+      "column": "employee_id",
+      "action": "cascade"
+    }
+  ],
+  "incidents": [
+    {
+      "child": "incident_actions",
+      "column": "incident_id",
+      "action": "cascade"
+    },
+    {
+      "child": "incident_affected_employees",
+      "column": "incident_id",
+      "action": "cascade"
+    }
+  ],
+  "inventory_items": [
+    {
+      "child": "inventory_movements",
+      "column": "item_id",
+      "action": "cascade"
+    }
+  ],
+  "leave_requests": [
+    {
+      "child": "employee_availability_exceptions",
+      "column": "leave_request_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_balance_transactions",
+      "column": "leave_request_id",
+      "action": "set_null"
+    }
+  ],
+  "leave_types": [
+    {
+      "child": "leave_balance_transactions",
+      "column": "leave_type_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_balances",
+      "column": "leave_type_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_policies",
+      "column": "leave_type_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_requests",
+      "column": "leave_type_id",
+      "action": "restrict"
+    }
+  ],
+  "notifications": [
+    {
+      "child": "notification_deliveries",
+      "column": "notification_id",
+      "action": "cascade"
+    }
+  ],
+  "organizations": [
+    {
+      "child": "asset_assignments",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "asset_maintenance_records",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "assets",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "attendance_breaks",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "attendance_corrections",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "attendance_policies",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "attendance_records",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "audit_log",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "client_contacts",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "clients",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "compliance_records",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "compliance_requirements",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "contract_documents",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "contract_sites",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "contracts",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "departments",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "development_actions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_availability",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_availability_exceptions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_documents",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_qualifications",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employee_skills",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employees",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "incident_actions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "incident_affected_employees",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "incidents",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "inventory_items",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "inventory_movements",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_balance_transactions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_balances",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_policies",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_requests",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "leave_types",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "notifications",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "performance_reviews",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "positions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "procurement_requests",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "profiles",
+      "column": "tenant_id",
+      "action": "set_null"
+    },
+    {
+      "child": "regions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "shift_definitions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "shift_substitutions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "shifts",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "site_assignments",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "site_staffing_requirements",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "sites",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "skills",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "sla_definitions",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "sla_measurements",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_checklist_items",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_comments",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_evidence",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_templates",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "tasks",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "team_members",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "teams",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "training_enrollments",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "training_programs",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "training_requirements",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "user_scopes",
+      "column": "tenant_id",
+      "action": "cascade"
+    }
+  ],
+  "performance_reviews": [
+    {
+      "child": "development_actions",
+      "column": "review_id",
+      "action": "set_null"
+    }
+  ],
+  "positions": [
+    {
+      "child": "employees",
+      "column": "position_id",
+      "action": "set_null"
+    }
+  ],
+  "profiles": [
+    {
+      "child": "asset_assignments",
+      "column": "assigned_by",
+      "action": "set_null"
+    },
+    {
+      "child": "asset_maintenance_records",
+      "column": "performed_by",
+      "action": "set_null"
+    },
+    {
+      "child": "attendance_corrections",
+      "column": "requested_by",
+      "action": "set_null"
+    },
+    {
+      "child": "attendance_corrections",
+      "column": "reviewed_by",
+      "action": "set_null"
+    },
+    {
+      "child": "attendance_records",
+      "column": "recorded_by",
+      "action": "set_null"
+    },
+    {
+      "child": "audit_log",
+      "column": "actor_profile_id",
+      "action": "set_null"
+    },
+    {
+      "child": "compliance_records",
+      "column": "responsible_profile_id",
+      "action": "set_null"
+    },
+    {
+      "child": "compliance_records",
+      "column": "verified_by",
+      "action": "set_null"
+    },
+    {
+      "child": "compliance_requirements",
+      "column": "created_by",
+      "action": "set_null"
+    },
+    {
+      "child": "contract_documents",
+      "column": "uploaded_by",
+      "action": "set_null"
+    },
+    {
+      "child": "contracts",
+      "column": "responsible_manager_id",
+      "action": "set_null"
+    },
+    {
+      "child": "development_actions",
+      "column": "owner_profile_id",
+      "action": "set_null"
+    },
+    {
+      "child": "employee_documents",
+      "column": "uploaded_by",
+      "action": "set_null"
+    },
+    {
+      "child": "employee_documents",
+      "column": "verified_by",
+      "action": "set_null"
+    },
+    {
+      "child": "employee_qualifications",
+      "column": "verified_by",
+      "action": "set_null"
+    },
+    {
+      "child": "employee_skills",
+      "column": "verified_by",
+      "action": "set_null"
+    },
+    {
+      "child": "employees",
+      "column": "profile_id",
+      "action": "set_null"
+    },
+    {
+      "child": "incident_actions",
+      "column": "owner_profile_id",
+      "action": "set_null"
+    },
+    {
+      "child": "incident_actions",
+      "column": "verified_by",
+      "action": "set_null"
+    },
+    {
+      "child": "incidents",
+      "column": "closed_by",
+      "action": "set_null"
+    },
+    {
+      "child": "incidents",
+      "column": "reported_by",
+      "action": "set_null"
+    },
+    {
+      "child": "inventory_movements",
+      "column": "performed_by",
+      "action": "set_null"
+    },
+    {
+      "child": "leave_balance_transactions",
+      "column": "created_by",
+      "action": "set_null"
+    },
+    {
+      "child": "leave_requests",
+      "column": "cancelled_by",
+      "action": "set_null"
+    },
+    {
+      "child": "leave_requests",
+      "column": "decided_by",
+      "action": "set_null"
+    },
+    {
+      "child": "notification_deliveries",
+      "column": "recipient_profile_id",
+      "action": "cascade"
+    },
+    {
+      "child": "notification_preferences",
+      "column": "profile_id",
+      "action": "cascade"
+    },
+    {
+      "child": "notifications",
+      "column": "recipient_profile_id",
+      "action": "cascade"
+    },
+    {
+      "child": "performance_reviews",
+      "column": "reviewer_profile_id",
+      "action": "set_null"
+    },
+    {
+      "child": "procurement_requests",
+      "column": "approved_by",
+      "action": "set_null"
+    },
+    {
+      "child": "procurement_requests",
+      "column": "requested_by",
+      "action": "set_null"
+    },
+    {
+      "child": "sla_measurements",
+      "column": "computed_by",
+      "action": "set_null"
+    },
+    {
+      "child": "task_checklist_items",
+      "column": "completed_by",
+      "action": "set_null"
+    },
+    {
+      "child": "task_comments",
+      "column": "author_id",
+      "action": "set_null"
+    },
+    {
+      "child": "task_evidence",
+      "column": "submitted_by",
+      "action": "set_null"
+    },
+    {
+      "child": "tasks",
+      "column": "completed_by",
+      "action": "set_null"
+    },
+    {
+      "child": "tasks",
+      "column": "created_by",
+      "action": "set_null"
+    },
+    {
+      "child": "user_scopes",
+      "column": "granted_by",
+      "action": "set_null"
+    },
+    {
+      "child": "user_scopes",
+      "column": "profile_id",
+      "action": "cascade"
+    }
+  ],
+  "regions": [
+    {
+      "child": "clients",
+      "column": "region_id",
+      "action": "set_null"
+    },
+    {
+      "child": "employees",
+      "column": "region_id",
+      "action": "set_null"
+    },
+    {
+      "child": "sites",
+      "column": "region_id",
+      "action": "set_null"
+    }
+  ],
+  "shift_definitions": [
+    {
+      "child": "shifts",
+      "column": "shift_definition_id",
+      "action": "set_null"
+    }
+  ],
+  "shifts": [
+    {
+      "child": "attendance_records",
+      "column": "shift_id",
+      "action": "set_null"
+    },
+    {
+      "child": "shift_substitutions",
+      "column": "shift_id",
+      "action": "cascade"
+    }
+  ],
+  "sites": [
+    {
+      "child": "asset_assignments",
+      "column": "assigned_to_site_id",
+      "action": "set_null"
+    },
+    {
+      "child": "assets",
+      "column": "site_id",
+      "action": "set_null"
+    },
+    {
+      "child": "attendance_records",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "compliance_records",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "contract_sites",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "employees",
+      "column": "home_site_id",
+      "action": "set_null"
+    },
+    {
+      "child": "incidents",
+      "column": "site_id",
+      "action": "set_null"
+    },
+    {
+      "child": "inventory_movements",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "procurement_requests",
+      "column": "site_id",
+      "action": "set_null"
+    },
+    {
+      "child": "shifts",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "site_assignments",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "site_staffing_requirements",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "sla_definitions",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_templates",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "tasks",
+      "column": "site_id",
+      "action": "cascade"
+    },
+    {
+      "child": "teams",
+      "column": "site_id",
+      "action": "set_null"
+    },
+    {
+      "child": "training_requirements",
+      "column": "required_for_site_id",
+      "action": "cascade"
+    }
+  ],
+  "skills": [
+    {
+      "child": "employee_skills",
+      "column": "skill_id",
+      "action": "cascade"
+    }
+  ],
+  "sla_definitions": [
+    {
+      "child": "sla_measurements",
+      "column": "sla_definition_id",
+      "action": "cascade"
+    }
+  ],
+  "tasks": [
+    {
+      "child": "task_checklist_items",
+      "column": "task_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_comments",
+      "column": "task_id",
+      "action": "cascade"
+    },
+    {
+      "child": "task_evidence",
+      "column": "task_id",
+      "action": "cascade"
+    }
+  ],
+  "teams": [
+    {
+      "child": "asset_assignments",
+      "column": "assigned_to_team_id",
+      "action": "set_null"
+    },
+    {
+      "child": "task_templates",
+      "column": "default_team_id",
+      "action": "set_null"
+    },
+    {
+      "child": "tasks",
+      "column": "team_id",
+      "action": "set_null"
+    },
+    {
+      "child": "team_members",
+      "column": "team_id",
+      "action": "cascade"
+    }
+  ],
+  "training_programs": [
+    {
+      "child": "training_enrollments",
+      "column": "training_program_id",
+      "action": "cascade"
+    },
+    {
+      "child": "training_requirements",
+      "column": "training_program_id",
+      "action": "cascade"
+    }
+  ]
+};

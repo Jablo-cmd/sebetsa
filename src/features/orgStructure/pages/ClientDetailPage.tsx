@@ -6,10 +6,18 @@ import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useClient } from '@/features/orgStructure/hooks/useClients';
+import { useRegions } from '@/features/orgStructure/hooks/useRegions';
+import { ClientFormModal } from '@/features/orgStructure/components/ClientFormModal';
+import { clientService } from '@/features/orgStructure/services/clientService';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import type { EntityStatus } from '@/features/orgStructure/types/orgStructure.types';
+import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useSitesForClient } from '@/features/orgStructure/hooks/useSites';
 import { useContractsForClient } from '@/features/orgStructure/hooks/useContracts';
 import { clientContactService, type ClientContact } from '@/features/orgStructure/services/clientContactService';
 import { getDbErrorMessage } from '@/lib/dbErrors';
+
+const ENTITY_STATUS_OPTIONS: EntityStatus[] = ['active', 'inactive', 'onboarding', 'offboarded'];
 
 const CONTRACT_STATUS_CLASSES: Record<string, string> = {
   draft: 'text-content-tertiary',
@@ -25,7 +33,12 @@ export function ClientDetailPage() {
   const navigate = useNavigate();
   const { can } = usePermissions();
   const canManage = can('org_structure.manage');
-  const { client, isLoading, error } = useClient(id);
+  const organization = useCurrentOrganization();
+  const { client, isLoading, error, refetch } = useClient(id);
+  const { regions } = useRegions(organization?.id);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const { sites, isLoading: sitesLoading } = useSitesForClient(id);
   const { contracts, isLoading: contractsLoading } = useContractsForClient(id);
   const [contacts, setContacts] = useState<ClientContact[]>([]);
@@ -60,6 +73,20 @@ export function ClientDetailPage() {
       setContactsError(getDbErrorMessage(err, 'Failed to add the contact.'));
     } finally {
       setIsAddingContact(false);
+    }
+  };
+
+  const handleStatusChange = async (status: EntityStatus) => {
+    if (!client) return;
+    setStatusError(null);
+    setIsChangingStatus(true);
+    try {
+      await clientService.updateClient(client.id, { status });
+      await refetch();
+    } catch (err) {
+      setStatusError(getDbErrorMessage(err, 'Failed to update the client.'));
+    } finally {
+      setIsChangingStatus(false);
     }
   };
 
@@ -120,7 +147,41 @@ export function ClientDetailPage() {
             <dd className="mt-1 text-sm text-content-primary">{client.primaryContactPhone ?? '—'}</dd>
           </div>
         </dl>
+
+        <ErrorAlert message={statusError} />
+
+        {canManage && (
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
+            <Button type="button" variant="secondary" onClick={() => setIsEditOpen(true)}>
+              Edit details
+            </Button>
+            <select
+              aria-label="Client status"
+              value={client.status}
+              disabled={isChangingStatus}
+              onChange={(event) => void handleStatusChange(event.target.value as EntityStatus)}
+              className="focus-ring h-10 rounded-lg border border-border-strong bg-surface-raised px-3 text-sm font-medium capitalize text-content-primary"
+            >
+              {ENTITY_STATUS_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
+
+      {organization && (
+        <ClientFormModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          tenantId={organization.id}
+          client={client}
+          regions={regions}
+          onSaved={() => void refetch()}
+        />
+      )}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold text-content-primary">Contacts</h2>

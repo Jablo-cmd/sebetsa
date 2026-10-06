@@ -6,6 +6,14 @@
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { corsHeaders, json } from '../_shared/cors.ts';
+import {
+  batchLimit,
+  channelConfigured,
+  type ProviderConfig,
+  retryDelayMs,
+  secretMatches,
+  statusAfterFailure,
+} from './logic.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -17,8 +25,6 @@ const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID') ?? '';
 const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN') ?? '';
 const TWILIO_SMS_FROM = Deno.env.get('TWILIO_SMS_FROM') ?? '';
 const TWILIO_WHATSAPP_FROM = Deno.env.get('TWILIO_WHATSAPP_FROM') ?? '';
-
-const MAX_ATTEMPTS = 5;
 
 interface DeliveryRow {
   id: string;
@@ -37,31 +43,19 @@ interface NotificationRow {
 
 type AdapterResult = { ok: true; providerMessageId: string | null } | { ok: false; error: string };
 
-/** Constant-time comparison of the dispatch secret (hash first so length does not leak). */
-async function secretMatches(provided: string | null): Promise<boolean> {
-  if (dispatchSecret.length === 0 || provided === null) return false;
-  const enc = new TextEncoder();
-  const [a, b] = await Promise.all([
-    crypto.subtle.digest('SHA-256', enc.encode(provided)),
-    crypto.subtle.digest('SHA-256', enc.encode(dispatchSecret)),
-  ]);
-  const x = new Uint8Array(a);
-  const y = new Uint8Array(b);
-  let diff = 0;
-  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
-  return diff === 0;
-}
-
 /** Structured, secret-free log line for log drains/alerting. */
 function log(event: string, fields: Record<string, unknown> = {}) {
   console.log(JSON.stringify({ ts: new Date().toISOString(), fn: 'notifications-dispatch', event, ...fields }));
 }
 
-function channelConfigured(channel: DeliveryRow['channel']): boolean {
-  if (channel === 'email') return RESEND_API_KEY.length > 0 && RESEND_FROM.length > 0;
-  if (channel === 'sms') return TWILIO_ACCOUNT_SID.length > 0 && TWILIO_AUTH_TOKEN.length > 0 && TWILIO_SMS_FROM.length > 0;
-  return TWILIO_ACCOUNT_SID.length > 0 && TWILIO_AUTH_TOKEN.length > 0 && TWILIO_WHATSAPP_FROM.length > 0;
-}
+const providerConfig: ProviderConfig = {
+  resendApiKey: RESEND_API_KEY,
+  resendFrom: RESEND_FROM,
+  twilioAccountSid: TWILIO_ACCOUNT_SID,
+  twilioAuthToken: TWILIO_AUTH_TOKEN,
+  twilioSmsFrom: TWILIO_SMS_FROM,
+  twilioWhatsappFrom: TWILIO_WHATSAPP_FROM,
+};
 
 async function sendEmail(to: string, subject: string, text: string): Promise<AdapterResult> {
   const res = await fetch('https://api.resend.com/emails', {
@@ -103,15 +97,14 @@ async function deliver(row: DeliveryRow, notification: NotificationRow): Promise
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
-  if (!(await secretMatches(req.headers.get('x-dispatch-secret')))) {
+  if (!(await secretMatches(req.headers.get('x-dispatch-secret'), dispatchSecret))) {
     log('unauthorized');
     return json({ error: 'unauthorized' }, 401);
   }
 
-  let limit = 50;
+  let limit = batchLimit(undefined);
   try {
-    const body = (await req.json()) as { limit?: number };
-    if (typeof body.limit === 'number' && body.limit > 0) limit = Math.min(body.limit, 200);
+    limit = batchLimit(await req.json());
   } catch {
     /* empty body is fine */
   }
@@ -133,7 +126,7 @@ Deno.serve(async (req) => {
   const result = { scanned: rows.length, sent: 0, failed: 0, skippedUnconfigured: 0 };
 
   for (const row of rows) {
-    if (!channelConfigured(row.channel)) {
+    if (!channelConfigured(row.channel, providerConfig)) {
       await s.from('notification_deliveries').update({ status: 'pending', scheduled_for: new Date(Date.now() + 15 * 60_000).toISOString(), claimed_at: null, claim_expires_at: null, worker_id: null }).eq('id', row.id).eq('worker_id', workerId);
       result.skippedUnconfigured += 1;
       continue;
@@ -179,8 +172,8 @@ Deno.serve(async (req) => {
       await s
         .from('notification_deliveries')
         .update({
-          status: nextAttempts >= MAX_ATTEMPTS ? 'dead_letter' : 'pending',
-          scheduled_for: new Date(Date.now() + Math.min(60 * 60_000, 2 ** nextAttempts * 60_000)).toISOString(),
+          status: statusAfterFailure(nextAttempts),
+          scheduled_for: new Date(Date.now() + retryDelayMs(nextAttempts)).toISOString(),
           worker_id: null,
           claimed_at: null,
           claim_expires_at: null,

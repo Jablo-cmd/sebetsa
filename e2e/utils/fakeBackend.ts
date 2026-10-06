@@ -1,5 +1,5 @@
 import type { Page, Request, Route } from '@playwright/test';
-import { COLUMN_DEFAULTS, CURRENT_DATE_DEFAULTS, TABLE_COLUMNS } from './schemaDefaults';
+import { COLUMN_DEFAULTS, CURRENT_DATE_DEFAULTS, ON_DELETE, TABLE_COLUMNS, UNIQUE_KEYS } from './schemaDefaults';
 
 /**
  * Sebetsa's single, authoritative E2E backend.
@@ -119,69 +119,6 @@ export const KNOWN_TABLES = [
   'training_requirements',
   'user_scopes',
 ] as const;
-
-/** Unique constraints modelled from the schema (column sets per table). */
-const UNIQUE_KEYS: Record<string, string[][]> = {
-  employees: [['tenant_id', 'employee_number']],
-  regions: [['tenant_id', 'name']],
-  departments: [['tenant_id', 'name']],
-  contracts: [['tenant_id', 'contract_number']],
-  profiles: [['email']],
-  team_members: [['team_id', 'employee_id']],
-  leave_balances: [['tenant_id', 'employee_id', 'leave_type_id', 'period_year']],
-  notification_preferences: [['profile_id']],
-};
-
-/**
- * Referential actions on delete (parent -> children), taken from the schema's
- * foreign keys (`select ... from pg_constraint` over supabase/migrations).
- * The UI's behaviour after deleting a department/region/site depends on these.
- */
-const ON_DELETE: Record<string, { child: string; column: string; action: 'cascade' | 'set_null' }[]> = {
-  departments: [
-    { child: 'employees', column: 'department_id', action: 'set_null' },
-    { child: 'positions', column: 'department_id', action: 'set_null' },
-  ],
-  positions: [{ child: 'employees', column: 'position_id', action: 'set_null' }],
-  regions: [
-    { child: 'clients', column: 'region_id', action: 'set_null' },
-    { child: 'sites', column: 'region_id', action: 'set_null' },
-    { child: 'employees', column: 'region_id', action: 'set_null' },
-  ],
-  clients: [
-    { child: 'sites', column: 'client_id', action: 'cascade' },
-    { child: 'contracts', column: 'client_id', action: 'cascade' },
-    { child: 'client_contacts', column: 'client_id', action: 'cascade' },
-    { child: 'compliance_records', column: 'client_id', action: 'cascade' },
-  ],
-  contracts: [
-    { child: 'contract_sites', column: 'contract_id', action: 'cascade' },
-    { child: 'contract_documents', column: 'contract_id', action: 'cascade' },
-    { child: 'sla_definitions', column: 'contract_id', action: 'cascade' },
-    { child: 'compliance_records', column: 'contract_id', action: 'cascade' },
-    { child: 'incidents', column: 'contract_id', action: 'set_null' },
-  ],
-  sites: [
-    { child: 'contract_sites', column: 'site_id', action: 'cascade' },
-    { child: 'shifts', column: 'site_id', action: 'cascade' },
-    { child: 'attendance_records', column: 'site_id', action: 'cascade' },
-    { child: 'tasks', column: 'site_id', action: 'cascade' },
-    { child: 'site_assignments', column: 'site_id', action: 'cascade' },
-    { child: 'site_staffing_requirements', column: 'site_id', action: 'cascade' },
-    { child: 'inventory_movements', column: 'site_id', action: 'cascade' },
-    { child: 'sla_definitions', column: 'site_id', action: 'cascade' },
-    { child: 'compliance_records', column: 'site_id', action: 'cascade' },
-    { child: 'teams', column: 'site_id', action: 'set_null' },
-    { child: 'assets', column: 'site_id', action: 'set_null' },
-    { child: 'incidents', column: 'site_id', action: 'set_null' },
-    { child: 'procurement_requests', column: 'site_id', action: 'set_null' },
-    { child: 'employees', column: 'home_site_id', action: 'set_null' },
-  ],
-  teams: [
-    { child: 'team_members', column: 'team_id', action: 'cascade' },
-    { child: 'tasks', column: 'team_id', action: 'set_null' },
-  ],
-};
 
 /** Server-derived authorship columns (set_actor_column triggers): the caller, never what the client sent. */
 const ACTOR_COLUMNS: Record<string, string> = {
@@ -580,7 +517,25 @@ export class FakeBackend {
   }
 
   /** Deletes rows and applies the schema's cascade / set-null rules to dependants. */
+  /** A `restrict`/`no action` foreign key blocks the delete (23503), anywhere down the cascade. */
+  private assertDeletable(table: string, targets: Set<Row>, seen = new Set<string>()): void {
+    const ids = new Set([...targets].map((row) => row.id));
+    for (const rule of ON_DELETE[table] ?? []) {
+      const dependants = this.table(rule.child).filter((row) => ids.has(row[rule.column]));
+      if (dependants.length === 0) continue;
+      if (rule.action === 'restrict') {
+        this.fail(`update or delete on table "${table}" violates foreign key constraint on table "${rule.child}"`, '23503', 409);
+      }
+      const key = `${rule.child}:${rule.column}`;
+      if (rule.action === 'cascade' && !seen.has(key)) {
+        seen.add(key);
+        this.assertDeletable(rule.child, new Set(dependants), seen);
+      }
+    }
+  }
+
   private deleteRows(table: string, targets: Set<Row>): void {
+    this.assertDeletable(table, targets);
     const ids = new Set([...targets].map((row) => row.id));
     this.tables.set(
       table,

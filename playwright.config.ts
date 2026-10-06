@@ -13,13 +13,13 @@ export default defineConfig({
   // Hard ceilings so a hung test or suite fails clearly instead of running
   // until the CI job timeout.
   timeout: 30_000,
-  globalTimeout: 15 * 60_000,
+  globalTimeout: 25 * 60_000,
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'retain-on-failure',
     actionTimeout: 10_000,
     navigationTimeout: 15_000,
-    // The suite is fully network-mocked (e2e/utils/sebetsaMocks.ts). Service
+    // The suite is fully network-mocked (e2e/utils/fakeBackend.ts). Service
     // workers could bypass page.route(), so block them.
     serviceWorkers: 'block',
     launchOptions: {

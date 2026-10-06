@@ -54,9 +54,14 @@ export function TeamFormModal({ isOpen, onClose, tenantId, team, sites, onSaved 
   useEffect(() => {
     if (!isOpen || !team?.leadEmployeeId) return;
     let cancelled = false;
-    void employeeService.getEmployee(team.leadEmployeeId).then((result) => {
-      if (!cancelled && result) setSelectedLead({ id: result.id, firstName: result.firstName, lastName: result.lastName });
-    });
+    employeeService
+      .getEmployee(team.leadEmployeeId)
+      .then((result) => {
+        if (!cancelled && result) setSelectedLead({ id: result.id, firstName: result.firstName, lastName: result.lastName });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to load the team lead.'));
+      });
     return () => {
       cancelled = true;
     };
@@ -65,9 +70,14 @@ export function TeamFormModal({ isOpen, onClose, tenantId, team, sites, onSaved 
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    void employeeService.searchEmployeeCandidates(tenantId, leadSearch).then((results) => {
-      if (!cancelled) setLeadCandidates(results);
-    });
+    employeeService
+      .searchEmployeeCandidates(tenantId, leadSearch)
+      .then((results) => {
+        if (!cancelled) setLeadCandidates(results);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to search employees.'));
+      });
     return () => {
       cancelled = true;
     };

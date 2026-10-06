@@ -3,13 +3,23 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FullScreenSpinner } from '@/components/ui/FullScreenSpinner';
 import { FullScreenNotice } from '@/components/ui/FullScreenNotice';
 import { useSite } from '@/features/orgStructure/hooks/useSites';
+import { useAllClients } from '@/features/orgStructure/hooks/useClients';
+import { SiteFormModal } from '@/features/orgStructure/components/SiteFormModal';
+import { siteService } from '@/features/orgStructure/services/siteService';
+import { Button } from '@/components/ui/Button';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import type { EntityStatus } from '@/features/orgStructure/types/orgStructure.types';
+import { usePermissions } from '@/hooks/usePermissions';
+import { getDbErrorMessage } from '@/lib/dbErrors';
 import { useClient } from '@/features/orgStructure/hooks/useClients';
-import { useRegion } from '@/features/orgStructure/hooks/useRegions';
+import { useRegion, useRegions } from '@/features/orgStructure/hooks/useRegions';
 import { useContractsForSite } from '@/features/orgStructure/hooks/useContracts';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useSiteAssignmentsForSite } from '@/features/siteAssignments/hooks/useSiteAssignments';
 import { employeeService } from '@/features/employees/services/employeeService';
 import type { EmployeeCandidate } from '@/features/employees/services/employeeService';
+
+const ENTITY_STATUS_OPTIONS: EntityStatus[] = ['active', 'inactive', 'onboarding', 'offboarded'];
 
 const CONTRACT_STATUS_CLASSES: Record<string, string> = {
   draft: 'text-content-tertiary',
@@ -22,7 +32,15 @@ export function SiteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const organization = useCurrentOrganization();
-  const { site, isLoading, error } = useSite(id);
+  const { can } = usePermissions();
+  const canManage = can('org_structure.manage');
+  const { site, isLoading, error, refetch } = useSite(id);
+  const { clients: allClients } = useAllClients(organization?.id);
+  const { regions } = useRegions(organization?.id);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [employeesError, setEmployeesError] = useState<string | null>(null);
   const { client } = useClient(site?.clientId);
   const { region } = useRegion(site?.regionId ?? undefined);
   const { contracts, isLoading: contractsLoading } = useContractsForSite(id);
@@ -36,13 +54,33 @@ export function SiteDetailPage() {
       return;
     }
     let cancelled = false;
-    void employeeService.getEmployeeCandidatesByIds(ids).then((results) => {
-      if (!cancelled) setEmployees(new Map(results.map((e) => [e.id, e])));
-    });
+    setEmployeesError(null);
+    employeeService
+      .getEmployeeCandidatesByIds(ids)
+      .then((results) => {
+        if (!cancelled) setEmployees(new Map(results.map((e) => [e.id, e])));
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setEmployeesError(getDbErrorMessage(err, 'Failed to load the workforce names.'));
+      });
     return () => {
       cancelled = true;
     };
   }, [workforce]);
+
+  const handleStatusChange = async (status: EntityStatus) => {
+    if (!site) return;
+    setStatusError(null);
+    setIsChangingStatus(true);
+    try {
+      await siteService.updateSite(site.id, { status });
+      await refetch();
+    } catch (err) {
+      setStatusError(getDbErrorMessage(err, 'Failed to update the site.'));
+    } finally {
+      setIsChangingStatus(false);
+    }
+  };
 
   if (isLoading) {
     return <FullScreenSpinner label="Loading site…" />;
@@ -117,7 +155,42 @@ export function SiteDetailPage() {
             <dd className="mt-1 text-sm text-content-primary">{site.siteType ?? '—'}</dd>
           </div>
         </dl>
+
+        <ErrorAlert message={statusError} />
+
+        {canManage && (
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
+            <Button type="button" variant="secondary" onClick={() => setIsEditOpen(true)}>
+              Edit details
+            </Button>
+            <select
+              aria-label="Site status"
+              value={site.status}
+              disabled={isChangingStatus}
+              onChange={(event) => void handleStatusChange(event.target.value as EntityStatus)}
+              className="focus-ring h-10 rounded-lg border border-border-strong bg-surface-raised px-3 text-sm font-medium capitalize text-content-primary"
+            >
+              {ENTITY_STATUS_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
+
+      {organization && (
+        <SiteFormModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          tenantId={organization.id}
+          site={site}
+          clients={allClients}
+          regions={regions}
+          onSaved={() => void refetch()}
+        />
+      )}
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
@@ -126,6 +199,7 @@ export function SiteDetailPage() {
             Manage assignments
           </Link>
         </div>
+        <ErrorAlert message={employeesError} />
         {workforceLoading ? (
           <p className="text-sm text-content-tertiary">Loading workforce…</p>
         ) : workforce.length === 0 ? (

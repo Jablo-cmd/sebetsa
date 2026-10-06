@@ -1,64 +1,61 @@
-# Notification delivery architecture (email / SMS / WhatsApp)
+# Notification delivery (in-app, email, SMS, WhatsApp)
 
-Domain 4. The app has always delivered notifications **in-app only**
-(`notifications` rows, the header bell, the `/notifications` inbox). This
-document describes the architecture that lets those same notifications also
-be delivered by email, SMS, or WhatsApp — and is explicit that **nothing is
-actually sent until a real provider's credentials are supplied**, exactly
-the same external-blocker shape as the Finance payment gateway
-([PAYMENT_GATEWAY.md](./PAYMENT_GATEWAY.md)).
+Every notification is delivered **in-app** (a `notifications` row, the header
+bell, the `/notifications` inbox). A user can additionally opt into **email**,
+**SMS** and **WhatsApp**. This document describes how external delivery works
+and — just as importantly — what it does *not* do until it is configured.
+
+> **Nothing is sent externally until all three of these are true:** the Edge
+> Function is deployed, something calls it on a schedule, and the provider
+> secrets for that channel are set. Until then in-app notifications are
+> unaffected and external deliveries wait as `pending`. The application never
+> reports an external message as sent when it was not.
 
 ## The pieces
 
 | Piece | Role |
 | ----- | ---- |
-| `notification_preferences` | Per-user opt-in per channel (+ per-type overrides + quiet hours). In-app is never disable-able. |
-| `school_messaging_settings` | Per-school kill-switch + non-secret config (`email_from_name`, `email_reply_to`, `sms_sender_id`, `*_provider` names). **No API keys, tokens, or passwords are ever stored here.** Managed at `/settings/messaging` (`school.manage`). |
-| `notification_deliveries` | The outbox. One row per (notification, external channel) that was opted into. `status` starts `pending` (`skipped` if the recipient has no email/phone on file). |
-| `resolve_notification_channels(profile, school, type)` | Decides which external channels a given notification should attempt: the school switch AND the user preference (global, then per-type override) must both be on. |
-| `notification_delivery_schedule(profile)` | `now()`, unless the recipient is inside their quiet-hours window, in which case the next end-of-window. |
-| `enqueue_notification_deliveries(notification_id)` | Called at the end of `create_notification()` — inserts the `pending` rows. Every existing and future producer gets multi-channel delivery for free. |
-| `supabase/functions/notifications-dispatch` | The **worker**. Drains `pending` rows and calls the provider adapters. |
+| `notifications` | The in-app notification. Rows are created only by `create_notification()` (SECURITY DEFINER, not executable by `authenticated`), always from inside a privileged RPC. |
+| `notification_preferences` | Per-user opt-in per external channel (`email_enabled`, `sms_enabled`, `whatsapp_enabled`) and optional quiet hours. Default is **off**. A user can read and change only their own row. Managed at `/notifications/settings`. |
+| `enqueue_notification_deliveries()` | `AFTER INSERT` trigger on `notifications`. Adds one `notification_deliveries` row per channel the recipient opted into. See rules below. |
+| `notification_deliveries` | The outbox. One row per (notification, channel), unique. Statuses: `pending → claimed → processing → sent`, or back to `pending` with a retry delay, or `dead_letter` after 5 attempts (`failed` is reserved). Users can read only their own rows; nobody writes to it from the browser. |
+| `claim_notification_deliveries()` | Atomic claim with a lease (`FOR UPDATE SKIP LOCKED`), executable by `service_role` only. A crashed worker's lease expires and the rows are claimed again. |
+| `supabase/functions/notifications-dispatch` | The worker. Claims a batch, calls the provider adapter for each row, records the result. |
 
-## The hand-off point
+### What the enqueue trigger does
 
-```
-select * from notification_deliveries
-where status = 'pending' and attempts < 5 and scheduled_for <= now()
-order by scheduled_for
-limit N;
-```
+- Only an **active** profile receives external messages.
+- A channel needs a destination: email uses `profiles.email`; SMS and WhatsApp use `profiles.phone`. If it is missing, nothing is queued for that channel.
+- **Quiet hours** defer a delivery to the end of the window. The times are stored without a time zone, so they are currently evaluated in **UTC**. A per-user time zone is a known gap — see the roadmap.
+- It is idempotent (`unique (notification_id, channel)`), and in-app notifications are never blocked by it.
+- Covered by `supabase/rls-tests/tests/notification_enqueue.test.sql`.
 
-For each row the worker calls the adapter for its `channel`, then updates
-the row to `sent` (with `provider_message_id`) or, on failure, back to
-`pending` with `attempts + 1` and an `error` — or `failed` once
-`attempts` reaches 5.
+## The worker: `notifications-dispatch`
 
-## `notifications-dispatch` Edge Function
-
-- **Auth:** `POST` with header `x-dispatch-secret: <NOTIFICATIONS_DISPATCH_SECRET>`. If that env var is unset the function returns `401` for every request (fail-closed).
-- **Body (optional):** `{ "limit": <1..200> }` (default 50).
-- **Adapters:**
-  - `email` → **Resend** — `RESEND_API_KEY`, `RESEND_FROM` (default `Funda360 <notifications@funda360.app>`).
-  - `sms` → **Twilio** — `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`.
-  - `whatsapp` → **Twilio** — `… `, `TWILIO_WHATSAPP_FROM`.
-- If a channel's secret(s) are absent, its `pending` rows are **left untouched** (`skippedUnconfigured` in the response). The adapter exists; activation waits for real credentials.
-- Response: `{ ok, scanned, sent, failed, skippedUnconfigured }`.
+- **Authentication:** `POST` with header `x-dispatch-secret: <NOTIFICATIONS_DISPATCH_SECRET>`, compared in constant time (hash first, so length does not leak). If the secret is not configured the function rejects **every** request (fail closed). Failures are logged as `unauthorized` without the supplied value.
+- **Body (optional):** `{ "limit": 1..200 }`, default 50.
+- **Adapters**
+  - `email` → Resend: `RESEND_API_KEY`, `RESEND_FROM` (a sender you have verified; there is no default sender).
+  - `sms` → Twilio: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`.
+  - `whatsapp` → Twilio: the same account plus `TWILIO_WHATSAPP_FROM`.
+- A channel whose secrets are missing is not attempted: its rows are released back to `pending` and rescheduled 15 minutes out, and `skippedUnconfigured` is reported.
+- **Retries:** exponential backoff starting at 2 minutes, capped at one hour; after 5 attempts the row is `dead_letter` with the last error. Provider message ids are unique, so a replay cannot record the same message twice.
+- **Logging:** one structured JSON line per event (`unauthorized`, `claim_failed`, `batch_complete`) with counts only — no destinations, bodies or secrets.
+- **Response:** `{ ok, scanned, sent, failed, skippedUnconfigured }`.
+- Pure logic (secret comparison, channel configuration, batch limits, retry schedule) lives in `logic.ts` and is unit-tested with `deno test` in CI.
 
 ## Production activation
 
 1. `supabase functions deploy notifications-dispatch`
-2. `supabase secrets set NOTIFICATIONS_DISPATCH_SECRET=… RESEND_API_KEY=… TWILIO_ACCOUNT_SID=… TWILIO_AUTH_TOKEN=… TWILIO_SMS_FROM=… TWILIO_WHATSAPP_FROM=…` (only the ones you use).
-3. Schedule it — `pg_cron` (`select net.http_post(...)` every minute) or any external scheduler — the same way the fee-overdue / attendance-alert workers are described in Domain 19.
-4. Enable the channels per school at `/settings/messaging`.
+2. `supabase secrets set NOTIFICATIONS_DISPATCH_SECRET=… ` plus the provider secrets for the channels you use (see `.env.example`).
+3. Schedule it: `pg_cron` + `pg_net` (`select net.http_post(...)` every minute with the secret header) or any external scheduler.
+4. Ask users to enable channels at `/notifications/settings` (and make sure their profile has an email / phone number).
 
-Until step 1–3 are done, `notification_deliveries` rows accumulate as
-`pending` and the in-app notification is completely unaffected. The app
-never claims an external message was sent that wasn't.
+Steps 1–3 are **not verified in this repository** — they require the live Supabase project. See the readiness scorecard.
 
-## What is deferred to Domain 19
+## Not built yet
 
-Scheduled execution wiring (`pg_cron` job rows), a delivery-status
-dashboard, provider webhooks for bounce/delivery receipts, and template
-theming per school. Domain 4 ships the queue, the preferences, the
-per-school config, and the worker with real adapters.
+- Provider delivery receipts / bounce webhooks (would need an authenticated, replay-safe, idempotent endpoint — see `SECURITY.md`).
+- A delivery-status dashboard and alerting on `dead_letter` growth.
+- Per-user time zone for quiet hours.
+- Tenant-level channel kill-switch and non-secret sender configuration.

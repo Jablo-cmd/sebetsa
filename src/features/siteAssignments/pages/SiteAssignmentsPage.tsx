@@ -37,9 +37,14 @@ export function SiteAssignmentsPage() {
       return;
     }
     let cancelled = false;
-    void employeeService.getEmployeeCandidatesByIds(ids).then((results) => {
-      if (!cancelled) setEmployees(new Map(results.map((e) => [e.id, e])));
-    });
+    employeeService
+      .getEmployeeCandidatesByIds(ids)
+      .then((results) => {
+        if (!cancelled) setEmployees(new Map(results.map((e) => [e.id, e])));
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setActionError(getDbErrorMessage(err, 'Failed to load employee names.'));
+      });
     return () => {
       cancelled = true;
     };

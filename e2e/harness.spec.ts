@@ -16,7 +16,7 @@ test('unmodelled tables, unregistered RPCs and off-origin requests are all caugh
 
   const results = await page.evaluate(async () => {
     const supabase = 'http://localhost:54321';
-    const a = await fetch(`${supabase}/rest/v1/learners?select=*`);
+    const a = await fetch(`${supabase}/rest/v1/unmodelled_table?select=*`);
     const b = await fetch(`${supabase}/rest/v1/rpc/definitely_not_a_function`, { method: 'POST', body: '{}', headers: { 'content-type': 'application/json' } });
     const c = await fetch(`${supabase}/functions/v1/payments-initiate`, { method: 'POST' });
     const d = await fetch('https://example.com/exfiltrate').then((r) => r.status).catch(() => 'blocked');
@@ -25,7 +25,7 @@ test('unmodelled tables, unregistered RPCs and off-origin requests are all caugh
 
   expect(results).toEqual({ table: 501, rpc: 501, other: 501, offOrigin: 'blocked' });
   expect(backend.unmocked).toEqual([
-    'GET /rest/v1/learners (table not modelled)',
+    'GET /rest/v1/unmodelled_table (table not modelled)',
     'RPC definitely_not_a_function (no handler registered)',
     'POST /functions/v1/payments-initiate',
   ]);

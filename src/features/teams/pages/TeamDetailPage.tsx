@@ -38,9 +38,14 @@ export function TeamDetailPage() {
       return;
     }
     let cancelled = false;
-    void employeeService.searchEmployeeCandidates(organization.id, memberSearch).then((results) => {
-      if (!cancelled) setCandidates(results.filter((c) => !members.some((m) => m.employeeId === c.id)));
-    });
+    employeeService
+      .searchEmployeeCandidates(organization.id, memberSearch)
+      .then((results) => {
+        if (!cancelled) setCandidates(results.filter((c) => !members.some((m) => m.employeeId === c.id)));
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setActionError(getDbErrorMessage(err, 'Failed to search employees.'));
+      });
     return () => {
       cancelled = true;
     };
@@ -67,6 +72,17 @@ export function TeamDetailPage() {
       />
     );
   }
+
+  const handleToggleStatus = async () => {
+    setActionError(null);
+    try {
+      if (team.status === 'active') await teamService.archiveTeam(team.id);
+      else await teamService.restoreTeam(team.id);
+      await refetch();
+    } catch (err) {
+      setActionError(getDbErrorMessage(err, 'Failed to update the team.'));
+    }
+  };
 
   const handleAddMember = async (employeeId: string) => {
     if (!organization) return;
@@ -120,12 +136,13 @@ export function TeamDetailPage() {
         </div>
 
         {canManage && (
-          <div className="mt-6 border-t border-border pt-5">
-            <div className="w-full sm:w-auto sm:min-w-[8rem]">
-              <Button type="button" variant="secondary" onClick={() => setIsEditOpen(true)}>
-                Edit details
-              </Button>
-            </div>
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
+            <Button type="button" variant="secondary" onClick={() => setIsEditOpen(true)}>
+              Edit details
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => void handleToggleStatus()}>
+              {team.status === 'active' ? 'Archive team' : 'Restore team'}
+            </Button>
           </div>
         )}
       </div>

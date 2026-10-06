@@ -13,9 +13,10 @@ test('a manager defines a requirement and starts tracking it for a site', async 
 
   await page.getByLabel('Site for Chemical storage inspection').selectOption({ label: 'Harbour Point – Tower A' });
   await page.getByRole('button', { name: 'Start tracking' }).last().click();
+  // Wait for the UI to reflect the saved record before reading backend state.
+  await expect(page.getByRole('row', { name: /Chemical storage inspection/ })).toContainText('Harbour Point – Tower A');
   const rec = backend.table('compliance_records').find((r) => r.requirement_id === backend.find('compliance_requirements', { name: 'Chemical storage inspection' }).id);
   expect(rec).toMatchObject({ site_id: ID.siteTowerA, status: 'pending', due_date: dateOffset(30) });
-  await expect(page.getByRole('row', { name: /Chemical storage inspection/ })).toContainText('Harbour Point – Tower A');
 });
 
 test('a manager verifies a record that someone else is responsible for', async ({ page, app }) => {

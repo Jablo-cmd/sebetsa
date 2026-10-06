@@ -112,11 +112,11 @@ export class AppHarness {
 }
 
 export const test = base.extend<{ app: AppHarness; strictNetwork: void }>({
-  app: async ({ page }, use) => {
-    await use(new AppHarness(page));
+  app: async ({ page }, provide) => {
+    await provide(new AppHarness(page));
   },
   strictNetwork: [
-    async ({ page, app }, use) => {
+    async ({ page, app }, provide) => {
       // Lowest-priority catch-all (registered first): nothing may leave the app
       // origin, and the Supabase origin is handled only by an installed backend.
       await page.context().route(
@@ -132,7 +132,7 @@ export const test = base.extend<{ app: AppHarness; strictNetwork: void }>({
       });
       const pageErrors: string[] = [];
       page.on('pageerror', (error) => pageErrors.push(error.message));
-      await use();
+      await provide();
       expect(pageErrors, 'uncaught exceptions in the page').toEqual([]);
       expect(app.offOrigin, 'requests that left the app origin or hit an uninstalled backend').toEqual([]);
       for (const backend of app.backends) {

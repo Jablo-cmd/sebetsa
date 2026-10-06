@@ -1,27 +1,48 @@
 name: CI
 
+# Gate chain (each job needs the previous one, so a red gate stops everything after it):
+#
+#   quality -> edge-functions -> rls-tests -> e2e -> release-gate -> deploy
+#
+# `deploy` runs only for a push to main and only after the release gate has
+# verified that every earlier gate succeeded. Pull requests (including from
+# forks) run the same gates with a read-only token and no secrets: the only
+# secrets in this workflow are read by the deploy job.
+
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
+  # Lets a maintainer run every gate (except deploy) against any branch.
+  workflow_dispatch:
 
-# Cancel superseded runs on the same branch/PR so pushes don't queue behind
-# stale ones.
+# Least privilege by default; jobs that need more declare it themselves.
+permissions:
+  contents: read
+
+# Cancel superseded runs on a branch/PR, but never cancel a run on main
+# (a half-finished deploy must not be interrupted by the next push).
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  NODE_VERSION: '22'
 
 jobs:
   quality:
-    name: Typecheck, lint, unit tests, build
+    name: Quality — typecheck, lint, unit tests, build, dependency audit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install dependencies
@@ -37,52 +58,102 @@ jobs:
         run: npm run test
 
       - name: Production build
-        # This build is a quality gate only. The deploy job below performs the
-        # real production build with the hosted Supabase configuration.
+        # A quality gate only. The deploy job performs the real production
+        # build with the hosted Supabase configuration.
         run: npm run build
 
+      - name: Dependency audit (runtime dependencies, high and critical)
+        run: npm audit --omit=dev --audit-level=high
+
   edge-functions:
-    name: Edge Function (Deno) tests
+    name: Edge Functions — check, lint, unit tests (Deno)
+    needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
       - name: Type-check Edge Functions
         working-directory: supabase/functions
-        run: deno check notifications-dispatch/index.ts
+        run: deno check notifications-dispatch/index.ts notifications-dispatch/logic.test.ts
+
       - name: Lint Edge Functions
         working-directory: supabase/functions
         run: deno lint
 
+      - name: Unit-test Edge Function logic
+        working-directory: supabase/functions
+        run: deno test notifications-dispatch/
+
   rls-tests:
-    name: RLS / trigger / SECURITY DEFINER regression suite
+    name: RLS — migrations, policies, SECURITY DEFINER, generated types
+    needs: edge-functions
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          # Local-only credentials for a throwaway database that lives for the
+          # duration of this job. Not a secret and not used anywhere else.
+          POSTGRES_PASSWORD: harness
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      RLS_DATABASE_URL: postgresql://postgres:harness@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-      # supabase/rls-tests/run.sh spins up its own disposable
-      # postgres:17-alpine container with a fixed local-only harness
-      # password (see the script) — no repository secrets are used or
-      # required for this job.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Applies every migration to an empty database and runs every suite in
+      # supabase/rls-tests/tests (each in its own psql process). Fails on any
+      # suite error or any recorded false assertion.
       - name: Run RLS regression suite
         run: bash supabase/rls-tests/run.sh
 
+      # The generated types and the E2E backend's schema tables must match the
+      # migrations exactly — a drifted fake backend would let E2E pass against
+      # a schema that does not exist.
+      - name: Check generated types and E2E schema are up to date
+        env:
+          SKIP_HARNESS: '1'
+        run: bash scripts/generate-db-types.sh --check
+
   e2e:
-    name: Playwright end-to-end suite
+    name: E2E — Playwright against the deterministic Sebetsa backend
+    needs: rls-tests
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     env:
-      # The e2e suite is fully network-mocked and never reaches a real
-      # Supabase project. The dev server only needs these variables present.
+      # The suite never reaches a real Supabase project: every request to this
+      # origin is answered by the in-memory fake backend, and anything it does
+      # not model fails the test. The bundle only needs these to be present.
       VITE_SUPABASE_URL: http://localhost:54321
       VITE_SUPABASE_ANON_KEY: ci-dummy-anon-key-not-a-real-secret
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install dependencies
@@ -91,7 +162,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run e2e suite
+      - name: Run E2E suite
         run: npx playwright test
 
       - name: Upload failure traces
@@ -101,12 +172,42 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+          if-no-files-found: ignore
+
+  release-gate:
+    name: Release gate
+    needs: [quality, edge-functions, rls-tests, e2e]
+    # `always()` so the gate itself reports clearly when an upstream job failed
+    # or was skipped, instead of being silently skipped with it.
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every gate to have succeeded
+        env:
+          QUALITY: ${{ needs.quality.result }}
+          EDGE: ${{ needs.edge-functions.result }}
+          RLS: ${{ needs.rls-tests.result }}
+          E2E: ${{ needs.e2e.result }}
+        run: |
+          echo "quality=$QUALITY edge-functions=$EDGE rls-tests=$RLS e2e=$E2E"
+          failed=0
+          for gate in QUALITY EDGE RLS E2E; do
+            if [ "${!gate}" != "success" ]; then
+              echo "::error::Gate $gate did not succeed (${!gate}); this commit is not releasable."
+              failed=1
+            fi
+          done
+          exit $failed
 
   deploy:
     name: Deploy to GitHub Pages
+    needs: release-gate
+    # Only a push to main (never a PR, a fork, or a manual run on another
+    # branch) can deploy, and only if the gate above passed.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [quality, edge-functions, rls-tests, e2e]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       pages: write
@@ -116,10 +217,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Install dependencies
@@ -129,6 +232,7 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        # Only the presence and shape are checked; values are never printed.
         run: |
           if [ -z "$VITE_SUPABASE_URL" ]; then
             echo "::error::Missing GitHub Actions secret VITE_SUPABASE_URL in the github-pages environment."
@@ -152,6 +256,14 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_APP_NAME: Sebetsa
         run: npm run build
+
+      - name: Verify the bundle does not contain a service-role key
+        run: |
+          # The browser bundle may only ever hold the public anon key.
+          if grep -rIlE 'service_role|SUPABASE_SERVICE_ROLE' dist >/dev/null 2>&1; then
+            echo "::error::The production bundle references a service-role key. Aborting deploy."
+            exit 1
+          fi
 
       - name: Verify Pages entrypoint
         run: |

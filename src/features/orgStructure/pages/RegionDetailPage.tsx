@@ -84,7 +84,7 @@ export function RegionDetailPage() {
       {canManage && (
         <p className="text-xs text-content-tertiary">
           Edit this region's name or code, or archive it, from the{' '}
-          <Link to="/regions" className="text-brand-600 dark:text-brand-300 hover:underline">
+          <Link to="/regions" className="text-brand-600 dark:text-brand-300 underline">
             Regions list
           </Link>
           .
