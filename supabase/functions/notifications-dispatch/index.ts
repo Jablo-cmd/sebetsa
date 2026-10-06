@@ -70,14 +70,14 @@ async function sendTwilio(from: string, to: string, body: string): Promise<Adapt
   return { ok: true, providerMessageId: payload.sid ?? null };
 }
 
-function deliver(row: DeliveryRow, notification: NotificationRow): AdapterResult {
+async function deliver(row: DeliveryRow, notification: NotificationRow): Promise<AdapterResult> {
   const to = (row.destination ?? '').trim();
   if (to.length === 0) return { ok: false, error: 'no_destination' };
   const text = `${notification.body}${notification.link_path ? `\n\n${notification.link_path}` : ''}`;
 
-  if (row.channel === 'email') return sendEmail(to, notification.title, text);
-  if (row.channel === 'sms') return sendTwilio(TWILIO_SMS_FROM, to, `${notification.title}\n${text}`);
-  return sendTwilio(`whatsapp:${TWILIO_WHATSAPP_FROM}`, `whatsapp:${to}`, `${notification.title}\n${text}`);
+  if (row.channel === 'email') return await sendEmail(to, notification.title, text);
+  if (row.channel === 'sms') return await sendTwilio(TWILIO_SMS_FROM, to, `${notification.title}\n${text}`);
+  return await sendTwilio(`whatsapp:${TWILIO_WHATSAPP_FROM}`, `whatsapp:${to}`, `${notification.title}\n${text}`);
 }
 
 Deno.serve(async (req) => {
