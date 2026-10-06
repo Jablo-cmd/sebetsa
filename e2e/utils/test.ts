@@ -1,6 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { FakeBackend, authSession, type BackendOptions, type Row, type RpcHandler, type Session } from './fakeBackend';
+import { FakeBackend, KNOWN_TABLES, authSession, type BackendOptions, type Row, type RpcHandler, type Session } from './fakeBackend';
 import { FIXED_NOW, ID, PERSONAS, buildDataset, sessionFor, type SignInAs } from './sebetsaFixtures';
 import { defaultRpcHandlers } from './rpcHandlers';
 
@@ -48,6 +48,7 @@ export class AppHarness {
   /** Builds the dataset + backend, installs routes, seeds the session and pins the clock. */
   async open(as: SignInAs, options: OpenOptions = {}): Promise<FakeBackend> {
     const tables = buildDataset();
+    for (const table of KNOWN_TABLES) tables[table] ??= [];
     options.customize?.(tables);
     for (const [name, rows] of Object.entries(options.tables ?? {})) tables[name] = rows;
 

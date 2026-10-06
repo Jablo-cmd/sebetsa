@@ -28,6 +28,8 @@ export interface LeaveRequestsTableProps {
    * actually has them (i.e. a full LeaveRequest, not a summary projection). */
   showSensitiveColumns?: boolean;
   renderActions?: (request: LeaveRequest | LeaveRequestSummary) => ReactNode;
+  /** employee id → display name. When given, an Employee column is shown (approval and team views need to know WHO). */
+  employeeNames?: Record<string, string>;
 }
 
 export function LeaveRequestsTable({
@@ -37,6 +39,7 @@ export function LeaveRequestsTable({
   emptyMessage,
   showSensitiveColumns = false,
   renderActions,
+  employeeNames,
 }: LeaveRequestsTableProps) {
   const leaveTypeName = (id: string) => leaveTypes.find((t) => t.id === id)?.name ?? '—';
 
@@ -53,6 +56,7 @@ export function LeaveRequestsTable({
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-border text-xs uppercase text-content-secondary">
+            {employeeNames && <th className="px-3 py-2">Employee</th>}
             <th className="px-3 py-2">Leave type</th>
             <th className="px-3 py-2">Dates</th>
             <th className="px-3 py-2">Duration</th>
@@ -64,6 +68,7 @@ export function LeaveRequestsTable({
         <tbody>
           {requests.map((request) => (
             <tr key={request.id} className="border-b border-border last:border-0">
+              {employeeNames && <td className="px-3 py-2.5 font-medium text-content-primary">{employeeNames[request.employeeId] ?? '—'}</td>}
               <td className="px-3 py-2.5">{leaveTypeName(request.leaveTypeId)}</td>
               <td className="px-3 py-2.5">
                 {request.startDate === request.endDate ? request.startDate : `${request.startDate} – ${request.endDate}`}

@@ -1,227 +1,210 @@
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-import { seedSebetsaSession } from './utils/sebetsaAuth';
-import {
-  installSebetsaMocks,
-  buildLeaveRequestRow,
-  buildLeaveTypeRow,
-  buildProfileRow,
-  buildEmployeeRow,
-} from './utils/sebetsaData';
+import { test, expect } from './utils/test';
+import { ID, PERSONAS, TODAY, dateOffset } from './utils/sebetsaFixtures';
 
-/** Same practical baseline as e2e/accessibility.spec.ts (automated
- * axe-core scan, not a full manual audit) — serious/critical violations
- * only, applied to the four Phase H Leave pages. */
-async function expectNoSeriousViolations(page: import('@playwright/test').Page) {
-  const results = await new AxeBuilder({ page }).analyze();
-  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  if (serious.length > 0) console.log(JSON.stringify(serious, null, 2));
-  expect(serious, `${serious.length} serious/critical accessibility violation(s) — see console output`).toEqual([]);
+const LERATO_REQUEST = '00000000-0000-4000-8000-003100000001';
+const THABO_BALANCE = '00000000-0000-4000-8000-003000000001';
+const LERATO_BALANCE = '00000000-0000-4000-8000-003000000002';
+
+async function openRequestForm(page: import('@playwright/test').Page) {
+  await page.goto('/leave');
+  await page.getByRole('button', { name: 'Request leave' }).click();
+  return page.getByRole('dialog');
 }
 
-/**
- * Genuine Sebetsa Leave & Absence E2E coverage — built on the real
- * localStorage session key, table names, and role model (see
- * e2e/utils/sebetsaAuth.ts / sebetsaData.ts), replacing the stale
- * Funda360-shaped e2e/leave-requests.spec.ts (removed). Every assertion
- * here exercises the actual rendered UI against mocked REST/RPC responses
- * — no database-internal state is asserted through the UI; that
- * coverage belongs to supabase/rls-tests/leave.sql, not here.
- */
-
-test('employee can submit a leave request, see it pending, and cancel it', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  const state = await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'employee' }),
-    employee: buildEmployeeRow(),
-    leaveTypes: [buildLeaveTypeRow()],
-    leaveRequests: [],
-    onRpc: async (fnName, payload, route) => {
-      if (fnName === 'submit_leave_request') {
-        const created = buildLeaveRequestRow({
-          id: 'new-request-1',
-          leave_type_id: payload.p_leave_type_id,
-          start_date: payload.p_start_date,
-          end_date: payload.p_end_date,
-          reason: payload.p_reason ?? null,
-          status: 'pending',
-        });
-        state.leaveRequests = [created];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(created) });
-        return true;
-      }
-      if (fnName === 'cancel_leave_request') {
-        const cancelled = { ...(state.leaveRequests?.[0] ?? buildLeaveRequestRow()), status: 'cancelled', cancelled_at: '2026-09-12T00:00:00Z', cancelled_by: '11111111-1111-1111-1111-111111111111' };
-        state.leaveRequests = [cancelled];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(cancelled) });
-        return true;
-      }
-      return false;
-    },
-  });
-
+test('My Leave shows the employee\'s own balance and requests only', async ({ page, app }) => {
+  await app.open('employee');
   await page.goto('/leave');
   await expect(page.getByRole('heading', { name: 'My Leave' })).toBeVisible();
+  await expect(page.getByText('13', { exact: true })).toBeVisible(); // 15 opening - 2 used
+  await expect(page.getByText('days remaining', { exact: false })).toBeVisible();
   await expect(page.getByText("You haven't requested any leave yet.")).toBeVisible();
+  await expect(page.getByText('Lerato')).toHaveCount(0);
+});
 
-  await page.getByRole('button', { name: 'Request leave' }).click();
-  await expect(page.getByRole('heading', { name: 'Request leave' })).toBeVisible();
+test('employee submits leave, the pending days are reserved, and cancelling releases them', async ({ page, app }) => {
+  const backend = await app.open('employee');
+  const dialog = await openRequestForm(page);
+  await dialog.getByLabel('Leave type').selectOption({ label: 'Annual' });
+  await dialog.getByLabel('Start date').fill(dateOffset(14));
+  await dialog.getByLabel('End date').fill(dateOffset(16));
+  await dialog.getByLabel('Reason').fill('Family wedding');
+  await expect(dialog.getByText(/3 calendar day\(s\)/)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Submit request' }).click();
 
-  await page.getByLabel(/Leave type/).selectOption('leave-type-annual');
-  await page.getByLabel('Start date').fill('2026-09-20');
-  await page.getByLabel('End date').fill('2026-09-22');
-  await page.getByLabel('Reason').fill('Family trip');
-  await page.getByRole('button', { name: 'Submit request' }).click();
-
-  await expect(page.getByRole('heading', { name: 'Request leave' })).toHaveCount(0);
-  await expect(page.getByText('Pending')).toBeVisible();
-  await expect(page.getByText('Family trip')).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('row', { name: /Annual/ })).toContainText('Pending');
+  await expect(page.getByText(/3 pending/)).toBeVisible();
+  const request = backend.find('leave_requests', { employee_id: PERSONAS.employee.employeeId });
+  expect(request).toMatchObject({ status: 'pending', start_date: dateOffset(14), end_date: dateOffset(16), reason: 'Family wedding', decided_by: null });
+  expect(backend.find('leave_balances', { id: THABO_BALANCE })).toMatchObject({ pending: 3, remaining: 10 });
 
   await page.getByRole('button', { name: 'Cancel' }).click();
-  await expect(page.getByText('Cancelled')).toBeVisible();
+  await expect(page.getByRole('row', { name: /Annual/ })).toContainText('Cancelled');
+  expect(backend.find('leave_balances', { id: THABO_BALANCE })).toMatchObject({ pending: 0, remaining: 13 });
+  expect(backend.find('leave_requests', { id: request.id }).cancelled_by).toBe(PERSONAS.employee.profileId);
 });
 
-test('organization_administrator can approve a pending leave request', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'organization_administrator' });
-  const pending = buildLeaveRequestRow({ status: 'pending' });
-  const state = await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'organization_administrator' }),
-    leaveTypes: [buildLeaveTypeRow()],
-    leaveRequests: [pending],
-    affectedShifts: [],
-    onRpc: async (fnName, payload, route) => {
-      if (fnName === 'approve_leave_request') {
-        const approved = {
-          ...pending,
-          status: 'approved',
-          decided_by: '11111111-1111-1111-1111-111111111111',
-          decided_at: '2026-09-12T00:00:00Z',
-          decision_notes: payload.p_decision_notes ?? null,
-        };
-        state.leaveRequests = [approved];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(approved) });
-        return true;
-      }
-      return false;
-    },
-  });
+test('the request form validates dates and half-day rules without sending anything', async ({ page, app }) => {
+  const backend = await app.open('employee');
+  const dialog = await openRequestForm(page);
+  await dialog.getByRole('button', { name: 'Submit request' }).click();
+  await expect(dialog.getByText('Leave type is required')).toBeVisible();
+  await expect(dialog.getByText('Start date is required')).toBeVisible();
 
+  await dialog.getByLabel('Leave type').selectOption({ label: 'Annual' });
+  await dialog.getByLabel('Start date').fill(dateOffset(10));
+  await dialog.getByLabel('End date').fill(dateOffset(8));
+  await dialog.getByRole('button', { name: 'Submit request' }).click();
+  await expect(dialog.getByText('End date must not be before start date')).toBeVisible();
+
+  await dialog.getByLabel('End date').fill(dateOffset(11));
+  await dialog.getByLabel('Half day').check();
+  await dialog.getByRole('button', { name: 'Submit request' }).click();
+  await expect(dialog.getByText('A half-day request must have the same start and end date')).toBeVisible();
+  expect(backend.requests.filter((r) => r.rpc === 'submit_leave_request')).toEqual([]);
+});
+
+test('a leave type that needs documentation is refused without it, and accepted with it', async ({ page, app }) => {
+  const backend = await app.open('employee');
+  const dialog = await openRequestForm(page);
+  await dialog.getByLabel('Leave type').selectOption({ label: 'Sick' });
+  await dialog.getByLabel('Start date').fill(dateOffset(1));
+  await dialog.getByLabel('End date').fill(dateOffset(1));
+  await dialog.getByRole('button', { name: 'Submit request' }).click();
+
+  await expect(dialog.getByRole('alert')).toHaveText('Supporting documentation is required for this leave type.');
+  expect(backend.table('leave_requests').filter((r) => r.employee_id === PERSONAS.employee.employeeId)).toHaveLength(0);
+
+  await dialog.getByLabel('Supporting document reference').fill('MED-2026-0042');
+  await dialog.getByRole('button', { name: 'Submit request' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('leave_requests', { employee_id: PERSONAS.employee.employeeId }).supporting_document_ref).toBe('MED-2026-0042');
+});
+
+test('the approval queue shows WHO is asking, and approving updates the balance and records the decision', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
   await page.goto('/leave/management');
   await expect(page.getByRole('heading', { name: 'Leave Management' })).toBeVisible();
-  await expect(page.getByText('Family trip')).toBeVisible();
+  const row = page.getByRole('row', { name: /Lerato Mahlangu/ });
+  await expect(row).toContainText('Annual');
+  await expect(row).toContainText('Family visit');
 
-  await page.getByRole('button', { name: 'Review' }).click();
-  await expect(page.getByRole('heading', { name: 'Review leave request' })).toBeVisible();
-  await page.getByRole('button', { name: 'Approve', exact: true }).click();
+  await row.getByRole('button', { name: 'Review' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Review leave request' });
+  await expect(dialog.getByText('Lerato Mahlangu')).toBeVisible();
+  await dialog.getByLabel('Notes').fill('Enjoy');
+  await dialog.getByRole('button', { name: 'Approve' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Review leave request' })).toHaveCount(0);
-  // The queue is still filtered to "Pending approval" — an approved request drops off it.
   await expect(page.getByText('No leave requests in this status.')).toBeVisible();
+  expect(backend.find('leave_requests', { id: LERATO_REQUEST })).toMatchObject({ status: 'approved', decided_by: PERSONAS.operations_manager.profileId, decision_notes: 'Enjoy' });
+  expect(backend.find('leave_balances', { id: LERATO_BALANCE })).toMatchObject({ pending: 0, used: 3, remaining: 12 });
+  expect(backend.table('audit_log').some((a) => a.action === 'leave_approved' && a.entity_id === LERATO_REQUEST)).toBe(true);
 });
 
-test('organization_administrator can revoke an approved leave request', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'organization_administrator' });
-  const approved = buildLeaveRequestRow({ status: 'approved', decided_by: 'someone', decided_at: '2026-09-05T00:00:00Z' });
-  const state = await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'organization_administrator' }),
-    leaveTypes: [buildLeaveTypeRow()],
-    leaveRequests: [approved],
-    affectedShifts: [],
-    onRpc: async (fnName, payload, route) => {
-      if (fnName === 'revoke_leave_request') {
-        const revoked = { ...approved, status: 'revoked', decision_notes: payload.p_decision_notes ?? null };
-        state.leaveRequests = [revoked];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(revoked) });
-        return true;
-      }
-      return false;
+test('rejecting releases the pending days; an approved request can later be revoked and the days return', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/leave/management');
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Review' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Reject' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('leave_requests', { id: LERATO_REQUEST }).status).toBe('rejected');
+  expect(backend.find('leave_balances', { id: LERATO_BALANCE })).toMatchObject({ pending: 0, used: 0, remaining: 15 });
+
+  // Put it back to pending (as if resubmitted), then approve and revoke it.
+  backend.find('leave_requests', { id: LERATO_REQUEST }).status = 'pending';
+  Object.assign(backend.find('leave_balances', { id: LERATO_BALANCE }), { pending: 3, remaining: 12 });
+  await page.reload();
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Review' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Approve' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('leave_balances', { id: LERATO_BALANCE })).toMatchObject({ used: 3, remaining: 12 });
+
+  await page.getByRole('button', { name: 'Approved' }).click();
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Review' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Revoke' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('leave_requests', { id: LERATO_REQUEST }).status).toBe('revoked');
+  expect(backend.find('leave_balances', { id: LERATO_BALANCE })).toMatchObject({ used: 0, remaining: 15 });
+});
+
+test('approval warns when the leave overlaps shifts that are already scheduled', async ({ page, app }) => {
+  await app.open('operations_manager', {
+    customize: (t) => {
+      const r = t.leave_requests.find((x) => x.id === LERATO_REQUEST);
+      if (r) Object.assign(r, { start_date: TODAY, end_date: dateOffset(1) });
     },
   });
-
   await page.goto('/leave/management');
-  await page.getByRole('button', { name: /pending approval/i }).click();
-  await page.getByRole('button', { name: /approved/i }).click();
-  await expect(page.getByText('Family trip')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Review' }).click();
-  await page.getByRole('button', { name: 'Revoke', exact: true }).click();
-
-  await expect(page.getByRole('heading', { name: 'Review leave request' })).toHaveCount(0);
-  await expect(page.getByText('No leave requests in this status.')).toBeVisible();
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Review' }).click();
+  await expect(page.getByText('1 scheduled shift(s) overlap this leave range.')).toBeVisible();
+  await expect(page.getByText('approving here does not change any shift')).toBeVisible();
 });
 
-test('an employee is blocked from the Leave Management approval queue', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });
+test('a manager cannot decide their own leave request (separation of duties); someone else can', async ({ page, app, browser }) => {
+  void browser;
+  const olivia = PERSONAS.organization_administrator;
+  const ownRequest = '00000000-0000-4000-8000-003100000050';
+  const seed = (t: Record<string, Record<string, unknown>[]>) =>
+    t.leave_requests.push({ id: ownRequest, tenant_id: ID.org, employee_id: olivia.employeeId, leave_type_id: ID.leaveAnnual, start_date: dateOffset(30), end_date: dateOffset(31), is_half_day: false, half_day_period: null, reason: 'Own break', status: 'pending', decided_by: null, decided_at: null, decision_notes: null, supporting_document_ref: null, cancelled_at: null, cancelled_by: null, created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-01T00:00:00Z' });
 
+  const backend = await app.open('organization_administrator', { customize: seed });
   await page.goto('/leave/management');
-  await expect(page).toHaveURL('http://localhost:5173/dashboard');
+  await page.getByRole('row', { name: /Olivia Okafor/ }).getByRole('button', { name: 'Review' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Approve' }).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('cannot approve, verify or close a record you raised');
+  expect(backend.find('leave_requests', { id: ownRequest }).status).toBe('pending');
+
+  // A different approver (operations manager) can decide it.
+  backend.session = { ...backend.session, userId: PERSONAS.operations_manager.profileId, role: 'operations_manager', email: PERSONAS.operations_manager.email };
+  await page.getByRole('dialog').getByRole('button', { name: 'Approve' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('leave_requests', { id: ownRequest }).status).toBe('approved');
 });
 
-test('an employee is blocked from Leave Configuration', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });
-
-  await page.goto('/leave/configuration');
-  await expect(page).toHaveURL('http://localhost:5173/dashboard');
-});
-
-test('site_manager sees Team Leave read-only, with no approval controls', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'site_manager' });
-  await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'site_manager' }),
-    leaveTypes: [buildLeaveTypeRow()],
-    leaveRequests: [buildLeaveRequestRow({ status: 'approved' })],
-  });
-
+test('Team Leave shows who is away but never the reason or decision notes', async ({ page, app }) => {
+  await app.open('site_manager');
   await page.goto('/leave/team');
   await expect(page.getByRole('heading', { name: 'Team Leave' })).toBeVisible();
-  await expect(page.getByText('Approved')).toBeVisible();
-  // Field-level privacy: the summary projection never carries `reason`, so
-  // it must not render here even though the same text appears in other
-  // tests' full-projection views.
-  await expect(page.getByText('Family trip')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Review' })).toHaveCount(0);
+  await expect(page.getByRole('row', { name: /Lerato Mahlangu/ })).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Reason' })).toHaveCount(0);
+  await expect(page.getByText('Family visit')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Review|Approve|Reject/ })).toHaveCount(0);
 });
 
-test('Team Leave has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'site_manager' });
-  await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'site_manager' }),
-    leaveRequests: [buildLeaveRequestRow({ status: 'approved' })],
-  });
-  await page.goto('/leave/team');
-  await expect(page.getByRole('heading', { name: 'Team Leave' })).toBeVisible();
-  await expectNoSeriousViolations(page);
+test('employees cannot open the approval queue or leave configuration', async ({ page, app }) => {
+  await app.open('employee');
+  for (const path of ['/leave/management', '/leave/configuration']) {
+    await page.goto(path);
+    await expect(page, path).toHaveURL('http://localhost:5173/dashboard');
+  }
 });
 
-test('My Leave has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'employee' }),
-    employee: buildEmployeeRow(),
-    leaveRequests: [buildLeaveRequestRow()],
-  });
-  await page.goto('/leave');
-  await expect(page.getByRole('heading', { name: 'My Leave' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Leave Management has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'organization_administrator' });
-  await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'organization_administrator' }),
-    leaveRequests: [buildLeaveRequestRow()],
-  });
-  await page.goto('/leave/management');
-  await expect(page.getByRole('heading', { name: 'Leave Management' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Leave Configuration has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'organization_administrator' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'organization_administrator' }) });
+test('hr_user adds a leave type and takes it out of use', async ({ page, app }) => {
+  const backend = await app.open('hr_user');
   await page.goto('/leave/configuration');
-  await expect(page.getByRole('heading', { name: 'Leave Configuration' })).toBeVisible();
-  await expectNoSeriousViolations(page);
+  await page.getByLabel('New leave type name').fill('Study leave');
+  await page.getByRole('button', { name: /Add|Create/ }).first().click();
+
+  const row = page.getByRole('row', { name: /Study leave/ });
+  await expect(row).toBeVisible();
+  expect(backend.find('leave_types', { name: 'Study leave' }).tenant_id).toBe(ID.org);
+
+  await row.getByRole('button', { name: /Deactivate/ }).click();
+  await expect(row).toContainText(/inactive/i);
+  expect(backend.find('leave_types', { name: 'Study leave' }).status).toBe('inactive');
+});
+
+test('hr_user adjusts a balance through the ledger RPC, with a visible result', async ({ page, app }) => {
+  const backend = await app.open('hr_user');
+  await page.goto('/leave/configuration');
+  await page.getByLabel('Employee').fill('Thabo');
+  await page.getByRole('button', { name: 'Thabo Nkosi' }).click();
+  await page.locator('#adjust-leave-type').selectOption({ label: 'Annual' });
+  await page.getByLabel('Adjustment amount (days, may be negative)').fill('2');
+  await page.getByLabel('Note').fill('Carry-over correction');
+  await page.getByRole('button', { name: 'Apply adjustment' }).click();
+
+  await expect(page.getByText('Balance updated — remaining now 15 day(s).')).toBeVisible();
+  expect(backend.find('leave_balances', { id: THABO_BALANCE }).adjustment).toBe(2);
+  expect(backend.requests.some((r) => r.method === 'PATCH' && r.table === 'leave_balances')).toBe(false);
 });

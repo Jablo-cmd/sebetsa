@@ -52,7 +52,7 @@ export function AttendancePage() {
     if (!siteId && sites.length > 0) setSiteId(sites[0]?.id ?? '');
   }, [sites, siteId]);
 
-  const { roster, existingRecords, isLoading, error } = useAttendanceRoster(siteId || undefined, date);
+  const { roster, existingRecords, isLoading, error, refetch } = useAttendanceRoster(siteId || undefined, date);
 
   const [statuses, setStatuses] = useState<Record<string, AttendanceStatus>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -66,8 +66,12 @@ export function AttendancePage() {
       next[employee.id] = existing?.status ?? 'present';
     }
     setStatuses(next);
-    setSaved(false);
   }, [roster, existingRecords]);
+
+  // The confirmation belongs to the site/date that was saved, not to the loaded records.
+  useEffect(() => {
+    setSaved(false);
+  }, [siteId, date]);
 
   const handleSave = async () => {
     if (!organization || !siteId || !user) return;
@@ -83,7 +87,10 @@ export function AttendancePage() {
           status: statuses[employee.id] ?? 'present',
         })),
         user.id,
+        date,
       );
+      // Reload first: the roster effect resets `saved` whenever the records change.
+      await refetch();
       setSaved(true);
     } catch (err) {
       setSaveError(getDbErrorMessage(err, 'Failed to save attendance.'));

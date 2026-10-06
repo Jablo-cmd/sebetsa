@@ -48,16 +48,23 @@ export function MyAttendancePage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [correctionReason, setCorrectionReason] = useState('');
+  const [correctedClockIn, setCorrectedClockIn] = useState('');
   const [showCorrectionForm, setShowCorrectionForm] = useState(false);
 
   const isLoading = employeeLoading || attendanceLoading;
 
   const handleClockIn = async () => {
     if (!employee) return;
+    const siteId = todaysShift?.siteId ?? employee.homeSiteId;
+    if (!siteId) {
+      // Never send an empty site: attendance must be recorded against a real site.
+      setActionError('You have no shift or home site assigned today. Ask your supervisor to assign you before clocking in.');
+      return;
+    }
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await retryOnNetworkError(() => attendanceService.clockIn(employee.id, todaysShift?.siteId ?? employee.homeSiteId ?? '', todaysShift?.id));
+      await retryOnNetworkError(() => attendanceService.clockIn(employee.id, siteId, todaysShift?.id));
       void refetch();
     } catch (error) {
       setActionError(getDbErrorMessage(error, 'Failed to clock in.'));
@@ -99,12 +106,13 @@ export function MyAttendancePage() {
   };
 
   const handleRequestCorrection = async () => {
-    if (!openRecord || !correctionReason.trim()) return;
+    if (!openRecord || !correctionReason.trim() || !correctedClockIn) return;
     setIsSubmitting(true);
     setActionError(null);
     try {
-      await attendanceService.requestCorrection(openRecord.id, 'clock_in_at', new Date().toISOString(), correctionReason.trim());
+      await attendanceService.requestCorrection(openRecord.id, 'clock_in_at', new Date(correctedClockIn).toISOString(), correctionReason.trim());
       setCorrectionReason('');
+      setCorrectedClockIn('');
       setShowCorrectionForm(false);
     } catch (error) {
       setActionError(getDbErrorMessage(error, 'Failed to submit the correction request.'));
@@ -189,13 +197,19 @@ export function MyAttendancePage() {
               ) : (
                 <div className="flex flex-col gap-2">
                   <TextField
+                    label="Correct clock-in time"
+                    type="datetime-local"
+                    value={correctedClockIn}
+                    onChange={(event) => setCorrectedClockIn(event.target.value)}
+                  />
+                  <TextField
                     label="Reason for correction"
                     placeholder="e.g. forgot to clock in on time"
                     value={correctionReason}
                     onChange={(event) => setCorrectionReason(event.target.value)}
                   />
                   <div className="flex gap-2">
-                    <Button onClick={() => void handleRequestCorrection()} isLoading={isSubmitting} disabled={!correctionReason.trim()}>
+                    <Button onClick={() => void handleRequestCorrection()} isLoading={isSubmitting} disabled={!correctionReason.trim() || !correctedClockIn}>
                       Submit request
                     </Button>
                     <Button variant="ghost" onClick={() => setShowCorrectionForm(false)}>

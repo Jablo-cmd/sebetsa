@@ -22,7 +22,7 @@ export function MyLeavePage() {
     error: requestsError,
     refetch: refetchRequests,
   } = useLeaveRequests(employee?.tenantId, { employeeId: employee?.id });
-  const { balances, isLoading: balancesLoading } = useLeaveBalances(employee?.tenantId, {
+  const { balances, isLoading: balancesLoading, refetch: refetchBalances } = useLeaveBalances(employee?.tenantId, {
     employeeId: employee?.id,
     periodYear: new Date().getFullYear(),
   });
@@ -36,7 +36,8 @@ export function MyLeavePage() {
     setCancelError(null);
     try {
       await leaveService.cancelLeaveRequest(id);
-      void refetchRequests();
+      // Cancelling releases the reserved days: refresh both views.
+      void Promise.all([refetchRequests(), refetchBalances()]);
     } catch (error) {
       setCancelError(getDbErrorMessage(error, 'Failed to cancel the leave request.'));
     }
@@ -101,7 +102,7 @@ export function MyLeavePage() {
           onClose={() => setIsFormOpen(false)}
           employeeId={employee.id}
           leaveTypes={leaveTypes}
-          onSaved={() => void refetchRequests()}
+          onSaved={() => void Promise.all([refetchRequests(), refetchBalances()])}
         />
       )}
     </PageContainer>

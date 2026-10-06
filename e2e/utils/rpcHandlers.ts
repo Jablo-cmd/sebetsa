@@ -162,6 +162,16 @@ const leave: Record<string, RpcHandler> = {
     recalc(ctx, b);
     return touch(ctx, r, { status: 'revoked', decided_by: ctx.session.userId, decided_at: ctx.now, decision_notes: a.p_decision_notes ?? null });
   },
+  adjust_leave_balance: (a, ctx) => {
+    require_(ctx, MANAGE_EMP, 'cannot adjust leave balances for this tenant');
+    const emp = row(ctx, 'employees', a.p_employee_id, 'employee');
+    const probe = { tenant_id: emp.tenant_id, employee_id: emp.id, leave_type_id: a.p_leave_type_id, start_date: `${a.p_period_year}-01-01` };
+    const b = balanceFor(ctx, probe);
+    touch(ctx, b, { adjustment: Number(b.adjustment) + Number(a.p_amount) });
+    recalc(ctx, b);
+    audit(ctx, emp.tenant_id, 'leave_balance_adjusted', 'leave_balances', b.id);
+    return b;
+  },
   get_leave_affected_shifts: (a, ctx) => {
     const r = row(ctx, 'leave_requests', a.p_leave_request_id, 'leave request');
     const from = Date.parse(`${r.start_date}T00:00:00Z`);

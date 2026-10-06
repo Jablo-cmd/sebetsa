@@ -59,8 +59,13 @@ export function LeaveConfigurationPage() {
   };
 
   const handleDeactivate = async (id: string, currentStatus: string) => {
-    await leaveTypeService.setLeaveTypeStatus(id, currentStatus === 'active' ? 'inactive' : 'active');
-    void refetch();
+    setNewTypeError(null);
+    try {
+      await leaveTypeService.setLeaveTypeStatus(id, currentStatus === 'active' ? 'inactive' : 'active');
+      void refetch();
+    } catch (err) {
+      setNewTypeError(getDbErrorMessage(err, 'Failed to update the leave type.'));
+    }
   };
 
   const searchEmployees = async (query: string) => {

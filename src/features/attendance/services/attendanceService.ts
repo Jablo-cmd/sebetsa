@@ -212,30 +212,63 @@ async function getAttendanceForSiteDate(siteId: string, date: string): Promise<A
 }
 
 /**
- * Marks attendance for a set of employees at a site in one request — an
- * insert per entry (attendance_records has no natural per-day unique key
- * the way a class register does, since an employee can have more than one
- * shift a day), so re-marking the same day creates additional rows rather
- * than upserting. Good enough for the MVP; a per-shift-scoped call is the
- * more precise path once shift assignment is wired into this UI.
+ * Marks attendance for a set of employees at a site on `date` (yyyy-mm-dd).
+ *
+ * Idempotent per employee/site/day: if a record already exists for that
+ * employee at that site on that date it is updated, not duplicated, so saving
+ * twice (or double-clicking Save) never double-counts someone in reports. New
+ * records are stamped on the chosen date — the app's reporting treats
+ * `created_at` as the attendance date — rather than silently landing on today.
+ * (attendance_records has no natural per-day unique key because an employee
+ * can work more than one shift a day; shift-scoped marking goes through
+ * clock_in/clock_out instead.)
  */
 async function saveAttendance(
   tenantId: string,
   siteId: string,
   entries: AttendanceEntry[],
   recordedBy: string,
+  date: string,
 ): Promise<AttendanceRecord[]> {
-  const payload: AttendanceRecordInsert[] = entries.map((entry) => ({
-    tenant_id: tenantId,
-    site_id: siteId,
-    employee_id: entry.employeeId,
-    status: entry.status,
-    recorded_by: recordedBy,
-  }));
+  const existing = await getAttendanceForSiteDate(siteId, date);
+  const existingByEmployee = new Map(existing.map((record) => [record.employeeId, record]));
 
-  const { data, error } = await supabase.from('attendance_records').insert(payload).select('*');
-  if (error) throw error;
-  return data.map(toAttendanceRecord);
+  const saved: AttendanceRecord[] = [];
+  const inserts: AttendanceRecordInsert[] = [];
+
+  for (const entry of entries) {
+    const current = existingByEmployee.get(entry.employeeId);
+    if (!current) {
+      inserts.push({
+        tenant_id: tenantId,
+        site_id: siteId,
+        employee_id: entry.employeeId,
+        status: entry.status,
+        recorded_by: recordedBy,
+        created_at: new Date(`${date}T12:00:00`).toISOString(),
+      });
+      continue;
+    }
+    if (current.status === entry.status) {
+      saved.push(current);
+      continue;
+    }
+    const { data, error } = await supabase
+      .from('attendance_records')
+      .update({ status: entry.status, recorded_by: recordedBy })
+      .eq('id', current.id)
+      .select('*')
+      .single();
+    if (error) throw error;
+    saved.push(toAttendanceRecord(data));
+  }
+
+  if (inserts.length > 0) {
+    const { data, error } = await supabase.from('attendance_records').insert(inserts).select('*');
+    if (error) throw error;
+    saved.push(...data.map(toAttendanceRecord));
+  }
+  return saved;
 }
 
 /** Status breakdown across a site on a given date — used by dashboard summary panels. */

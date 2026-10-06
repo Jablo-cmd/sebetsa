@@ -5,6 +5,7 @@ import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganization
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { useTeamLeave } from '@/features/leave/hooks/useTeamLeave';
 import { useLeaveTypes } from '@/features/leave/hooks/useLeaveTypes';
+import { useEmployeeNames } from '@/features/employees/hooks/useEmployeeNames';
 import { LeaveRequestsTable } from '@/features/leave/components/LeaveRequestsTable';
 
 /** Read-only staffing-impact view, reached by anyone holding leave.view
@@ -18,6 +19,7 @@ export function TeamLeavePage() {
   const organization = useCurrentOrganization();
   const { leaveRequests, isLoading, error } = useTeamLeave(organization?.id);
   const { leaveTypes } = useLeaveTypes(organization?.id);
+  const employeeNames = useEmployeeNames(leaveRequests.map((request) => request.employeeId));
 
   if (!organization) return <NoActiveOrganizationNotice resource="leave" />;
 
@@ -28,7 +30,7 @@ export function TeamLeavePage() {
       <ErrorAlert message={error} />
 
       <div className="mt-4 rounded-xl border border-border bg-surface-raised p-4">
-        <LeaveRequestsTable requests={leaveRequests} leaveTypes={leaveTypes} isLoading={isLoading} emptyMessage="No leave requests to show." />
+        <LeaveRequestsTable requests={leaveRequests} leaveTypes={leaveTypes} isLoading={isLoading} emptyMessage="No leave requests to show." employeeNames={employeeNames} />
       </div>
     </PageContainer>
   );

@@ -8,6 +8,7 @@ import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrgani
 import { useLeaveRequests } from '@/features/leave/hooks/useLeaveRequests';
 import { useLeaveTypes } from '@/features/leave/hooks/useLeaveTypes';
 import { LeaveRequestsTable } from '@/features/leave/components/LeaveRequestsTable';
+import { useEmployeeNames } from '@/features/employees/hooks/useEmployeeNames';
 import { LeaveApprovalDialog } from '@/features/leave/components/LeaveApprovalDialog';
 import type { LeaveRequest } from '@/features/leave/types/leave.types';
 
@@ -28,6 +29,7 @@ export function LeaveManagementPage() {
   const { leaveRequests, isLoading, error, refetch } = useLeaveRequests(organization?.id, { status: statusFilter });
   const { leaveTypes } = useLeaveTypes(organization?.id);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const employeeNames = useEmployeeNames(leaveRequests.map((request) => request.employeeId));
 
   if (!organization) return <NoActiveOrganizationNotice resource="leave" />;
 
@@ -61,6 +63,7 @@ export function LeaveManagementPage() {
           isLoading={isLoading}
           showSensitiveColumns
           emptyMessage="No leave requests in this status."
+          employeeNames={employeeNames}
           renderActions={(request) =>
             request.status === 'pending' || request.status === 'approved' ? (
               <Button variant="ghost" onClick={() => setSelectedRequest(request as LeaveRequest)}>
@@ -76,6 +79,7 @@ export function LeaveManagementPage() {
         onClose={() => setSelectedRequest(null)}
         request={selectedRequest}
         leaveTypes={leaveTypes}
+        employeeName={selectedRequest ? employeeNames[selectedRequest.employeeId] : undefined}
         onDecided={() => void refetch()}
       />
     </PageContainer>

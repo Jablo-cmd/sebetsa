@@ -11,12 +11,14 @@ export interface LeaveApprovalDialogProps {
   onClose: () => void;
   request: LeaveRequest | null;
   leaveTypes: LeaveType[];
+  /** Display name of the requester, so a reviewer always knows whose request they are deciding. */
+  employeeName?: string;
   onDecided: (request: LeaveRequest) => void;
 }
 
 /** Approve/reject a pending request, or revoke an already-approved one — one
  * dialog covers both since only one action is ever available per status. */
-export function LeaveApprovalDialog({ isOpen, onClose, request, leaveTypes, onDecided }: LeaveApprovalDialogProps) {
+export function LeaveApprovalDialog({ isOpen, onClose, request, leaveTypes, employeeName, onDecided }: LeaveApprovalDialogProps) {
   const [notes, setNotes] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +64,8 @@ export function LeaveApprovalDialog({ isOpen, onClose, request, leaveTypes, onDe
         )}
 
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <dt className="text-content-secondary">Employee</dt>
+          <dd className="text-content-primary">{employeeName ?? '—'}</dd>
           <dt className="text-content-secondary">Leave type</dt>
           <dd className="text-content-primary">{leaveTypeName}</dd>
           <dt className="text-content-secondary">Dates</dt>
