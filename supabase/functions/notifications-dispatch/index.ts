@@ -27,7 +27,7 @@ const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const dispatchSecret = Deno.env.get('NOTIFICATIONS_DISPATCH_SECRET') ?? '';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
-const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? 'Funda360 <notifications@funda360.app>';
+const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? '';
 const TWILIO_ACCOUNT_SID = Deno.env.get('TWILIO_ACCOUNT_SID') ?? '';
 const TWILIO_AUTH_TOKEN = Deno.env.get('TWILIO_AUTH_TOKEN') ?? '';
 const TWILIO_SMS_FROM = Deno.env.get('TWILIO_SMS_FROM') ?? '';
@@ -53,7 +53,7 @@ interface NotificationRow {
 type AdapterResult = { ok: true; providerMessageId: string | null } | { ok: false; error: string };
 
 function channelConfigured(channel: DeliveryRow['channel']): boolean {
-  if (channel === 'email') return RESEND_API_KEY.length > 0;
+  if (channel === 'email') return RESEND_API_KEY.length > 0 && RESEND_FROM.length > 0;
   if (channel === 'sms') return TWILIO_ACCOUNT_SID.length > 0 && TWILIO_AUTH_TOKEN.length > 0 && TWILIO_SMS_FROM.length > 0;
   return TWILIO_ACCOUNT_SID.length > 0 && TWILIO_AUTH_TOKEN.length > 0 && TWILIO_WHATSAPP_FROM.length > 0;
 }
@@ -112,14 +112,12 @@ Deno.serve(async (req) => {
 
   const s = createClient(supabaseUrl, serviceKey);
 
-  const { data: pending, error } = await s
-    .from('notification_deliveries')
-    .select('id, notification_id, recipient_profile_id, channel, destination, attempts')
-    .eq('status', 'pending')
-    .lt('attempts', MAX_ATTEMPTS)
-    .lte('scheduled_for', new Date().toISOString())
-    .order('scheduled_for', { ascending: true })
-    .limit(limit);
+  const workerId = `notifications-${crypto.randomUUID()}`;
+  const { data: pending, error } = await s.rpc('claim_notification_deliveries', {
+    p_limit: limit,
+    p_worker_id: workerId,
+    p_lease_seconds: 300,
+  });
   if (error) return json({ error: error.message }, 500);
 
   const rows = (pending ?? []) as DeliveryRow[];
@@ -127,6 +125,7 @@ Deno.serve(async (req) => {
 
   for (const row of rows) {
     if (!channelConfigured(row.channel)) {
+      await s.from('notification_deliveries').update({ status: 'pending', scheduled_for: new Date(Date.now() + 15 * 60_000).toISOString(), claimed_at: null, claim_expires_at: null, worker_id: null }).eq('id', row.id).eq('worker_id', workerId);
       result.skippedUnconfigured += 1;
       continue;
     }
@@ -137,10 +136,12 @@ Deno.serve(async (req) => {
       .eq('id', row.notification_id)
       .maybeSingle();
     if (!notification) {
-      await s.from('notification_deliveries').update({ status: 'failed', error: 'notification_missing' }).eq('id', row.id);
+      await s.from('notification_deliveries').update({ status: 'failed', error: 'notification_missing' }).eq('id', row.id).eq('worker_id', workerId);
       result.failed += 1;
       continue;
     }
+
+    await s.from('notification_deliveries').update({ status: 'processing', updated_at: new Date().toISOString() }).eq('id', row.id).eq('worker_id', workerId).eq('status', 'claimed');
 
     let outcome: AdapterResult;
     try {
@@ -154,6 +155,9 @@ Deno.serve(async (req) => {
         .from('notification_deliveries')
         .update({
           status: 'sent',
+          worker_id: null,
+          claimed_at: null,
+          claim_expires_at: null,
           sent_at: new Date().toISOString(),
           attempts: row.attempts + 1,
           provider_message_id: outcome.providerMessageId,
@@ -166,7 +170,11 @@ Deno.serve(async (req) => {
       await s
         .from('notification_deliveries')
         .update({
-          status: nextAttempts >= MAX_ATTEMPTS ? 'failed' : 'pending',
+          status: nextAttempts >= MAX_ATTEMPTS ? 'dead_letter' : 'pending',
+          scheduled_for: new Date(Date.now() + Math.min(60 * 60_000, 2 ** nextAttempts * 60_000)).toISOString(),
+          worker_id: null,
+          claimed_at: null,
+          claim_expires_at: null,
           attempts: nextAttempts,
           error: outcome.error,
         })
