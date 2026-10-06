@@ -19,7 +19,10 @@ export function NotificationsPage() {
 
   const handleOpen = async (notification: Notification) => {
     if (!notification.isRead) {
-      await markRead(notification.id);
+      // A failed update stays visible (ErrorAlert) instead of silently
+      // navigating away from the problem.
+      const ok = await markRead(notification.id);
+      if (!ok) return;
     }
     if (notification.linkPath) {
       navigate(notification.linkPath);

@@ -1,7 +1,8 @@
-import { test, expect } from '@playwright/test';
-import { fulfillAuthError, fulfillJson, installAuthMocks } from './utils/mockAuth';
+import { test, expect } from './utils/test';
+import { PERSONAS } from './utils/sebetsaFixtures';
 
-test('navigates from login to forgot-password and back', async ({ page }) => {
+test('navigates from login to forgot-password and back', async ({ page, app }) => {
+  await app.open('employee', { signedIn: false });
   await page.goto('/login');
   await page.getByRole('link', { name: 'Forgot password?' }).click();
   await expect(page).toHaveURL(/\/forgot-password$/);
@@ -11,25 +12,22 @@ test('navigates from login to forgot-password and back', async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test('shows a generic confirmation after requesting a reset link', async ({ page }) => {
-  await installAuthMocks(page, {
-    recover: (route) => fulfillJson(route, {}),
-  });
-
+test('shows a generic confirmation after requesting a reset link', async ({ page, app }) => {
+  const backend = await app.open('employee', { signedIn: false });
   await page.goto('/forgot-password');
-  await page.getByLabel('Email address').fill('admin@funda360.com');
+  await page.getByLabel('Email address').fill(PERSONAS.employee.email);
   await page.getByRole('button', { name: 'Send reset link' }).click();
 
   await expect(page.getByRole('status')).toContainText("we've sent a link to reset your password");
+  const recover = backend.authCalls.filter((c) => c.path === '/auth/v1/recover');
+  expect(recover).toHaveLength(1);
 });
 
-test('surfaces rate-limit errors from the reset request', async ({ page }) => {
-  await installAuthMocks(page, {
-    recover: (route) => fulfillAuthError(route, 'over_email_send_rate_limit', 'Rate limit exceeded'),
-  });
-
+test('surfaces rate-limit errors from the reset request', async ({ page, app }) => {
+  const backend = await app.open('employee', { signedIn: false });
+  backend.recoverRateLimited = true;
   await page.goto('/forgot-password');
-  await page.getByLabel('Email address').fill('admin@funda360.com');
+  await page.getByLabel('Email address').fill(PERSONAS.employee.email);
   await page.getByRole('button', { name: 'Send reset link' }).click();
 
   await expect(page.getByRole('alert')).toHaveText('Too many requests. Please wait a moment and try again.');

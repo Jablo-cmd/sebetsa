@@ -9,8 +9,9 @@ export interface UseNotificationsResult {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  markRead: (id: string) => Promise<void>;
-  markAllRead: () => Promise<void>;
+  /** Resolves true when the notification was marked read; false (with `error` set) when it failed. */
+  markRead: (id: string) => Promise<boolean>;
+  markAllRead: () => Promise<boolean>;
 }
 
 export function useNotifications(recipientProfileId: string | undefined): UseNotificationsResult {
@@ -40,16 +41,28 @@ export function useNotifications(recipientProfileId: string | undefined): UseNot
 
   const markRead = useCallback(
     async (id: string) => {
-      await notificationService.markRead(id);
+      try {
+        await notificationService.markRead(id);
+      } catch (err) {
+        setError(getDbErrorMessage(err, 'Failed to update the notification.'));
+        return false;
+      }
       await load();
+      return true;
     },
     [load],
   );
 
   const markAllRead = useCallback(async () => {
-    if (!recipientProfileId) return;
-    await notificationService.markAllRead(recipientProfileId);
+    if (!recipientProfileId) return false;
+    try {
+      await notificationService.markAllRead(recipientProfileId);
+    } catch (err) {
+      setError(getDbErrorMessage(err, 'Failed to update your notifications.'));
+      return false;
+    }
     await load();
+    return true;
   }, [recipientProfileId, load]);
 
   const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);

@@ -11,6 +11,34 @@ import type { Organization } from '@/types/organization.types';
 import type { Tenant } from '@/types/tenant.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
+/**
+ * A platform-level user's chosen organisation lives only in memory, so a page
+ * refresh used to drop it and every tenant page fell back to "No organization
+ * selected". The choice is remembered per user for the browser session
+ * (sessionStorage — cleared when the tab closes, never shared across users).
+ */
+const REMEMBERED_TENANT_PREFIX = 'sebetsa-active-organization:';
+
+function readRememberedTenant(userId: string | undefined): string | null {
+  if (!userId) return null;
+  try {
+    return window.sessionStorage.getItem(`${REMEMBERED_TENANT_PREFIX}${userId}`);
+  } catch {
+    return null;
+  }
+}
+
+function writeRememberedTenant(userId: string | undefined, organizationId: string | null): void {
+  if (!userId) return;
+  try {
+    const key = `${REMEMBERED_TENANT_PREFIX}${userId}`;
+    if (organizationId) window.sessionStorage.setItem(key, organizationId);
+    else window.sessionStorage.removeItem(key);
+  } catch {
+    /* storage unavailable: the selection simply is not remembered */
+  }
+}
+
 export function TenantProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { status: profileStatus, profile } = useProfile();
@@ -58,7 +86,29 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     if (isPlatformLevel && tenant) return;
 
     if (profileStatus === 'loaded' && profile) {
-      void loadTenant(profile.tenantId);
+      const remembered = isPlatformLevel && !profile.tenantId ? readRememberedTenant(user?.id) : null;
+      if (!remembered) {
+        void loadTenant(profile.tenantId);
+        return;
+      }
+      let isCurrent = true;
+      setStatus('loading');
+      tenantService
+        .getOrganizationById(remembered)
+        .then((organization) => {
+          if (!isCurrent) return;
+          if (!organization) throw new Error('remembered organization no longer exists');
+          setTenant({ id: organization.id, organization, isPlatformLevelAccess: true });
+          setStatus(organization.status === 'active' ? 'ready' : 'inactive');
+        })
+        .catch(() => {
+          if (!isCurrent) return;
+          writeRememberedTenant(user?.id, null);
+          void loadTenant(null);
+        });
+      return () => {
+        isCurrent = false;
+      };
     } else if (profileStatus === 'missing' || profileStatus === 'error') {
       setTenant(null);
       setStatus('missing');
@@ -100,8 +150,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         return;
       }
       await loadTenant(organizationId, true);
+      writeRememberedTenant(user?.id, organizationId);
     },
-    [isPlatformLevel, loadTenant],
+    [isPlatformLevel, loadTenant, user?.id],
   );
 
   const createOrganization = useCallback(

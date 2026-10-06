@@ -32,9 +32,7 @@ export function WorkspaceDashboard() {
   const nav = resolveNavForRole(user?.role ?? null);
   const items = nav.flatMap((g) => g.items);
   const workspaceItems = items.filter((i) => i.path !== '/dashboard' && i.path !== '/my-profile');
-  const substantiveItems = workspaceItems.filter(
-    (i) => !['/messages', '/announcements', '/notifications/settings'].includes(i.path),
-  );
+  const substantiveItems = workspaceItems.filter((i) => i.path !== '/notifications/settings');
 
   const quickActions: QuickAction[] = workspaceItems
     .slice(0, 6)
@@ -57,8 +55,8 @@ export function WorkspaceDashboard() {
         <InfoPanel title="Your Workspace">
           <p className="text-sm text-content-secondary">
             {substantiveItems.length > 0
-              ? `Your workspace covers ${substantiveItems.map((i) => i.label).join(', ')}, plus messages and announcements.`
-              : 'Your workspace currently covers messages, announcements and your profile.'}
+              ? `Your workspace covers ${substantiveItems.map((i) => i.label).join(', ')}.`
+              : 'Your workspace currently covers your profile and notifications.'}
           </p>
         </InfoPanel>
       )}

@@ -1,128 +1,88 @@
-import { test, expect } from '@playwright/test';
-import { fulfillJson, seedAuthenticatedSession, MOCK_USER_ID } from './utils/mockAuth';
-import { buildMockSchoolRow, buildMockProfileRow, buildMockAcademicYearRow, installDataMocks } from './utils/mockData';
+import { test, expect } from './utils/test';
+import { ID, PERSONAS } from './utils/sebetsaFixtures';
 
-function buildNotificationRow(overrides: Partial<Record<string, unknown>> = {}) {
+function notification(id: string, recipient: string, overrides: Record<string, unknown> = {}) {
   return {
-    id: 'notification-1',
-    school_id: 'tenant-demo',
-    recipient_profile_id: MOCK_USER_ID,
-    type: 'guardian_invitation',
-    title: 'Activate your Funda360 account',
-    body: "You've been invited to access the Parent Portal.",
-    related_entity_table: 'guardian_invitations',
-    related_entity_id: 'invitation-1',
-    link_path: '/activate-account',
+    id,
+    tenant_id: ID.org,
+    recipient_profile_id: recipient,
+    type: 'task_assigned',
+    title: 'Task assigned',
+    body: 'Clean ground-floor washrooms has been assigned to you.',
+    related_entity_table: 'tasks',
+    related_entity_id: ID.taskWashrooms,
+    link_path: '/tasks',
     email_status: 'not_sent',
     read_at: null,
-    created_at: '2026-08-01T09:00:00Z',
+    created_at: '2026-09-20T09:00:00.000Z',
     ...overrides,
   };
 }
 
-test('the header bell shows an unread badge and links to the notifications list', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
+test('the header bell shows an unread badge and links to the notifications list', async ({ page, app }) => {
+  await app.open('employee', {
+    customize: (t) => t.notifications.push(notification('00000000-0000-4000-8000-00ff00000001', PERSONAS.employee.profileId), notification('00000000-0000-4000-8000-00ff00000002', PERSONAS.employee.profileId, { title: 'Second one', read_at: '2026-09-20T10:00:00.000Z' })),
   });
-  await page.route('**/rest/v1/notifications*', async (route) => {
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(route, [buildNotificationRow(), buildNotificationRow({ id: 'notification-2', title: 'Second one', read_at: '2026-08-02T09:00:00Z' })]);
-  });
-
   await page.goto('/dashboard');
-  await expect(page.getByRole('link', { name: /Notifications, 1 unread/ })).toBeVisible();
+  const bell = page.getByRole('banner').getByRole('link', { name: /Notifications/ });
+  await expect(bell).toHaveAccessibleName('Notifications, 2 unread');
 
-  await page.getByRole('link', { name: /Notifications/ }).click();
+  await bell.click();
   await expect(page.getByRole('heading', { name: 'Notifications' })).toBeVisible();
-  await expect(page.getByText('Activate your Funda360 account')).toBeVisible();
+  await expect(page.getByText('Task assigned')).toBeVisible();
   await expect(page.getByText('Second one')).toBeVisible();
 });
 
-test('opening an unread notification marks it read and navigates to its link_path', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-
-  let markedRead = false;
-  await page.route('**/rest/v1/notifications*', async (route) => {
-    if (route.request().method() === 'PATCH') {
-      markedRead = true;
-      await fulfillJson(route, buildNotificationRow({ read_at: '2026-08-03T09:00:00Z' }));
-      return;
-    }
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(route, markedRead ? [buildNotificationRow({ read_at: '2026-08-03T09:00:00Z' })] : [buildNotificationRow()]);
-  });
-
+test("a user only ever sees their own notifications, never another person's", async ({ page, app }) => {
+  await app.open('employee');
   await page.goto('/notifications');
-  await expect(page.getByRole('heading', { name: 'Notifications' })).toBeVisible();
-  await page.getByText('Activate your Funda360 account').click();
-
-  await expect(page).toHaveURL('http://localhost:5173/activate-account');
+  await expect(page.getByText('Welcome to Sebetsa')).toHaveCount(1);
 });
 
-test('"Mark all as read" clears every unread notification in one action', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
+test('opening an unread notification marks it read in the backend and navigates to its link_path', async ({ page, app }) => {
+  const backend = await app.open('employee', {
+    customize: (t) => t.notifications.push(notification('00000000-0000-4000-8000-00ff00000001', PERSONAS.employee.profileId)),
   });
-
-  let markedAll = false;
-  await page.route('**/rest/v1/notifications*', async (route) => {
-    if (route.request().method() === 'PATCH') {
-      markedAll = true;
-      await fulfillJson(route, []);
-      return;
-    }
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(
-      route,
-      markedAll
-        ? [
-            buildNotificationRow({ read_at: '2026-08-03T09:00:00Z' }),
-            buildNotificationRow({ id: 'notification-2', title: 'Second one', read_at: '2026-08-03T09:00:00Z' }),
-          ]
-        : [buildNotificationRow(), buildNotificationRow({ id: 'notification-2', title: 'Second one' })],
-    );
-  });
-
   await page.goto('/notifications');
-  await expect(page.getByRole('button', { name: 'Mark all as read' })).toBeVisible();
+  await page.getByText('Task assigned').click();
+
+  await expect(page).toHaveURL('http://localhost:5173/tasks');
+  expect(backend.find('notifications', { id: '00000000-0000-4000-8000-00ff00000001' }).read_at).not.toBeNull();
+  await expect(page.getByRole('banner').getByRole('link', { name: /Notifications/ })).toHaveAccessibleName(/Notifications/);
+});
+
+test('"Mark all as read" clears only the signed-in user\'s unread notifications', async ({ page, app }) => {
+  const backend = await app.open('employee', {
+    customize: (t) => t.notifications.push(notification('00000000-0000-4000-8000-00ff00000001', PERSONAS.employee.profileId), notification('00000000-0000-4000-8000-00ff00000002', PERSONAS.employee.profileId, { title: 'Second one' })),
+  });
+  await page.goto('/notifications');
   await page.getByRole('button', { name: 'Mark all as read' }).click();
 
-  // markAllRead() is an async click handler — click() only waits for the
-  // DOM event to dispatch, not for the PATCH request it kicks off. Assert
-  // on the retrying UI expectation first (which only passes once the
-  // resulting re-render has actually happened) so markedAll is read after
-  // the real async work is guaranteed done, not raced against it.
   await expect(page.getByRole('button', { name: 'Mark all as read' })).toHaveCount(0);
-  expect(markedAll).toBe(true);
+  const mine = backend.table('notifications').filter((n) => n.recipient_profile_id === PERSONAS.employee.profileId);
+  expect(mine.every((n) => n.read_at !== null)).toBe(true);
+  const others = backend.table('notifications').filter((n) => n.recipient_profile_id !== PERSONAS.employee.profileId);
+  expect(others.length).toBeGreaterThan(0);
+  expect(others.every((n) => n.read_at === null)).toBe(true);
 });
 
-test('a user with no notifications sees an empty state, not an error', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-  await page.route('**/rest/v1/notifications*', async (route) => {
-    if (route.request().method() !== 'GET') return route.fallback();
-    await fulfillJson(route, []);
-  });
-
+test('a user with no notifications sees an empty state, not an error', async ({ page, app }) => {
+  await app.open('employee', { customize: (t) => (t.notifications = []) });
   await page.goto('/dashboard');
-  await expect(page.getByRole('link', { name: 'Notifications' })).toBeVisible();
+  await expect(page.getByRole('banner').getByRole('link', { name: 'Notifications', exact: true })).toBeVisible();
   await expect(page.getByText(/\d\+? unread/)).toHaveCount(0);
 
   await page.goto('/notifications');
   await expect(page.getByText('Nothing here yet.')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('a failed mark-as-read is surfaced and the notification stays unread', async ({ page, app }) => {
+  const backend = await app.open('employee');
+  backend.fault('notifications', { method: 'PATCH', status: 500, message: 'write failed' });
+  await page.goto('/notifications');
+  await page.getByText('Welcome to Sebetsa').click();
+
+  await expect(page.getByRole('alert')).toBeVisible();
+  expect(backend.find('notifications', { recipient_profile_id: PERSONAS.employee.profileId }).read_at).toBeNull();
 });
