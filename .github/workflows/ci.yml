@@ -21,7 +21,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -85,7 +85,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -107,7 +107,8 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    needs: quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [quality, edge-functions, rls-tests, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -121,7 +122,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -152,13 +153,13 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_APP_NAME: Funda360
+          VITE_APP_NAME: Sebetsa
         run: npm run build
 
       - name: Verify Pages entrypoint
         run: |
           test -f dist/index.html
-          # Funda360 uses BrowserRouter. GitHub Pages needs an SPA fallback
+          # Sebetsa uses BrowserRouter. GitHub Pages needs an SPA fallback
           # so direct visits/refreshes of application routes do not 404.
           cp dist/index.html dist/404.html
 
