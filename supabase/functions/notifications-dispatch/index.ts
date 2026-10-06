@@ -1,23 +1,8 @@
-// notifications-dispatch — drains the notification_deliveries outbox.
-//
-// This is the "wiring" half of the delivery architecture. The DB already
-// enqueues one notification_deliveries row (status='pending') per external
-// channel a recipient opted into (see 20260907090000_communication.sql,
-// create_notification -> enqueue_notification_deliveries). Nothing sends
-// those until this function runs — on a schedule (pg_cron / an external
-// scheduler calling it) or manually.
-//
-// It holds the service-role key (bypasses RLS) and, per pending row:
-//   email    -> Resend         (RESEND_API_KEY)
-//   sms      -> Twilio         (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_SMS_FROM)
-//   whatsapp -> Twilio         (… / TWILIO_WHATSAPP_FROM)
-//
-// If a channel's provider secret is absent, that row is left 'pending'
-// (untouched) — exactly the payment-gateway pattern: the adapter exists,
-// activation waits for real credentials. See docs/NOTIFICATIONS_DELIVERY.md.
-//
-// Invocation: POST with header `x-dispatch-secret: <NOTIFICATIONS_DISPATCH_SECRET>`.
-// Body (optional): { limit?: number }.
+// Sebetsa notification dispatcher — drains the notification_deliveries outbox.
+// Delivery rows are atomically claimed by a service-role worker with a lease.
+// Provider secrets remain server-side; missing provider configuration does not
+// send or fabricate a product identity.
+// Invocation: POST with x-dispatch-secret. Body (optional): { limit?: number }.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { corsHeaders, json } from '../_shared/cors.ts';
@@ -136,7 +121,7 @@ Deno.serve(async (req) => {
       .eq('id', row.notification_id)
       .maybeSingle();
     if (!notification) {
-      await s.from('notification_deliveries').update({ status: 'failed', error: 'notification_missing' }).eq('id', row.id).eq('worker_id', workerId);
+      await s.from('notification_deliveries').update({ status: 'dead_letter', error: 'notification_missing', worker_id: null, claimed_at: null, claim_expires_at: null }).eq('id', row.id).eq('worker_id', workerId);
       result.failed += 1;
       continue;
     }
@@ -163,7 +148,7 @@ Deno.serve(async (req) => {
           provider_message_id: outcome.providerMessageId,
           error: null,
         })
-        .eq('id', row.id);
+        .eq('id', row.id).eq('worker_id', workerId);
       result.sent += 1;
     } else {
       const nextAttempts = row.attempts + 1;
@@ -178,7 +163,7 @@ Deno.serve(async (req) => {
           attempts: nextAttempts,
           error: outcome.error,
         })
-        .eq('id', row.id);
+        .eq('id', row.id).eq('worker_id', workerId);
       result.failed += 1;
     }
   }
