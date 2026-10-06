@@ -1,114 +1,137 @@
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-import { seedSebetsaSession } from './utils/sebetsaAuth';
-import { installSebetsaMocks, buildProfileRow, buildEmployeeRow, buildTaskRow, buildLeaveTypeRow } from './utils/sebetsaData';
+import type { Page } from '@playwright/test';
+import { test, expect, expectNoSeriousViolations } from './utils/test';
+import { ID, PERSONAS } from './utils/sebetsaFixtures';
 
 /**
- * Phase L — Mobile / Field Workforce: genuine phone-viewport coverage of
- * the field-critical workflows (attendance, tasks, leave) plus the app
- * shell's mobile navigation drawer. Not a rebuild of the desktop UI at a
- * narrower width — these are the same pages already used for Phase H/I/K,
- * verified to actually work at a real phone size (390x844, iPhone 12/13
- * class) rather than assumed responsive.
+ * Phone-viewport coverage (390x844, iPhone 12/13 class): the field-critical
+ * workflows (attendance, tasks, leave) and the shell's navigation drawer, plus
+ * a sweep proving no page a role can reach forces horizontal page scrolling.
  */
-
 const PHONE_VIEWPORT = { width: 390, height: 844 };
+
+async function expectNoHorizontalOverflow(page: Page, where: string) {
+  const overflow = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+  expect(overflow.scroll, `${where} overflows horizontally (${overflow.scroll}px > ${overflow.client}px)`).toBeLessThanOrEqual(overflow.client);
+}
+
+async function drawerLinks(page: Page): Promise<string[]> {
+  await page.getByRole('button', { name: /menu/i }).click();
+  const hrefs = await page.getByRole('navigation').getByRole('link').evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).getAttribute('href') ?? ''));
+  await page.keyboard.press('Escape');
+  return [...new Set(hrefs.filter((h) => h.startsWith('/')))];
+}
 
 test.describe('phone viewport (390x844)', () => {
   test.use({ viewport: PHONE_VIEWPORT });
 
-  test('mobile navigation drawer opens, lists permitted modules, and closes', async ({ page }) => {
-    await seedSebetsaSession(page, { role: 'employee' });
-    await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }), employee: buildEmployeeRow() });
-
+  test('the navigation drawer opens, lists the employee\'s modules, navigates and closes', async ({ page, app }) => {
+    await app.open('employee');
     await page.goto('/dashboard');
     await page.getByRole('button', { name: /menu/i }).click();
     const drawer = page.getByRole('navigation');
     await expect(drawer.getByRole('link', { name: 'My Leave' })).toBeVisible();
     await expect(drawer.getByRole('link', { name: 'My Tasks' })).toBeVisible();
     await expect(drawer.getByRole('link', { name: 'My Attendance' })).toBeVisible();
+    // Manager-only modules are not offered at all.
+    await expect(drawer.getByRole('link', { name: 'Task Management' })).toHaveCount(0);
 
     await drawer.getByRole('link', { name: 'My Attendance' }).click();
     await expect(page).toHaveURL(/\/attendance\/mine/);
+    await expect(page.getByRole('heading', { name: 'My Attendance' })).toBeVisible();
   });
 
-  test('employee can clock in on a phone-sized screen', async ({ page }) => {
-    await seedSebetsaSession(page, { role: 'employee' });
-    const state = await installSebetsaMocks(page, {
-      profile: buildProfileRow({ role: 'employee' }),
-      employee: buildEmployeeRow(),
-      onRpc: async (fnName, _payload, route) => {
-        if (fnName === 'clock_in') {
-          const record = { id: 'attendance-1', tenant_id: state.employee?.tenant_id, employee_id: 'employee-1', shift_id: null, site_id: 'site-1', status: 'present', clock_in_at: new Date().toISOString(), clock_out_at: null, late_minutes: null, early_departure_minutes: null, worked_minutes: null, overtime_minutes: null, recorded_by: null, notes: null, created_at: '', updated_at: '' };
-          state.attendanceRecords = [record];
-          await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(record) });
-          return true;
-        }
-        return false;
-      },
-    });
-
+  test('an employee clocks in with a thumb-sized button, at their assigned site', async ({ page, app }) => {
+    const backend = await app.open('employee');
     await page.goto('/attendance/mine');
     await expect(page.getByRole('heading', { name: 'My Attendance' })).toBeVisible();
-    const clockInButton = page.getByRole('button', { name: 'Clock in' });
-    await expect(clockInButton).toBeVisible();
-    // Real touch-target check, not just visibility — 44px is the common minimum.
-    const box = await clockInButton.boundingBox();
-    expect(box?.height ?? 0).toBeGreaterThanOrEqual(40);
+    const clockIn = page.getByRole('button', { name: 'Clock in' });
+    await expect(clockIn).toBeVisible();
+    const box = await clockIn.boundingBox();
+    expect(box?.height ?? 0, 'touch target height').toBeGreaterThanOrEqual(40);
+    expect(box?.width ?? 0, 'touch target width').toBeGreaterThanOrEqual(40);
 
-    await clockInButton.click();
+    await clockIn.click();
     await expect(page.getByText(/Clocked in at/)).toBeVisible();
+    const record = backend.table('attendance_records').find((r) => r.employee_id === PERSONAS.employee.employeeId && r.clock_in_at);
+    expect(record, 'a clock-in record was written for the signed-in employee').toBeTruthy();
+    await expect(page.getByRole('button', { name: 'Clock out' })).toBeVisible();
+    await expectNoHorizontalOverflow(page, 'My Attendance');
   });
 
-  test('employee can complete a task on a phone-sized screen', async ({ page }) => {
-    await seedSebetsaSession(page, { role: 'employee' });
-    const state = await installSebetsaMocks(page, {
-      profile: buildProfileRow({ role: 'employee' }),
-      employee: buildEmployeeRow(),
-      tasks: [buildTaskRow()],
-    });
-
+  test('an employee opens a task and sees its checklist on a phone', async ({ page, app }) => {
+    await app.open('employee');
     await page.goto('/tasks');
     await expect(page.getByRole('heading', { name: 'My Tasks' })).toBeVisible();
-    await page.getByText('Inspect fire extinguishers').click();
-    await expect(page.getByRole('heading', { name: 'Inspect fire extinguishers' })).toBeVisible();
-    void state;
+    await page.getByText('Clean ground-floor washrooms').click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('heading', { name: 'Clean ground-floor washrooms' })).toBeVisible();
+    await expect(dialog.getByText('Disinfect fixtures')).toBeVisible();
+    const box = await dialog.boundingBox();
+    expect(box?.width ?? 0).toBeLessThanOrEqual(PHONE_VIEWPORT.width);
+    await dialog.getByLabel('Disinfect fixtures').click();
+    await expect(dialog.getByLabel('Disinfect fixtures')).toBeChecked();
   });
 
-  test('employee can submit a leave request on a phone-sized screen', async ({ page }) => {
-    await seedSebetsaSession(page, { role: 'employee' });
-    await installSebetsaMocks(page, {
-      profile: buildProfileRow({ role: 'employee' }),
-      employee: buildEmployeeRow(),
-      leaveTypes: [buildLeaveTypeRow()],
-    });
-
+  test('the leave request form fits the screen and submits', async ({ page, app }) => {
+    const backend = await app.open('employee');
     await page.goto('/leave');
-    await expect(page.getByRole('heading', { name: 'My Leave' })).toBeVisible();
     await page.getByRole('button', { name: 'Request leave' }).click();
-    await expect(page.getByRole('heading', { name: 'Request leave' })).toBeVisible();
-    // The modal must fit and be usable at phone width, not clipped off-screen.
     const modal = page.getByRole('dialog');
+    await expect(modal.getByRole('heading', { name: 'Request leave' })).toBeVisible();
     const box = await modal.boundingBox();
     expect(box?.width ?? 0).toBeLessThanOrEqual(PHONE_VIEWPORT.width);
+    expect(box?.x ?? -1).toBeGreaterThanOrEqual(0);
+
+    await modal.getByLabel('Leave type').selectOption({ label: 'Annual' });
+    await modal.getByLabel('Start date').fill('2026-10-12');
+    await modal.getByLabel('End date').fill('2026-10-12');
+    // The submit button must be reachable without leaving the dialog.
+    await modal.getByRole('button', { name: 'Submit request' }).scrollIntoViewIfNeeded();
+    await modal.getByRole('button', { name: 'Submit request' }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(backend.table('leave_requests').filter((r) => r.employee_id === PERSONAS.employee.employeeId)).toHaveLength(1);
   });
 
-  test('an employee is still blocked from manager-only pages at phone width', async ({ page }) => {
-    await seedSebetsaSession(page, { role: 'employee' });
-    await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });
+  test('a supervisor marks the roster using the stacked mobile layout', async ({ page, app }) => {
+    await app.open('supervisor');
+    await page.goto('/attendance');
+    await expect(page.getByRole('heading', { name: 'Attendance' })).toBeVisible();
+    // The desktop table is hidden; the card layout is what a phone user sees.
+    await expect(page.getByRole('table')).toBeHidden();
+    await expect(page.locator('p', { hasText: 'Thabo Nkosi' }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Late' }).first()).toBeVisible();
+    await expectNoHorizontalOverflow(page, 'Attendance register');
+  });
 
+  test('an employee is still blocked from manager-only pages at phone width', async ({ page, app }) => {
+    await app.open('employee');
     await page.goto('/tasks/management');
-    await expect(page).toHaveURL('http://localhost:5173/dashboard');
+    await expect(page).toHaveURL(/\/dashboard$/);
   });
 
-  test('My Attendance has no serious/critical accessibility violations at phone width', async ({ page }) => {
-    await seedSebetsaSession(page, { role: 'employee' });
-    await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }), employee: buildEmployeeRow() });
-    await page.goto('/attendance/mine');
-    await expect(page.getByRole('heading', { name: 'My Attendance' })).toBeVisible();
-    const results = await new AxeBuilder({ page }).analyze();
-    const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-    if (serious.length > 0) console.log(JSON.stringify(serious, null, 2));
-    expect(serious, `${serious.length} serious/critical accessibility violation(s) at phone width`).toEqual([]);
+  for (const role of ['employee', 'supervisor', 'site_manager', 'operations_manager', 'hr_user'] as const) {
+    test(`${role}: every page in their navigation fits a phone without horizontal scrolling`, async ({ page, app }) => {
+      test.setTimeout(120_000);
+      await app.open(role);
+      await page.goto('/dashboard');
+      const links = await drawerLinks(page);
+      expect(links.length, 'the role has navigation').toBeGreaterThan(2);
+      for (const href of links) {
+        await page.goto(href);
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByRole('main')).toBeVisible();
+        await expectNoHorizontalOverflow(page, `${role} ${href}`);
+      }
+    });
+  }
+
+  test('key pages carry no serious accessibility violations at phone width', async ({ page, app }) => {
+    await app.open('employee');
+    for (const href of ['/attendance/mine', '/tasks', '/leave', '/dashboard']) {
+      await page.goto(href);
+      await page.waitForLoadState('networkidle');
+      await expectNoSeriousViolations(page);
+    }
+    void ID;
   });
 });
