@@ -1,3 +1,5 @@
+import { MaintenanceLogModal } from '@/features/assets/components/MaintenanceLogModal';
+import { usePermissions } from '@/hooks/usePermissions';
 import { useCallback, useEffect, useState } from 'react';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -62,6 +64,8 @@ export function AssetsPage() {
   const { sites } = useSitesList(organization?.id);
   const [siteId, setSiteId] = useState('');
   const [assigning, setAssigning] = useState<Asset | null>(null);
+  const [maintenanceFor, setMaintenanceFor] = useState<Asset | null>(null);
+  const { can } = usePermissions();
   const [assetNumber, setAssetNumber] = useState('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
@@ -181,6 +185,7 @@ export function AssetsPage() {
                     <StatusBadge label={ASSET_STATUS_LABELS[asset.status]} tone={STATUS_TONES[asset.status]} />
                   </td>
                   <td className="px-3 py-2.5 text-right">
+                    <Button variant="ghost" aria-label={`Maintenance log for ${asset.assetNumber}`} onClick={() => setMaintenanceFor(asset)}>Maintenance log</Button>
                     {asset.status === 'available' && (
                       <Button variant="ghost" onClick={() => setAssigning(asset)}>Assign</Button>
                     )}
@@ -199,6 +204,12 @@ export function AssetsPage() {
           </table>
         </div>
       )}
+      <MaintenanceLogModal
+        isOpen={maintenanceFor !== null}
+        onClose={() => setMaintenanceFor(null)}
+        asset={maintenanceFor}
+        canRecord={can('asset.manage')}
+      />
       <AssignAssetModal
         isOpen={assigning !== null}
         onClose={() => setAssigning(null)}

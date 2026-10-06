@@ -65,7 +65,36 @@ async function transitionAssetStatus(assetId: string, newStatus: AssetStatusEnum
   return toAsset(data);
 }
 
+export interface MaintenanceRecord {
+  id: string;
+  description: string;
+  cost: number | null;
+  performedAt: string;
+}
+
+async function getMaintenanceRecords(assetId: string): Promise<MaintenanceRecord[]> {
+  const { data, error } = await supabase
+    .from('asset_maintenance_records')
+    .select('id, description, cost, performed_at')
+    .eq('asset_id', assetId)
+    .order('performed_at', { ascending: false });
+  if (error) throw error;
+  return data.map((row) => ({ id: row.id, description: row.description, cost: row.cost, performedAt: row.performed_at }));
+}
+
+async function recordMaintenance(assetId: string, description: string, cost: number | null, performedAt: string): Promise<void> {
+  const { error } = await supabase.rpc('record_asset_maintenance', {
+    p_asset_id: assetId,
+    p_description: description,
+    p_cost: cost,
+    p_performed_at: performedAt,
+  });
+  if (error) throw error;
+}
+
 export const assetService = {
+  getMaintenanceRecords,
+  recordMaintenance,
   getAssets,
   createAsset,
   assignAsset,

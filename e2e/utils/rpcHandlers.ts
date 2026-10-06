@@ -581,7 +581,9 @@ const operations: Record<string, RpcHandler> = {
   record_asset_maintenance: (a, ctx) => {
     const asset = row(ctx, 'assets', a.p_asset_id, 'asset');
     require_(ctx, MANAGE_OPS, 'cannot record maintenance');
-    return insert(ctx, 'asset_maintenance_records', { tenant_id: asset.tenant_id, asset_id: asset.id, description: a.p_description, cost: a.p_cost ?? null, performed_at: a.p_performed_at ?? ctx.now.slice(0, 10), performed_by: ctx.session.userId });
+    const created = insert(ctx, 'asset_maintenance_records', { tenant_id: asset.tenant_id, asset_id: asset.id, description: a.p_description, cost: a.p_cost ?? null, performed_at: a.p_performed_at ?? ctx.now.slice(0, 10), performed_by: ctx.session.userId });
+    audit(ctx, asset.tenant_id, 'asset_maintenance_logged', 'asset_maintenance_records', created.id);
+    return created;
   },
 };
 

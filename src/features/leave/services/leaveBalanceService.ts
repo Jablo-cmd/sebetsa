@@ -74,19 +74,8 @@ async function adjustBalance(
   return toLeaveBalance(data);
 }
 
-async function recomputeBalance(employeeId: string, leaveTypeId: string, periodYear: number): Promise<LeaveBalance> {
-  const { data, error } = await supabase.rpc('recompute_leave_balance', {
-    p_employee_id: employeeId,
-    p_leave_type_id: leaveTypeId,
-    p_period_year: periodYear,
-  });
-  if (error) throw error;
-  return toLeaveBalance(data);
-}
-
 export const leaveBalanceService = {
   getBalances,
   getLedger,
   adjustBalance,
-  recomputeBalance,
 };

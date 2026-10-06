@@ -105,3 +105,38 @@ test('employees cannot open the asset register', async ({ page, app }) => {
   await page.goto('/assets');
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
 });
+
+test('a manager logs maintenance against an asset and sees the history', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/assets');
+  await page.getByRole('button', { name: `Maintenance log for ${backend.find('assets', { id: ID.assetScrubber }).asset_number}` }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('No maintenance recorded for this asset yet.')).toBeVisible();
+
+  const save = dialog.getByRole('button', { name: 'Record maintenance' });
+  await expect(save).toBeDisabled();
+  await dialog.getByLabel('Work done').fill('Replaced drive belt');
+  await dialog.getByLabel('Cost (optional)').fill('-5');
+  await expect(dialog.getByText('Enter a cost of zero or more')).toBeVisible();
+  await expect(save).toBeDisabled();
+  await dialog.getByLabel('Cost (optional)').fill('450.50');
+  await save.click();
+  await expect(dialog.getByText('Replaced drive belt')).toBeVisible();
+  await expect(dialog.getByText(/cost 450.5/)).toBeVisible();
+  expect(backend.find('asset_maintenance_records', { asset_id: ID.assetScrubber })).toMatchObject({ description: 'Replaced drive belt', cost: 450.5, performed_by: PERSONAS.operations_manager.profileId });
+  expect(backend.table('audit_log').some((a) => a.entity_table === 'asset_maintenance_records')).toBe(true);
+});
+
+test('maintenance failures are shown and nothing is recorded', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/assets');
+  backend.fault('asset_maintenance_records', { method: 'GET', times: 1 });
+  await page.getByRole('button', { name: /Maintenance log for/ }).first().click();
+  await expect(page.getByRole('dialog').getByText('Failed to load the maintenance history.')).toBeVisible();
+
+  await page.getByRole('dialog').getByLabel('Work done').fill('Greased bearings');
+  backend.rpcHandlers.set('record_asset_maintenance', (_a, ctx) => ctx.fail('insufficient_privilege: cannot log maintenance for this asset', '42501', 403));
+  await page.getByRole('dialog').getByRole('button', { name: 'Record maintenance' }).click();
+  await expect(page.getByRole('dialog').getByText("You don't have permission to do this.")).toBeVisible();
+  expect(backend.table('asset_maintenance_records')).toHaveLength(0);
+});
