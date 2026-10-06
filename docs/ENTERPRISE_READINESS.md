@@ -2,20 +2,16 @@
 
 ## Release gates
 
-A production release is green only when all of the following pass on the release commit:
+`.github/workflows/ci.yml` is a chain — each job `needs` the one before, so a red gate stops everything after it:
 
-1. TypeScript typecheck
-2. ESLint
-3. Unit tests
-4. Production build
-5. Edge Function typecheck and lint
-6. Payment provider adapter tests
-7. RLS / trigger / SECURITY DEFINER regression tests
-8. Playwright E2E
-9. Production configuration validation
-10. Dependency/security audit
+1. **Quality** — typecheck, lint, unit tests (including the E2E-backend drift guard), production build, `npm audit --omit=dev --audit-level=high`.
+2. **Edge functions** — `deno check`, `deno lint`, `deno test` (dispatcher logic).
+3. **RLS** — every migration applied to an empty PostgreSQL 17, every suite in `supabase/rls-tests/tests` run, and `scripts/generate-db-types.sh --check` (generated types and E2E schema tables must match the migrations).
+4. **E2E** — the full Playwright suite against the deterministic fake backend (no real Supabase project can be reached).
+5. **Release gate** — verifies that gates 1–4 all succeeded; always runs, so a failure upstream is reported rather than skipped.
+6. **Deploy** — only for a push to `main`, only after the release gate, the only job that reads secrets, with a configuration check and a bundle check (no service-role strings).
 
-Production deployment must run only from `main`, after all release gates pass.
+Controls on the pipeline itself: workflow-level `permissions: contents: read`; `persist-credentials: false` on checkout; per-job timeouts; no secrets for pull requests or forks (the workflow uses `pull_request`, never `pull_request_target`); no secret value is ever echoed; runs on `main` are never cancelled mid-deploy. Actions are pinned by major version tag (Dependabot keeps them current); pinning by commit SHA is listed in the roadmap.
 
 ## Runtime baseline
 

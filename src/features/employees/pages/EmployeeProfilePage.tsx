@@ -43,9 +43,15 @@ export function EmployeeProfilePage() {
       return;
     }
     let cancelled = false;
-    void employeeService.getEmployee(employee.supervisorId).then((result) => {
-      if (!cancelled) setManager(result);
-    });
+    employeeService
+      .getEmployee(employee.supervisorId)
+      .then((result) => {
+        if (!cancelled) setManager(result);
+      })
+      .catch(() => {
+        // The line manager's name is supplementary; show "—" rather than failing the profile.
+        if (!cancelled) setManager(null);
+      });
     return () => {
       cancelled = true;
     };

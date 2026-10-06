@@ -68,9 +68,14 @@ export function EmployeeFormModal({ isOpen, onClose, tenantId, employee, departm
   useEffect(() => {
     if (!isOpen || !employee?.supervisorId) return;
     let cancelled = false;
-    void employeeService.getEmployee(employee.supervisorId).then((result) => {
-      if (!cancelled && result) setSelectedManager({ id: result.id, firstName: result.firstName, lastName: result.lastName });
-    });
+    employeeService
+      .getEmployee(employee.supervisorId)
+      .then((result) => {
+        if (!cancelled && result) setSelectedManager({ id: result.id, firstName: result.firstName, lastName: result.lastName });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to load the line manager.'));
+      });
     return () => {
       cancelled = true;
     };
@@ -79,9 +84,14 @@ export function EmployeeFormModal({ isOpen, onClose, tenantId, employee, departm
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    void employeeService.searchEmployeeCandidates(tenantId, managerSearch, employee?.id).then((results) => {
-      if (!cancelled) setManagerCandidates(results);
-    });
+    employeeService
+      .searchEmployeeCandidates(tenantId, managerSearch, employee?.id)
+      .then((results) => {
+        if (!cancelled) setManagerCandidates(results);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to search employees.'));
+      });
     return () => {
       cancelled = true;
     };

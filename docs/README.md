@@ -4,10 +4,14 @@ Sebetsa is an enterprise multi-tenant workforce and operations platform.
 
 ## Core engineering documents
 
-- [Enterprise readiness](./ENTERPRISE_READINESS.md)
-- [Security policy](../SECURITY.md)
-- [Architecture and implementation notes](./)
-- Domain specifications and runbooks maintained with the relevant feature area.
+- [Product scope](./PRODUCT_SCOPE.md)
+- [Delivery status — what is verified, where](./DOMAIN_STATUS.md)
+- [Enterprise readiness and release gates](./ENTERPRISE_READINESS.md)
+- [Security model](./SECURITY_MODEL.md) and the [security policy](../SECURITY.md)
+- [Notification delivery](./NOTIFICATIONS_DELIVERY.md)
+- [End-to-end testing](./E2E_TESTING.md)
+- [Business continuity and observability](./BCDR_OBSERVABILITY.md)
+- [Roadmap and gap analysis](./ROADMAP.md)
 
 ## Platform backbone
 
@@ -21,4 +25,4 @@ Database authorization is authoritative. Tenant-scoped data uses PostgreSQL RLS 
 
 ## Release rule
 
-A release is not complete because the UI builds. It must pass typecheck, lint, unit tests, Edge Function checks, RLS regression tests, E2E, production configuration validation and dependency/security checks.
+A release is not complete because the UI builds. It must pass the gate chain in [ENTERPRISE_READINESS.md](./ENTERPRISE_READINESS.md): quality, edge functions, RLS, E2E, then the release gate.
