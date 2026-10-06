@@ -24,8 +24,8 @@ function toPreferences(row: NotificationPreferenceRow): NotificationPreferences 
     emailEnabled: row.email_enabled,
     smsEnabled: row.sms_enabled,
     whatsappEnabled: row.whatsapp_enabled,
-    quietHoursStart: row.quiet_hours_start,
-    quietHoursEnd: row.quiet_hours_end,
+    quietHoursStart: row.quiet_hours_start?.slice(0, 5) ?? null,
+    quietHoursEnd: row.quiet_hours_end?.slice(0, 5) ?? null,
   };
 }
 

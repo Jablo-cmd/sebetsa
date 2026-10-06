@@ -24,6 +24,7 @@ export function AvailabilityPage() {
   const [targetEmployee, setTargetEmployee] = useState<EmployeeCandidate | null>(null);
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [candidates, setCandidates] = useState<EmployeeCandidate[]>([]);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (myEmployee && !targetEmployee) {
@@ -34,16 +35,20 @@ export function AvailabilityPage() {
   useEffect(() => {
     if (!canManageOthers || !organization) return;
     let cancelled = false;
-    void employeeService.searchEmployeeCandidates(organization.id, employeeSearch).then((results) => {
-      if (!cancelled) setCandidates(results);
-    });
+    employeeService
+      .searchEmployeeCandidates(organization.id, employeeSearch)
+      .then((results) => {
+        if (!cancelled) setCandidates(results);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setActionError(getDbErrorMessage(err, 'Failed to search employees.'));
+      });
     return () => {
       cancelled = true;
     };
   }, [canManageOthers, organization, employeeSearch]);
 
   const { windows, exceptions, isLoading, error, refetch } = useAvailability(targetEmployee?.id);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   const isOwnRecord = targetEmployee?.id === myEmployee?.id;
   const canManageTarget = isOwnRecord || canManageOthers;
