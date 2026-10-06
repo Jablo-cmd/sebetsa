@@ -147,7 +147,7 @@ export function AvailabilityPage() {
             <button
               type="button"
               onClick={() => setTargetEmployee({ id: myEmployee.id, firstName: myEmployee.firstName, lastName: myEmployee.lastName })}
-              className="focus-ring mt-2 rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"
+              className="focus-ring mt-2 rounded-md px-2 py-1 text-xs font-medium text-brand-600 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-500/10"
             >
               ← Back to my own availability
             </button>

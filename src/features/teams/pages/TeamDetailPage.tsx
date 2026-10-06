@@ -60,7 +60,7 @@ export function TeamDetailPage() {
         title="Team not found"
         message="This team doesn't exist, or you don't have access to view it."
         action={
-          <Link to="/teams" className="focus-ring rounded text-sm font-medium text-brand-600 hover:underline">
+          <Link to="/teams" className="focus-ring rounded text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Back to Teams
           </Link>
         }
@@ -106,7 +106,7 @@ export function TeamDetailPage() {
             <h1 className="text-xl font-bold text-content-primary">{team.name}</h1>
             <p className="text-sm text-content-secondary">
               {site ? (
-                <Link to={`/sites/${site.id}`} className="text-brand-600 hover:underline">
+                <Link to={`/sites/${site.id}`} className="text-brand-600 dark:text-brand-300 hover:underline">
                   {site.name}
                 </Link>
               ) : (

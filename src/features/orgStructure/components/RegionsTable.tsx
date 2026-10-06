@@ -73,7 +73,7 @@ export function RegionsTable({ regions, canManage, onEdit, onToggleActive }: Reg
                       className={
                         region.status === 'active'
                           ? 'focus-ring rounded-md px-2 py-1 text-xs font-medium text-danger-600 hover:bg-danger-50'
-                          : 'focus-ring rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10'
+                          : 'focus-ring rounded-md px-2 py-1 text-xs font-medium text-brand-600 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-500/10'
                       }
                     >
                       {region.status === 'active' ? 'Archive' : 'Restore'}

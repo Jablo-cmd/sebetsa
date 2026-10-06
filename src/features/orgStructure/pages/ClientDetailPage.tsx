@@ -77,7 +77,7 @@ export function ClientDetailPage() {
         title="Client not found"
         message="This client doesn't exist, or you don't have access to view it."
         action={
-          <Link to="/clients" className="focus-ring rounded text-sm font-medium text-brand-600 hover:underline">
+          <Link to="/clients" className="focus-ring rounded text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Back to Clients
           </Link>
         }
@@ -155,7 +155,7 @@ export function ClientDetailPage() {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-content-primary">Sites</h2>
-          <Link to="/sites" className="focus-ring rounded text-xs font-medium text-brand-600 hover:underline">
+          <Link to="/sites" className="focus-ring rounded text-xs font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Manage sites
           </Link>
         </div>
@@ -184,7 +184,7 @@ export function ClientDetailPage() {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-content-primary">Contracts</h2>
-          <Link to="/contracts" className="focus-ring rounded text-xs font-medium text-brand-600 hover:underline">
+          <Link to="/contracts" className="focus-ring rounded text-xs font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Manage contracts
           </Link>
         </div>

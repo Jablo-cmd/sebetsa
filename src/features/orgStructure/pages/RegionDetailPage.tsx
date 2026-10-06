@@ -27,7 +27,7 @@ export function RegionDetailPage() {
         title="Region not found"
         message="This region doesn't exist, or you don't have access to view it."
         action={
-          <Link to="/regions" className="focus-ring rounded text-sm font-medium text-brand-600 hover:underline">
+          <Link to="/regions" className="focus-ring rounded text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Back to Regions
           </Link>
         }
@@ -84,7 +84,7 @@ export function RegionDetailPage() {
       {canManage && (
         <p className="text-xs text-content-tertiary">
           Edit this region's name or code, or archive it, from the{' '}
-          <Link to="/regions" className="text-brand-600 hover:underline">
+          <Link to="/regions" className="text-brand-600 dark:text-brand-300 hover:underline">
             Regions list
           </Link>
           .

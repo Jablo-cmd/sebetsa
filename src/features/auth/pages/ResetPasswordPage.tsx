@@ -15,7 +15,7 @@ function InvalidResetLinkNotice() {
       </div>
       <Link
         to="/forgot-password"
-        className="focus-ring self-start rounded text-sm font-medium text-brand-600 hover:text-brand-700 hover:underline"
+        className="focus-ring self-start rounded text-sm font-medium text-brand-600 dark:text-brand-300 hover:text-brand-700 hover:underline"
       >
         Request a new reset link
       </Link>

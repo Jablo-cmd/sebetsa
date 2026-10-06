@@ -65,7 +65,7 @@ export function EmployeeProfilePage() {
         title="Employee not found"
         message="This employee doesn't exist, or you don't have access to view them."
         action={
-          <Link to="/employees" className="focus-ring rounded text-sm font-medium text-brand-600 hover:underline">
+          <Link to="/employees" className="focus-ring rounded text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Back to Employees
           </Link>
         }

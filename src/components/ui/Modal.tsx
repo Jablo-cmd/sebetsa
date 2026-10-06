@@ -15,19 +15,24 @@ export interface ModalProps {
 export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // Parents usually pass an inline onClose; keeping it in a ref means a parent
+  // re-render never re-runs the effect below (which would steal focus mid-typing).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!isOpen) return;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== 'Tab') return;
 
       const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       );
       if (!focusable || focusable.length === 0) return;
       const first = focusable[0];
@@ -46,20 +51,22 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
 
-    const firstField = dialogRef.current?.querySelector<HTMLElement>('input, textarea, select, button');
+    const firstField = dialogRef.current?.querySelector<HTMLElement>('input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled])');
     firstField?.focus();
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
+      // Return focus to whatever opened the dialog (if it is still on the page).
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/40" onClick={() => onCloseRef.current()} aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"

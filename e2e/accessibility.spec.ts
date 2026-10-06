@@ -1,129 +1,108 @@
-import { test, expect, type Page } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-import { seedAuthenticatedSession } from './utils/mockAuth';
-import {
-  buildMockProfileRow,
-  buildMockSchoolRow,
-  buildMockAcademicYearRow,
-  buildMockClassRow,
-  buildMockLearnerRow,
-  buildMockAssessmentRow,
-  installDataMocks,
-  installAcademicListMock,
-  installLearnersListMock,
-  installEmployeesListMock,
-  installUsersListMock,
-  installReportRowsMock,
-  installAttendanceRecordsMock,
-  installAssessmentsListMock,
-} from './utils/mockData';
+import type { Page } from '@playwright/test';
+import { test, expect, expectNoSeriousViolations } from './utils/test';
+import type { SignInAs } from './utils/sebetsaFixtures';
 
 /**
- * A practical accessibility baseline, not a full audit: automated
- * scanning (axe-core) only catches a subset of WCAG issues — missing
- * labels, contrast, landmark/role misuse, unlabelled form controls — and
- * says nothing about keyboard-flow sensibility or screen-reader phrasing.
- * Failing this means a genuine, tool-detectable defect; passing it is a
- * floor, not a certification. Scoped to the pages named in the audit
- * brief (Login, Dashboard, Attendance, Attendance Report, Learners,
- * Assessments) rather than every route in the app.
+ * Accessibility baseline: axe-core over every page a role can reach through its
+ * own navigation (light and dark), plus the keyboard behaviour axe cannot see.
+ *
+ * Automated scanning catches only a subset of WCAG issues (labels, contrast,
+ * landmark/role misuse, unlabelled controls). Passing this is a floor, not a
+ * certification — it says nothing about screen-reader phrasing or reading order.
+ * Every rule gates, including colour contrast.
  */
-/**
- * FND-SEC-007: `color-contrast`/`link-in-text-block` were previously
- * excluded here — the `content-tertiary` token measured ~2.56:1 against
- * white (light mode) and ~3.62:1 (dark mode), both under WCAG AA's 4.5:1
- * floor for normal text. The token itself has been fixed (see
- * src/styles/index.css) to 4.667:1 / 4.925:1 respectively, so the
- * exclusion is removed — every rule now gates for real, including
- * contrast, not just labels/ARIA/roles/landmarks/keyboard affordances.
- */
-async function expectNoSeriousViolations(page: Page) {
-  const results = await new AxeBuilder({ page }).analyze();
-  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  if (serious.length > 0) {
-    console.log(JSON.stringify(serious, null, 2));
-  }
-  expect(serious, `${serious.length} serious/critical accessibility violation(s) found — see console output above for detail`).toEqual([]);
+
+async function navigationHrefs(page: Page): Promise<string[]> {
+  await page.goto('/dashboard');
+  await expect(page.getByRole('main')).toBeVisible();
+  const hrefs = await page.getByRole('navigation').getByRole('link').evaluateAll((links) => links.map((a) => (a as HTMLAnchorElement).getAttribute('href') ?? ''));
+  return [...new Set(hrefs.filter((h) => h.startsWith('/')))];
 }
 
-test('Login page has no serious/critical accessibility violations', async ({ page }) => {
+test('the sign-in page has no serious accessibility violations', async ({ page, app }) => {
+  await app.open('employee', { signedIn: false });
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Sign in to your account' })).toBeVisible();
   await expectNoSeriousViolations(page);
 });
 
-test('Dashboard has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page);
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-  await installAttendanceRecordsMock(page, []);
-  await installLearnersListMock(page, []);
-  await installEmployeesListMock(page, []);
-  await installUsersListMock(page, [buildMockProfileRow()]);
+const SWEEP: SignInAs[] = ['organization_administrator', 'operations_manager', 'regional_manager', 'site_manager', 'supervisor', 'hr_user', 'employee', 'client_user'];
 
-  await page.goto('/dashboard');
-  await expect(page.getByRole('heading', { name: /Welcome back/ })).toBeVisible();
-  await expectNoSeriousViolations(page);
+for (const role of SWEEP) {
+  test(`${role}: every page in their navigation passes axe (light)`, async ({ page, app }) => {
+    test.setTimeout(240_000);
+    await app.open(role);
+    const hrefs = await navigationHrefs(page);
+    for (const href of hrefs) {
+      await page.goto(href);
+      await page.waitForLoadState('networkidle');
+      await expect(page.getByRole('main'), `${href} renders a main landmark`).toBeVisible();
+      await expectNoSeriousViolations(page);
+    }
+  });
+}
+
+for (const role of ['organization_administrator', 'employee'] as const) {
+  test(`${role}: every page in their navigation passes axe (dark)`, async ({ page, app }) => {
+    test.setTimeout(240_000);
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await app.open(role);
+    const hrefs = await navigationHrefs(page);
+    for (const href of hrefs) {
+      await page.goto(href);
+      await page.waitForLoadState('networkidle');
+      await expectNoSeriousViolations(page);
+    }
+  });
+}
+
+test('a modal takes focus, keeps Tab inside, closes on Escape and returns focus to its trigger', async ({ page, app }) => {
+  await app.open('employee');
+  await page.goto('/leave');
+  const trigger = page.getByRole('button', { name: 'Request leave' });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAttribute('aria-modal', 'true');
+  await expect.poll(() => dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+
+  for (let i = 0; i < 25; i += 1) {
+    await page.keyboard.press('Tab');
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement)), `Tab #${i + 1} stayed inside the dialog`).toBe(true);
+  }
+  for (let i = 0; i < 25; i += 1) {
+    await page.keyboard.press('Shift+Tab');
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement)), `Shift+Tab #${i + 1} stayed inside the dialog`).toBe(true);
+  }
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(trigger).toBeFocused();
 });
 
-test('Attendance page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAcademicListMock(page, 'class_teacher_assignments', []);
-  await installReportRowsMock(page, 'learners', [buildMockLearnerRow({ id: 'learner-1', firstName: 'Naledi', lastName: 'Dube' })]);
-  await installAttendanceRecordsMock(page, []);
-
-  await page.goto('/attendance');
-  await expect(page.getByRole('heading', { name: 'Attendance' })).toBeVisible();
-  await expectNoSeriousViolations(page);
+test('form errors are announced and tied to their fields', async ({ page, app }) => {
+  await app.open('employee');
+  await page.goto('/leave');
+  await page.getByRole('button', { name: 'Request leave' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: 'Submit request' }).click();
+  // Select errors are announced through role=alert; text fields are also programmatically tied.
+  await expect(dialog.getByRole('alert').filter({ hasText: 'Leave type is required' })).toBeVisible();
+  const start = dialog.getByLabel('Start date');
+  await expect(start).toHaveAttribute('aria-invalid', 'true');
+  const describedBy = await start.getAttribute('aria-describedby');
+  expect(describedBy).toBeTruthy();
+  await expect(page.locator(`[id="${describedBy}"]`)).toContainText('Start date is required');
 });
 
-test('Attendance Report page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAttendanceRecordsMock(page, []);
-  await installReportRowsMock(page, 'learners', []);
-
-  await page.goto('/reports/attendance');
-  await expect(page.getByRole('heading', { name: 'Attendance report' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Learners page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installLearnersListMock(page, [buildMockLearnerRow({ id: 'learner-1', firstName: 'Naledi', lastName: 'Dube' })]);
-
-  await page.goto('/learners');
-  await expect(page.getByRole('heading', { name: 'Learners' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Assessments page has no serious/critical accessibility violations', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow(),
-    school: buildMockSchoolRow(),
-    academicYears: [buildMockAcademicYearRow()],
-  });
-  await installAcademicListMock(page, 'classes', [buildMockClassRow()]);
-  await installAcademicListMock(page, 'subjects', []);
-  await installAssessmentsListMock(page, [buildMockAssessmentRow()]);
-
-  await page.goto('/academic/assessments');
-  await expect(page.getByRole('heading', { name: 'Assessments' })).toBeVisible();
-  await expectNoSeriousViolations(page);
+test('every page has exactly one h1 and the document has a language and title', async ({ page, app }) => {
+  await app.open('operations_manager');
+  for (const href of ['/dashboard', '/leave/management', '/tasks/management', '/incidents', '/reports']) {
+    await page.goto(href);
+    await expect(page.getByRole('main')).toBeVisible();
+    expect(await page.locator('h1').count(), `${href} h1 count`).toBe(1);
+    expect(await page.locator('html').getAttribute('lang')).toBeTruthy();
+    expect((await page.title()).trim().length).toBeGreaterThan(0);
+  }
 });

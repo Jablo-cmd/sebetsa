@@ -105,7 +105,7 @@ export function ContractDetailPage() {
         title="Contract not found"
         message="This contract doesn't exist, or you don't have access to view it."
         action={
-          <Link to="/contracts" className="focus-ring rounded text-sm font-medium text-brand-600 hover:underline">
+          <Link to="/contracts" className="focus-ring rounded text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Back to Contracts
           </Link>
         }
@@ -203,7 +203,7 @@ export function ContractDetailPage() {
             <h1 className="text-xl font-bold text-content-primary">{contract.contractNumber}</h1>
             <p className="text-sm text-content-secondary">
               {client ? (
-                <Link to={`/clients/${client.id}`} className="text-brand-600 hover:underline">
+                <Link to={`/clients/${client.id}`} className="text-brand-600 dark:text-brand-300 hover:underline">
                   {client.name}
                 </Link>
               ) : (

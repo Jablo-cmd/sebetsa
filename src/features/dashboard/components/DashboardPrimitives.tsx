@@ -75,7 +75,7 @@ export function QuickActionsPanel({ actions }: { actions: QuickAction[] }) {
             to={to}
             className="focus-ring flex items-center gap-3 py-2.5 transition-colors first:pt-0 last:pb-0 hover:text-brand-600 dark:hover:text-brand-300"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600 dark:text-brand-300 dark:bg-brand-500/15 dark:text-brand-300">
               <Icon className="h-4 w-4" />
             </span>
             <span className="min-w-0">
@@ -111,7 +111,7 @@ export function DashboardScreen({ children }: { children: ReactNode }) {
 export function NoOrganizationSelectedState() {
   return (
     <div className="flex flex-col items-center gap-4 rounded-card border border-dashed border-border-strong bg-surface-raised px-6 py-14 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600 dark:text-brand-300 dark:bg-brand-500/15 dark:text-brand-300">
         <BuildingIcon className="h-6 w-6" />
       </span>
       <div>

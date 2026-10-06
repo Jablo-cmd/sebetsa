@@ -185,7 +185,7 @@ export function SchedulePage() {
               <button
                 type="button"
                 onClick={() => setWeekAnchor(startOfWeek(new Date()))}
-                className="focus-ring rounded-md px-3 py-2 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"
+                className="focus-ring rounded-md px-3 py-2 text-sm font-medium text-brand-600 dark:text-brand-300 hover:bg-brand-50 dark:hover:bg-brand-500/10"
               >
                 Today
               </button>

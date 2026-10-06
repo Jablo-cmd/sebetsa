@@ -58,7 +58,7 @@ export function SiteDetailPage() {
         title="Site not found"
         message="This site doesn't exist, or you don't have access to view it."
         action={
-          <Link to="/sites" className="focus-ring rounded text-sm font-medium text-brand-600 hover:underline">
+          <Link to="/sites" className="focus-ring rounded text-sm font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Back to Sites
           </Link>
         }
@@ -92,7 +92,7 @@ export function SiteDetailPage() {
             <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Client</dt>
             <dd className="mt-1 text-sm text-content-primary">
               {client ? (
-                <Link to={`/clients/${client.id}`} className="text-brand-600 hover:underline">
+                <Link to={`/clients/${client.id}`} className="text-brand-600 dark:text-brand-300 hover:underline">
                   {client.name}
                 </Link>
               ) : (
@@ -104,7 +104,7 @@ export function SiteDetailPage() {
             <dt className="text-xs font-medium uppercase tracking-wide text-content-tertiary">Region</dt>
             <dd className="mt-1 text-sm text-content-primary">
               {region ? (
-                <Link to={`/regions/${region.id}`} className="text-brand-600 hover:underline">
+                <Link to={`/regions/${region.id}`} className="text-brand-600 dark:text-brand-300 hover:underline">
                   {region.name}
                 </Link>
               ) : (
@@ -122,7 +122,7 @@ export function SiteDetailPage() {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-content-primary">Current Workforce</h2>
-          <Link to="/site-assignments" className="focus-ring rounded text-xs font-medium text-brand-600 hover:underline">
+          <Link to="/site-assignments" className="focus-ring rounded text-xs font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Manage assignments
           </Link>
         </div>
@@ -156,7 +156,7 @@ export function SiteDetailPage() {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold text-content-primary">Contracts covering this site</h2>
-          <Link to="/contracts" className="focus-ring rounded text-xs font-medium text-brand-600 hover:underline">
+          <Link to="/contracts" className="focus-ring rounded text-xs font-medium text-brand-600 dark:text-brand-300 hover:underline">
             Manage contracts
           </Link>
         </div>
