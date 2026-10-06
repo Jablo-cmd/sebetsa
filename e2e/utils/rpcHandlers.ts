@@ -383,6 +383,27 @@ const documents: Record<string, RpcHandler> = {
     }
     return null;
   },
+  grant_user_scope: (a, ctx) => {
+    const target = row(ctx, 'profiles', a.p_profile_id, 'profile');
+    require_(ctx, ORG_STRUCT, 'cannot assign scopes in this tenant');
+    sod(ctx, 'scope.assign', [String(a.p_profile_id)]);
+    const table = { region: 'regions', site: 'sites', team: 'teams' }[String(a.p_scope_type)];
+    if (!table) ctx.fail(`invalid_status: unknown scope type ${a.p_scope_type}`);
+    if (!ctx.backend.table(table!).some((r) => r.id === a.p_scope_id && r.tenant_id === target.tenant_id)) {
+      ctx.fail(`cross_tenant_reference: ${a.p_scope_type} ${a.p_scope_id} does not belong to tenant ${target.tenant_id}`);
+    }
+    const existing = ctx.backend.table('user_scopes').find((s) => s.profile_id === a.p_profile_id && s.scope_type === a.p_scope_type && s.scope_id === a.p_scope_id);
+    const result = existing ? touch(ctx, existing, { granted_by: ctx.session.userId }) : insert(ctx, 'user_scopes', { tenant_id: target.tenant_id, profile_id: a.p_profile_id, scope_type: a.p_scope_type, scope_id: a.p_scope_id, granted_by: ctx.session.userId });
+    audit(ctx, target.tenant_id, 'scope_granted', 'user_scopes', result.id);
+    return result;
+  },
+  revoke_user_scope: (a, ctx) => {
+    const scope = row(ctx, 'user_scopes', a.p_scope_row_id, 'scope');
+    require_(ctx, ORG_STRUCT, 'cannot revoke scopes in this tenant');
+    ctx.backend.tables.set('user_scopes', ctx.backend.table('user_scopes').filter((s) => s !== scope));
+    audit(ctx, scope.tenant_id, 'scope_revoked', 'user_scopes', scope.id);
+    return null;
+  },
   verify_document: (a, ctx) => {
     const d = row(ctx, 'employee_documents', a.p_document_id, 'document');
     require_(ctx, MANAGE_EMP, 'cannot verify documents for this tenant');

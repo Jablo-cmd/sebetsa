@@ -1,3 +1,6 @@
+import { usePermissions } from '@/hooks/usePermissions';
+import { UserScopesSection } from '@/features/users/components/UserScopesSection';
+import { isScopedRole } from '@/features/users/services/userScopeService';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
@@ -18,6 +21,7 @@ export function UserProfilePage() {
   const actorRole = actor?.role ?? null;
   const currentOrganization = useCurrentOrganization();
   const { user, isLoading, error, refetch } = useUserProfile(id);
+  const { can } = usePermissions();
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isRoleOpen, setIsRoleOpen] = useState(false);
@@ -118,6 +122,10 @@ export function UserProfilePage() {
           </div>
         )}
       </div>
+
+      {user.tenantId && isScopedRole(user.role) && (can('org_structure.manage') || actor?.id === user.id) && (
+        <UserScopesSection tenantId={user.tenantId} profileId={user.id} canManage={can('org_structure.manage')} />
+      )}
 
       <EditUserModal isOpen={isEditOpen} onClose={() => setIsEditOpen(false)} user={user} onUpdated={refetch} />
       <ChangeRoleModal

@@ -234,6 +234,12 @@ export function buildDataset(): Record<string, Row[]> {
       ts({ id: uuid(24, 2), tenant_id: T, site_id: ID.siteTowerA, employee_id: lerato.employeeId, role_on_site: 'Cleaner', start_date: '2025-03-03', end_date: null }),
       ts({ id: uuid(24, 3), tenant_id: T, site_id: ID.siteTowerA, employee_id: sarah.employeeId, role_on_site: 'Supervisor', start_date: '2025-03-03', end_date: null }),
     ],
+    // Scoped roles only reach site-bound records inside these (see fakeBackend SCOPED_TABLES).
+    user_scopes: [
+      ts({ id: uuid(40, 1), tenant_id: T, profile_id: PERSONAS.regional_manager.profileId, scope_type: 'region', scope_id: ID.regionGauteng, granted_by: PERSONAS.organization_administrator.profileId }),
+      ts({ id: uuid(40, 2), tenant_id: T, profile_id: PERSONAS.site_manager.profileId, scope_type: 'site', scope_id: ID.siteTowerA, granted_by: PERSONAS.organization_administrator.profileId }),
+      ts({ id: uuid(40, 3), tenant_id: T, profile_id: PERSONAS.supervisor.profileId, scope_type: 'team', scope_id: ID.teamTowerADay, granted_by: PERSONAS.organization_administrator.profileId }),
+    ],
     site_staffing_requirements: [ts({ id: uuid(25, 1), tenant_id: T, site_id: ID.siteTowerA, label: 'Day cleaners', required_count: 3 })],
     shift_definitions: [
       ts({ id: ID.shiftDefDay, tenant_id: T, name: 'Day 06:00–14:00', start_time: '06:00:00', end_time: '14:00:00', is_overnight: false, break_minutes: 30, status: 'active' }),

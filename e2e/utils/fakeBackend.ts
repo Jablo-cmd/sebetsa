@@ -120,6 +120,10 @@ export const KNOWN_TABLES = [
   'user_scopes',
 ] as const;
 
+/** Tables with a RESTRICTIVE scope policy (see the 20261007090000 migration). */
+const SCOPED_TABLES = ['shifts', 'attendance_records', 'tasks', 'incidents', 'compliance_records', 'assets', 'inventory_movements', 'procurement_requests'];
+const SCOPED_ROLES = ['regional_manager', 'site_manager', 'supervisor'];
+
 /** Server-derived authorship columns (set_actor_column triggers): the caller, never what the client sent. */
 const ACTOR_COLUMNS: Record<string, string> = {
   task_evidence: 'submitted_by',
@@ -384,7 +388,30 @@ export class FakeBackend {
     // profiles_select_own_or_tenant_or_platform_admin: a user always sees their own row.
     if (name === 'profiles') return rows.filter((row) => row.id === this.session.userId || row.tenant_id === this.session.tenantId);
     if (name === 'notifications') return rows.filter((row) => row.recipient_profile_id === this.session.userId);
+    // user_scopes_select: your own scopes, or all of the tenant's if you manage org structure.
+    if (name === 'user_scopes') {
+      const manager = ['organization_administrator', 'operations_manager'].includes(String(this.session.role));
+      return rows.filter((row) => row.tenant_id === this.session.tenantId && (manager || row.profile_id === this.session.userId));
+    }
+    // Restrictive scope policies: regional managers, site managers and supervisors only reach
+    // site-bound records inside an assigned region/site/team (fail closed without any scope).
+    if (SCOPED_TABLES.includes(name) && SCOPED_ROLES.includes(String(this.session.role))) {
+      return rows.filter((row) => row.tenant_id === this.session.tenantId && this.canAccessSite(row.site_id as string | null | undefined));
+    }
     return rows.filter((row) => !('tenant_id' in row) || row.tenant_id === this.session.tenantId);
+  }
+
+  /** can_access_site(): null-site records are open; otherwise the caller needs a covering scope. */
+  canAccessSite(siteId: string | null | undefined): boolean {
+    if (!siteId) return true;
+    const site = this.table('sites').find((s) => s.id === siteId);
+    return this.table('user_scopes').some((scope) => {
+      if (scope.profile_id !== this.session.userId) return false;
+      if (scope.scope_type === 'site') return scope.scope_id === siteId;
+      if (scope.scope_type === 'region') return !!site && site.region_id === scope.scope_id;
+      if (scope.scope_type === 'team') return this.table('teams').some((t) => t.id === scope.scope_id && t.site_id === siteId);
+      return false;
+    });
   }
 
   private fail(message: string, code = 'P0001', status = 400): never {
