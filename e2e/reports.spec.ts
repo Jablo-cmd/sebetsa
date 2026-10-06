@@ -1,16 +1,7 @@
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-import { seedSebetsaSession } from './utils/sebetsaAuth';
-import { SEBETSA_TENANT_ID, buildOrganizationRow, buildProfileRow, fulfillJson } from './utils/sebetsaData';
+import { readFileSync } from 'node:fs';
+import { test, expect, expectNoSeriousViolations } from './utils/test';
 
-async function expectNoSeriousViolations(page: import('@playwright/test').Page) {
-  const results = await new AxeBuilder({ page }).analyze();
-  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  if (serious.length > 0) console.log(JSON.stringify(serious, null, 2));
-  expect(serious, `${serious.length} serious/critical accessibility violation(s) — see console output`).toEqual([]);
-}
-
-const METRICS_ROW = {
+const METRICS = {
   active_employee_count: 12,
   attendance_rate_pct: 92.5,
   late_attendance_count: 3,
@@ -28,80 +19,87 @@ const METRICS_ROW = {
   trainings_completed_count: 7,
 };
 
-/** Genuine Sebetsa Phase R — Analytics, Reporting & Management
- * Intelligence E2E coverage. Real UI, mocked RPC — database-internal
- * security (the SECURITY-INVOKER role/tenant scoping proof) lives in
- * supabase/rls-tests/analytics_reporting.sql. */
+const fixedMetrics = { get_operational_metrics: () => [METRICS] };
 
-test('organization_administrator sees real operational metrics and can export them', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'organization_administrator' });
+/** The card whose label is `label` (cards are plain divs: label, value, hint). */
+const card = (page: import('@playwright/test').Page, label: string) =>
+  page.getByText(label, { exact: true }).locator('xpath=..');
 
-  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
-  await page.route('**/rest/v1/**', async (route) => {
-    const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow());
-    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'organization_administrator' }));
-    if (path.includes('/rpc/get_operational_metrics')) return fulfillJson(route, [METRICS_ROW]);
-    if (route.request().method() === 'GET') return fulfillJson(route, []);
-    return fulfillJson(route, {});
-  });
-
+test('operational metrics are shown for the current month with their detail lines', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator', { rpc: fixedMetrics });
   await page.goto('/reports');
   await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
-  await expect(page.getByText('12', { exact: true })).toBeVisible();
-  await expect(page.getByText('92.5%')).toBeVisible();
+  await expect(page.getByText('Operational metrics for 2026-09-01 to 2026-09-30')).toBeVisible();
+
+  await expect(card(page, 'Active employees')).toContainText('12');
+  await expect(card(page, 'Attendance rate')).toContainText('92.5%');
+  await expect(card(page, 'Attendance rate')).toContainText('3 late records');
+  await expect(card(page, 'Task completion rate')).toContainText('88.2%');
+  await expect(card(page, 'Task completion rate')).toContainText('4 overdue');
+  await expect(card(page, 'Open incidents')).toContainText('0 critical');
+  await expect(card(page, 'Active assets')).toContainText('2 in maintenance');
+  await expect(card(page, 'Active contracts')).toContainText('1 expiring within 30 days');
+  await expect(card(page, 'Certifications expiring soon')).toContainText('3');
+  await expect(card(page, 'Trainings completed (period)')).toContainText('7');
+
+  const call = backend.requests.find((r) => r.rpc === 'get_operational_metrics');
+  expect(call?.body).toMatchObject({ p_period_start: '2026-09-01', p_period_end: '2026-09-30' });
+  await expectNoSeriousViolations(page);
+});
+
+test('the default metrics are derived from the seeded workforce data', async ({ page, app }) => {
+  await app.open('operations_manager');
+  await page.goto('/reports');
+  // Fixture: 2 open tasks of 3 (1 completed) → 33.3%, one open incident, one active contract per client.
+  await expect(card(page, 'Task completion rate')).toContainText('33.3%');
+  await expect(card(page, 'Pending leave requests')).toContainText('1');
+  await expect(card(page, 'Open incidents')).toContainText('1');
+});
+
+test('an administrator exports the metrics as a CSV that matches what is on screen', async ({ page, app }) => {
+  await app.open('organization_administrator', { rpc: fixedMetrics });
+  await page.goto('/reports');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export CSV' }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('sebetsa-operational-metrics-2026-09-01-to-2026-09-30.csv');
+  const lines = readFileSync(await download.path(), 'utf8').split('\r\n');
+  expect(lines[0]).toBe('Metric,Value,Detail');
+  expect(lines).toContain('Active employees,12,');
+  expect(lines).toContain('Attendance rate,92.5%,3 late records');
+  expect(lines).toContain('Active contracts,5,1 expiring within 30 days');
+  expect(lines).toHaveLength(11);
+});
+
+test('roles without reports.export see the figures but no export action', async ({ page, app }) => {
+  for (const role of ['site_manager', 'supervisor', 'regional_manager'] as const) {
+    await app.open(role, { rpc: { get_operational_metrics: () => [{ ...METRICS, active_employee_count: 4 }] } });
+    await page.goto('/reports');
+    await expect(card(page, 'Active employees')).toContainText('4');
+    await expect(page.getByRole('button', { name: 'Export CSV' })).toHaveCount(0);
+  }
+});
+
+test('HR can view and export reports', async ({ page, app }) => {
+  await app.open('hr_user', { rpc: fixedMetrics });
+  await page.goto('/reports');
   await expect(page.getByRole('button', { name: 'Export CSV' })).toBeVisible();
 });
 
-test('site_manager sees Reports but no export action (view-only, no reports.export)', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'site_manager' });
-
-  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
-  await page.route('**/rest/v1/**', async (route) => {
-    const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow());
-    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'site_manager' }));
-    if (path.includes('/rpc/get_operational_metrics')) return fulfillJson(route, [{ ...METRICS_ROW, active_employee_count: 4 }]);
-    if (route.request().method() === 'GET') return fulfillJson(route, []);
-    return fulfillJson(route, {});
+test('a metrics failure is reported instead of an empty or stale page', async ({ page, app }) => {
+  await app.open('organization_administrator', {
+    rpc: { get_operational_metrics: (_a, ctx) => ctx.fail('permission denied for function get_operational_metrics', '42501', 403) },
   });
-
   await page.goto('/reports');
-  await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
-  await expect(page.getByText('4', { exact: true })).toBeVisible();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByText('No metrics available.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Export CSV' })).toHaveCount(0);
 });
 
-test('an employee is blocked from Reports', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-
-  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
-  await page.route('**/rest/v1/**', async (route) => {
-    const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow());
-    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'employee' }));
-    if (route.request().method() === 'GET') return fulfillJson(route, []);
-    return fulfillJson(route, {});
-  });
-
-  await page.goto('/reports');
-  await expect(page).toHaveURL('http://localhost:5173/dashboard');
-});
-
-test('Reports has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'hr_user' });
-
-  await page.route('**/auth/v1/**', async (route) => fulfillJson(route, {}));
-  await page.route('**/rest/v1/**', async (route) => {
-    const path = new URL(route.request().url()).pathname;
-    if (path.endsWith('/organizations')) return fulfillJson(route, buildOrganizationRow({ tenant_id: SEBETSA_TENANT_ID }));
-    if (path.endsWith('/profiles')) return fulfillJson(route, buildProfileRow({ role: 'hr_user' }));
-    if (path.includes('/rpc/get_operational_metrics')) return fulfillJson(route, [METRICS_ROW]);
-    if (route.request().method() === 'GET') return fulfillJson(route, []);
-    return fulfillJson(route, {});
-  });
-
-  await page.goto('/reports');
-  await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
-  await expectNoSeriousViolations(page);
+test('employees and clients cannot open Reports', async ({ page, app }) => {
+  for (const role of ['employee', 'client_user'] as const) {
+    await app.open(role);
+    await page.goto('/reports');
+    await expect(page).not.toHaveURL(/reports/);
+  }
 });
