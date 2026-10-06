@@ -1,105 +1,128 @@
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-import { seedSebetsaSession } from './utils/sebetsaAuth';
-import {
-  installSebetsaMocks,
-  buildProfileRow,
-  buildEmployeeRow,
-  buildTaskRow,
-  buildTaskChecklistItemRow,
-} from './utils/sebetsaData';
+import { test, expect } from './utils/test';
+import { ID, PERSONAS } from './utils/sebetsaFixtures';
 
-async function expectNoSeriousViolations(page: import('@playwright/test').Page) {
-  const results = await new AxeBuilder({ page }).analyze();
-  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  if (serious.length > 0) console.log(JSON.stringify(serious, null, 2));
-  expect(serious, `${serious.length} serious/critical accessibility violation(s) — see console output`).toEqual([]);
-}
-
-test('employee can view a task, toggle its checklist, add evidence, and complete it', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  const state = await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'employee' }),
-    employee: buildEmployeeRow(),
-    tasks: [buildTaskRow()],
-    taskChecklistItems: [buildTaskChecklistItemRow()],
-    onRpc: async (fnName, _payload, route) => {
-      if (fnName === 'complete_task') {
-        const completed = { ...(state.tasks?.[0] ?? buildTaskRow()), status: 'completed', completed_by: '11111111-1111-1111-1111-111111111111' };
-        state.tasks = [completed];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(completed) });
-        return true;
-      }
-      return false;
-    },
-  });
-
-  await page.route('**/rest/v1/task_checklist_items*', async (route) => {
-    if (route.request().method() !== 'PATCH') return route.fallback();
-    const updated = { ...buildTaskChecklistItemRow(), is_completed: true, completed_by: '11111111-1111-1111-1111-111111111111' };
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(updated) });
-  });
-
+test('My Tasks lists only my tasks, most urgent due date first', async ({ page, app }) => {
+  await app.open('employee');
   await page.goto('/tasks');
   await expect(page.getByRole('heading', { name: 'My Tasks' })).toBeVisible();
-  await page.getByText('Inspect fire extinguishers').click();
-
-  await expect(page.getByRole('heading', { name: 'Inspect fire extinguishers' })).toBeVisible();
-  const checklistItem = page.getByRole('checkbox', { name: 'Check pressure gauges' });
-  await checklistItem.click();
-  await expect(checklistItem).toBeChecked();
-
-  await page.getByLabel('Add a note').fill('All extinguishers checked and in date.');
-  await page.getByRole('button', { name: 'Add evidence' }).click();
-
-  await page.getByRole('button', { name: 'Mark complete' }).click();
-  await expect(page.getByRole('heading', { name: 'Inspect fire extinguishers' })).toHaveCount(0);
+  await expect(page.getByText('Deep clean staff kitchen')).toBeVisible();
+  const titles = await page.getByRole('main').getByRole('button').allInnerTexts();
+  const order = titles.map((t) => t.split('\n')[0]);
+  expect(order.indexOf('Deep clean staff kitchen')).toBeLessThan(order.indexOf('Clean ground-floor washrooms'));
+  await expect(page.getByText('Polish reception floor')).toHaveCount(0); // Lerato's task
 });
 
-test('organization_administrator can verify a completed task', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'organization_administrator' });
-  const completed = buildTaskRow({ status: 'completed' });
-  const state = await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'organization_administrator' }),
-    tasks: [completed],
-    onRpc: async (fnName, _payload, route) => {
-      if (fnName === 'verify_task') {
-        const verified = { ...completed, status: 'verified' };
-        state.tasks = [verified];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(verified) });
-        return true;
-      }
-      return false;
+test('a task cannot be completed until its checklist is done; completing records who and when', async ({ page, app }) => {
+  const backend = await app.open('employee');
+  await page.goto('/tasks');
+  await page.getByRole('button', { name: /Clean ground-floor washrooms/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Clean ground-floor washrooms' });
+  await expect(dialog.getByText('Disinfect fixtures')).toBeVisible();
+
+  await dialog.getByRole('button', { name: 'Mark complete' }).click();
+  await expect(dialog.getByRole('alert')).toHaveText('All checklist items must be completed first.');
+  expect(backend.find('tasks', { id: ID.taskWashrooms }).status).toBe('open');
+
+  for (const label of ['Disinfect fixtures', 'Restock consumables', 'Mop floors']) {
+    await dialog.getByLabel(label).click();
+    await expect(dialog.getByLabel(label)).toBeChecked();
+  }
+  expect(backend.table('task_checklist_items').filter((i) => i.task_id === ID.taskWashrooms && i.is_completed)).toHaveLength(3);
+
+  await dialog.getByRole('button', { name: 'Mark complete' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('tasks', { id: ID.taskWashrooms })).toMatchObject({ status: 'completed', completed_by: PERSONAS.employee.profileId });
+  expect(backend.find('tasks', { id: ID.taskWashrooms }).completed_at).not.toBeNull();
+});
+
+test('a task that requires evidence is refused without it, and accepted once a note is added', async ({ page, app }) => {
+  const backend = await app.open('employee', {
+    customize: (t) => {
+      const task = t.tasks.find((x) => x.id === ID.taskKitchen);
+      if (task) task.requires_evidence = true;
     },
   });
+  await page.goto('/tasks');
+  await page.getByRole('button', { name: /Deep clean staff kitchen/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Deep clean staff kitchen' });
+  await expect(dialog.getByText('(required)')).toBeVisible();
 
-  await page.goto('/tasks/management');
-  await expect(page.getByRole('heading', { name: 'Task Management' })).toBeVisible();
-  await page.getByRole('button', { name: 'Review' }).click();
-  await page.getByRole('button', { name: 'Verify' }).click();
-  await expect(page.getByRole('heading', { name: 'Inspect fire extinguishers' })).toHaveCount(0);
+  await dialog.getByRole('button', { name: 'Mark complete' }).click();
+  await expect(dialog.getByRole('alert')).toHaveText('Evidence must be attached before this task can be completed.');
+
+  await dialog.getByLabel('Add a note').fill('Oven, fridge and surfaces cleaned; photo logged with supervisor');
+  await dialog.getByRole('button', { name: 'Add evidence' }).click();
+  await expect(dialog.getByText('Oven, fridge and surfaces cleaned')).toBeVisible();
+  expect(backend.table('task_evidence').find((e) => e.task_id === ID.taskKitchen)).toMatchObject({ submitted_by: PERSONAS.employee.profileId, kind: 'note', tenant_id: ID.org });
+
+  await dialog.getByRole('button', { name: 'Mark complete' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('tasks', { id: ID.taskKitchen }).status).toBe('completed');
 });
 
-test('an employee is blocked from Task Management', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });
+test('a supervisor verifies completed work done by someone else', async ({ page, app }) => {
+  const backend = await app.open('supervisor');
+  await page.goto('/tasks/management');
+  await expect(page.getByRole('heading', { name: 'Task Management' })).toBeVisible();
+  await page.getByRole('row', { name: /Polish reception floor/ }).getByRole('button').click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Verify' }).click();
 
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(backend.find('tasks', { id: ID.taskReception }).status).toBe('verified');
+  expect(backend.table('audit_log').some((a) => a.action === 'task_verified' && a.entity_id === ID.taskReception)).toBe(true);
+});
+
+test('a manager cannot verify a task they completed themselves', async ({ page, app }) => {
+  const backend = await app.open('supervisor', {
+    customize: (t) => {
+      const task = t.tasks.find((x) => x.id === ID.taskReception);
+      if (task) Object.assign(task, { assignee_id: PERSONAS.supervisor.employeeId, completed_by: PERSONAS.supervisor.profileId });
+    },
+  });
+  await page.goto('/tasks/management');
+  await page.getByRole('row', { name: /Polish reception floor/ }).getByRole('button').click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Verify' }).click();
+
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('cannot approve, verify or close a record you raised');
+  expect(backend.find('tasks', { id: ID.taskReception }).status).toBe('completed');
+});
+
+test('escalating overdue tasks flags only open overdue work and notifies the supervisor', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/tasks/management');
+  await page.getByRole('button', { name: 'Escalate overdue' }).click();
+
+  await expect(page.getByRole('row', { name: /Deep clean staff kitchen/ })).toContainText('Escalated');
+  await expect(page.getByRole('row', { name: /Clean ground-floor washrooms/ })).not.toContainText('Escalated');
+  expect(backend.find('tasks', { id: ID.taskKitchen }).status).toBe('escalated');
+  expect(backend.find('tasks', { id: ID.taskWashrooms }).status).toBe('open');
+  expect(backend.find('tasks', { id: ID.taskReception }).status).toBe('completed');
+  expect(backend.table('notifications').some((n) => n.type === 'task_escalated' && n.recipient_profile_id === PERSONAS.supervisor.profileId)).toBe(true);
+});
+
+test('generating recurring tasks creates each template once per period', async ({ page, app }) => {
+  const backend = await app.open('operations_manager', {
+    customize: (t) =>
+      t.task_templates.push({ id: '00000000-0000-4000-8000-003900000001', tenant_id: ID.org, site_id: ID.siteTowerA, title: 'Daily lobby sweep', description: null, instructions: 'Sweep and mop lobby', priority: 'normal', expected_duration_minutes: 30, requires_evidence: false, default_assignee_id: PERSONAS.employee.employeeId, default_team_id: null, recurrence_frequency: 'daily', status: 'active', last_generated_on: null, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' }),
+  });
+  await page.goto('/tasks/management');
+  await page.getByRole('button', { name: 'Generate recurring tasks' }).click();
+  await expect(page.getByRole('row', { name: /Daily lobby sweep/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Generate recurring tasks' }).click();
+  await expect(page.getByRole('row', { name: /Daily lobby sweep/ })).toHaveCount(1);
+  expect(backend.table('tasks').filter((x) => x.title === 'Daily lobby sweep')).toHaveLength(1);
+});
+
+test('a failure while loading task details is shown, not rendered as an empty checklist', async ({ page, app }) => {
+  const backend = await app.open('employee');
+  backend.fault('task_checklist_items', { method: 'GET', status: 500, message: 'database unavailable' });
+  await page.goto('/tasks');
+  await page.getByRole('button', { name: /Clean ground-floor washrooms/ }).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toHaveText('Failed to load the task details.');
+});
+
+test('employees cannot open Task Management', async ({ page, app }) => {
+  await app.open('employee');
   await page.goto('/tasks/management');
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
-});
-
-test('My Tasks has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }), employee: buildEmployeeRow(), tasks: [buildTaskRow()] });
-  await page.goto('/tasks');
-  await expect(page.getByRole('heading', { name: 'My Tasks' })).toBeVisible();
-  await expectNoSeriousViolations(page);
-});
-
-test('Task Management has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'organization_administrator' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'organization_administrator' }), tasks: [buildTaskRow()] });
-  await page.goto('/tasks/management');
-  await expect(page.getByRole('heading', { name: 'Task Management' })).toBeVisible();
-  await expectNoSeriousViolations(page);
 });

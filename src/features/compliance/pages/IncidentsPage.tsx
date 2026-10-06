@@ -10,6 +10,7 @@ import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrgani
 import { useAuth } from '@/features/auth/context/authContext';
 import { hasPermission } from '@/features/rbac';
 import { useIncidents } from '@/features/compliance/hooks/useIncidents';
+import { useSitesList } from '@/features/attendance/hooks/useSitesList';
 import { IncidentDetailModal } from '@/features/compliance/components/IncidentDetailModal';
 import { incidentService } from '@/features/compliance/services/incidentService';
 import { INCIDENT_CATEGORY_LABELS, INCIDENT_SEVERITY_LABELS, INCIDENT_STATUS_LABELS } from '@/features/compliance/types/compliance.types';
@@ -32,6 +33,8 @@ export function IncidentsPage() {
   const { user } = useAuth();
   const canManage = hasPermission(user?.role ?? null, 'incident.manage');
   const { incidents, isLoading, error, refetch } = useIncidents(organization?.id);
+  const { sites } = useSitesList(organization?.id);
+  const [siteId, setSiteId] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Derived from the live list (not a copied snapshot) so a status
   // transition inside the modal is reflected immediately once refetch()
@@ -56,8 +59,10 @@ export function IncidentsPage() {
         severity,
         occurredAt: new Date().toISOString(),
         description: description.trim(),
+        siteId: siteId || undefined,
       });
       setDescription('');
+      setSiteId('');
       void refetch();
     } catch (err) {
       setReportError(getDbErrorMessage(err, 'Failed to report the incident.'));
@@ -92,6 +97,15 @@ export function IncidentsPage() {
               ))}
             </select>
           </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Site
+            <select value={siteId} onChange={(event) => setSiteId(event.target.value)} className="focus-ring h-11 rounded-lg border border-border-strong bg-surface-raised px-3">
+              <option value="">No specific site</option>
+              {sites.map((site) => (
+                <option key={site.id} value={site.id}>{site.name}</option>
+              ))}
+            </select>
+          </label>
           <TextField label="Description" placeholder="What happened?" value={description} onChange={(event) => setDescription(event.target.value)} />
           <Button onClick={() => void handleReport()} isLoading={isReporting} disabled={!description.trim()}>
             Report
@@ -113,7 +127,7 @@ export function IncidentsPage() {
               className="focus-ring flex items-center justify-between rounded-xl border border-border bg-surface-raised p-4 text-left hover:bg-surface-sunken"
             >
               <div>
-                <p className="text-sm font-medium text-content-primary">{incident.referenceNumber} — {INCIDENT_CATEGORY_LABELS[incident.category]}</p>
+                <p className="text-sm font-medium text-content-primary">{incident.referenceNumber} — {INCIDENT_CATEGORY_LABELS[incident.category]}{incident.siteId ? ` · ${sites.find((site) => site.id === incident.siteId)?.name ?? 'Site'}` : ''}</p>
                 <p className="text-xs text-content-tertiary">{new Date(incident.occurredAt).toLocaleString()} · {INCIDENT_STATUS_LABELS[incident.status]}</p>
               </div>
               <StatusBadge label={INCIDENT_SEVERITY_LABELS[incident.severity]} tone={SEVERITY_TONES[incident.severity]} />

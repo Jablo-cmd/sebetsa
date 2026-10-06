@@ -28,8 +28,15 @@ export function TaskDetailModal({ isOpen, onClose, task, tenantId, canAct, canMa
   useEffect(() => {
     if (!isOpen || !task) return;
     setError(null);
-    void taskService.getChecklistItems(task.id).then(setChecklist);
-    void taskService.getEvidence(task.id).then(setEvidence);
+    setChecklist([]);
+    setEvidence([]);
+    // A failed load must be visible: an empty checklist would otherwise read as "nothing to do".
+    void Promise.all([taskService.getChecklistItems(task.id), taskService.getEvidence(task.id)])
+      .then(([items, notes]) => {
+        setChecklist(items);
+        setEvidence(notes);
+      })
+      .catch((err) => setError(getDbErrorMessage(err, 'Failed to load the task details.')));
   }, [isOpen, task]);
 
   if (!task) return null;

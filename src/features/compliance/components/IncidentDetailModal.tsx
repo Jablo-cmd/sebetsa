@@ -33,12 +33,20 @@ export function IncidentDetailModal({ isOpen, onClose, incident, canManage, onCh
   useEffect(() => {
     if (!isOpen || !incident) return;
     setError(null);
-    void incidentService.getIncidentActions(incident.id).then(setActions);
+    setActions([]);
+    void incidentService
+      .getIncidentActions(incident.id)
+      .then(setActions)
+      .catch((err) => setError(getDbErrorMessage(err, 'Failed to load the corrective actions.')));
   }, [isOpen, incident]);
 
   if (!incident) return null;
 
-  const refreshActions = () => void incidentService.getIncidentActions(incident.id).then(setActions);
+  const refreshActions = () =>
+    void incidentService
+      .getIncidentActions(incident.id)
+      .then(setActions)
+      .catch((err) => setError(getDbErrorMessage(err, 'Failed to refresh the corrective actions.')));
 
   const handleAdvance = async () => {
     const next = NEXT_STATUS[incident.status];

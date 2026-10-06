@@ -6,6 +6,7 @@ import { NoActiveOrganizationNotice } from '@/components/ui/NoActiveOrganization
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { StatusBadge, type StatusTone } from '@/components/ui/StatusBadge';
+import { useSitesList } from '@/features/attendance/hooks/useSitesList';
 import { useCurrentOrganization } from '@/features/tenant/hooks/useCurrentOrganization';
 import { complianceService } from '@/features/compliance/services/complianceService';
 import type { ComplianceRecord, ComplianceRequirement } from '@/features/compliance/types/compliance.types';
@@ -33,6 +34,8 @@ export function CompliancePage() {
   const [newRequirementName, setNewRequirementName] = useState('');
   const [newRequirementCategory, setNewRequirementCategory] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { sites } = useSitesList(organization?.id);
+  const [trackSite, setTrackSite] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     if (!organization) return;
@@ -89,12 +92,12 @@ export function CompliancePage() {
     }
   };
 
-  const handleTrack = async (requirementId: string) => {
+  const handleTrack = async (requirementId: string, siteId?: string) => {
     setError(null);
     try {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 30);
-      await complianceService.upsertRecord({ requirementId, dueDate: dueDate.toISOString().slice(0, 10) });
+      await complianceService.upsertRecord({ requirementId, siteId: siteId || undefined, dueDate: dueDate.toISOString().slice(0, 10) });
       void load();
     } catch (err) {
       setError(getDbErrorMessage(err, 'Failed to start tracking this requirement.'));
@@ -129,9 +132,22 @@ export function CompliancePage() {
                 <p className="text-sm font-medium text-content-primary">{requirement.name}</p>
                 <p className="text-xs text-content-tertiary">{requirement.category} · {requirement.appliesToScope}</p>
               </div>
-              <Button variant="secondary" onClick={() => void handleTrack(requirement.id)}>
-                Start tracking
-              </Button>
+              <div className="flex items-center gap-2">
+                <select
+                  aria-label={`Site for ${requirement.name}`}
+                  value={trackSite[requirement.id] ?? ''}
+                  onChange={(event) => setTrackSite((prev) => ({ ...prev, [requirement.id]: event.target.value }))}
+                  className="focus-ring h-11 rounded-lg border border-border-strong bg-surface-raised px-3 text-sm"
+                >
+                  <option value="">No specific site</option>
+                  {sites.map((site) => (
+                    <option key={site.id} value={site.id}>{site.name}</option>
+                  ))}
+                </select>
+                <Button variant="secondary" onClick={() => void handleTrack(requirement.id, trackSite[requirement.id])}>
+                  Start tracking
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -147,6 +163,7 @@ export function CompliancePage() {
             <thead>
               <tr className="border-b border-border text-xs uppercase text-content-secondary">
                 <th className="px-3 py-2">Requirement</th>
+                <th className="px-3 py-2">Site</th>
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Due</th>
                 <th className="px-3 py-2">Expiry</th>
@@ -157,6 +174,7 @@ export function CompliancePage() {
               {records.map((record) => (
                 <tr key={record.id} className="border-b border-border last:border-0">
                   <td className="px-3 py-2.5">{requirementName(record.requirementId)}</td>
+                  <td className="px-3 py-2.5">{record.siteId ? sites.find((site) => site.id === record.siteId)?.name ?? '—' : '—'}</td>
                   <td className="px-3 py-2.5">
                     <StatusBadge label={record.status.replace(/_/g, ' ')} tone={STATUS_TONES[record.status]} />
                   </td>

@@ -183,6 +183,16 @@ const ON_DELETE: Record<string, { child: string; column: string; action: 'cascad
   ],
 };
 
+/** Server-derived authorship columns (set_actor_column triggers): the caller, never what the client sent. */
+const ACTOR_COLUMNS: Record<string, string> = {
+  task_evidence: 'submitted_by',
+  task_comments: 'author_id',
+  tasks: 'created_by',
+  compliance_requirements: 'created_by',
+  inventory_movements: 'performed_by',
+  attendance_records: 'recorded_by',
+};
+
 export class RpcFailure extends Error {
   constructor(
     message: string,
@@ -544,7 +554,10 @@ export class FakeBackend {
       if ('tenant_id' in patch && targets.some((t) => t.tenant_id !== patch.tenant_id)) {
         this.fail('new row violates row-level security policy', '42501', 403);
       }
-      for (const row of targets) Object.assign(row, patch, 'updated_at' in row ? { updated_at: this.now } : {});
+      for (const row of targets) {
+        const statusChanged = table === 'attendance_records' && 'status' in patch && patch.status !== row.status;
+        Object.assign(row, patch, 'updated_at' in row ? { updated_at: this.now } : {}, statusChanged ? { recorded_by: this.session.userId } : {});
+      }
       for (const row of targets) this.assertUnique(table, row, row);
       if (!wantsRepresentation) return route.fulfill({ status: 204 });
       return respondRows(route, this.embed(targets, query.select ?? '*'), single);
@@ -593,6 +606,7 @@ export class FakeBackend {
         this.fail(`new row violates row-level security policy for table "${table}"`, '42501', 403);
       }
     }
+    if (ACTOR_COLUMNS[table]) row[ACTOR_COLUMNS[table]] = this.session.userId;
     if (TABLE_COLUMNS[table]?.includes('id') && !row.id) row.id = this.newId();
     if (TABLE_COLUMNS[table]?.includes('created_at') && !row.created_at) row.created_at = this.now;
     if (TABLE_COLUMNS[table]?.includes('updated_at') && !row.updated_at) row.updated_at = this.now;

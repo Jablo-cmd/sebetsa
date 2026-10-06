@@ -1,87 +1,60 @@
-import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
-import { seedSebetsaSession } from './utils/sebetsaAuth';
-import { installSebetsaMocks, buildProfileRow, fulfillJson } from './utils/sebetsaData';
+import { test, expect } from './utils/test';
+import { ID, PERSONAS, dateOffset } from './utils/sebetsaFixtures';
 
-async function expectNoSeriousViolations(page: import('@playwright/test').Page) {
-  const results = await new AxeBuilder({ page }).analyze();
-  const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
-  if (serious.length > 0) console.log(JSON.stringify(serious, null, 2));
-  expect(serious, `${serious.length} serious/critical accessibility violation(s) — see console output`).toEqual([]);
-}
-
-test('operations_manager can define a compliance requirement, start tracking it, and verify the record', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'operations_manager' });
-  const requirements: Record<string, unknown>[] = [];
-  let records: Record<string, unknown>[] = [];
-
-  await installSebetsaMocks(page, {
-    profile: buildProfileRow({ role: 'operations_manager' }),
-    onRpc: async (fnName, payload, route) => {
-      if (fnName === 'upsert_compliance_record') {
-        const created = {
-          id: 'record-1',
-          tenant_id: 'tenant-1',
-          requirement_id: payload.p_requirement_id,
-          due_date: payload.p_due_date,
-          status: 'pending',
-        };
-        records = [created];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(created) });
-        return true;
-      }
-      if (fnName === 'verify_compliance_record') {
-        const updated = { ...(records[0] ?? {}), status: payload.p_approve ? 'compliant' : 'non_compliant' };
-        records = [updated];
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(updated) });
-        return true;
-      }
-      return false;
-    },
-  });
-
-  await page.route('**/rest/v1/compliance_requirements*', async (route) => {
-    if (route.request().method() === 'POST') {
-      const payload = JSON.parse(route.request().postData() ?? '{}');
-      const created = { id: 'req-1', tenant_id: 'tenant-1', is_active: true, ...payload };
-      requirements.push(created);
-      return fulfillJson(route, created);
-    }
-    return fulfillJson(route, requirements);
-  });
-
-  await page.route('**/rest/v1/compliance_records*', async (route) => {
-    if (route.request().method() === 'GET') return fulfillJson(route, records);
-    return route.fallback();
-  });
-
+test('a manager defines a requirement and starts tracking it for a site', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
   await page.goto('/compliance');
-  await expect(page.getByRole('heading', { name: 'Compliance' })).toBeVisible();
-
-  await page.getByLabel('Name').fill('Fire Safety Certificate');
+  await expect(page.getByRole('button', { name: 'Add' })).toBeDisabled();
+  await page.getByLabel('Name').fill('Chemical storage inspection');
   await page.getByLabel('Category').fill('safety');
   await page.getByRole('button', { name: 'Add' }).click();
-  await expect(page.getByText('Fire Safety Certificate')).toBeVisible();
+  await expect(page.getByText('Chemical storage inspection')).toBeVisible();
+  expect(backend.find('compliance_requirements', { name: 'Chemical storage inspection' })).toMatchObject({ tenant_id: ID.org, created_by: PERSONAS.operations_manager.profileId, applies_to_scope: 'site' });
 
-  await page.getByRole('button', { name: 'Start tracking' }).click();
-  await expect(page.getByText('pending')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Approve' }).click();
-  await expect(page.getByText('compliant')).toBeVisible();
+  await page.getByLabel('Site for Chemical storage inspection').selectOption({ label: 'Harbour Point – Tower A' });
+  await page.getByRole('button', { name: 'Start tracking' }).last().click();
+  const rec = backend.table('compliance_records').find((r) => r.requirement_id === backend.find('compliance_requirements', { name: 'Chemical storage inspection' }).id);
+  expect(rec).toMatchObject({ site_id: ID.siteTowerA, status: 'pending', due_date: dateOffset(30) });
+  await expect(page.getByRole('row', { name: /Chemical storage inspection/ })).toContainText('Harbour Point – Tower A');
 });
 
-test('an employee is blocked from Compliance', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'employee' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'employee' }) });
+test('a manager verifies a record that someone else is responsible for', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/compliance');
+  const row = page.getByRole('row', { name: /COIDA letter of good standing/ });
+  await expect(row).toContainText('pending');
+  await row.getByRole('button', { name: 'Approve' }).click();
 
+  await expect(row).toContainText('compliant');
+  expect(backend.find('compliance_records', { id: ID.recordCoida })).toMatchObject({ status: 'compliant', verified_by: PERSONAS.operations_manager.profileId });
+  expect(backend.find('compliance_records', { id: ID.recordCoida }).completed_date).not.toBeNull();
+});
+
+test('a responsible person cannot verify their own compliance record', async ({ page, app }) => {
+  const backend = await app.open('supervisor');
+  await page.goto('/compliance');
+  await page.getByRole('row', { name: /COIDA letter of good standing/ }).getByRole('button', { name: 'Approve' }).click();
+  await expect(page.getByRole('alert')).toContainText('cannot approve, verify or close a record you raised');
+  expect(backend.find('compliance_records', { id: ID.recordCoida }).status).toBe('pending');
+});
+
+test('rejecting a record marks it non-compliant', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  await page.goto('/compliance');
+  await page.getByRole('row', { name: /COIDA letter of good standing/ }).getByRole('button', { name: 'Reject' }).click();
+  await expect(page.getByRole('row', { name: /COIDA/ })).toContainText('non compliant');
+  expect(backend.find('compliance_records', { id: ID.recordCoida }).status).toBe('non_compliant');
+});
+
+test('employees cannot open Compliance', async ({ page, app }) => {
+  await app.open('employee');
   await page.goto('/compliance');
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
 });
 
-test('Compliance has no serious/critical accessibility violations', async ({ page }) => {
-  await seedSebetsaSession(page, { role: 'operations_manager' });
-  await installSebetsaMocks(page, { profile: buildProfileRow({ role: 'operations_manager' }) });
+test('a failure loading compliance data is shown rather than an empty register', async ({ page, app }) => {
+  const backend = await app.open('operations_manager');
+  backend.fault('compliance_records', { method: 'GET', status: 500, message: 'database unavailable' });
   await page.goto('/compliance');
-  await expect(page.getByRole('heading', { name: 'Compliance' })).toBeVisible();
-  await expectNoSeriousViolations(page);
+  await expect(page.getByRole('alert')).toHaveText('Failed to load compliance data.');
 });

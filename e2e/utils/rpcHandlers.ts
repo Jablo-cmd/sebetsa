@@ -265,6 +265,33 @@ const tasks: Record<string, RpcHandler> = {
     audit(ctx, t.tenant_id, 'task_verified', 'tasks', t.id);
     return touch(ctx, t, { status: 'verified' });
   },
+  escalate_overdue_tasks: (_a, ctx) => {
+    require_(ctx, MANAGE_OPS, 'cannot escalate tasks for this tenant');
+    const overdue = ctx.backend.visible('tasks').filter((t) => ['open', 'in_progress'].includes(String(t.status)) && t.due_at && String(t.due_at) < ctx.now);
+    for (const t of overdue) {
+      touch(ctx, t, { status: 'escalated' });
+      const supervisor = employeeProfile(ctx, t.supervisor_id);
+      if (supervisor) {
+        insert(ctx, 'notifications', { tenant_id: t.tenant_id, recipient_profile_id: supervisor, type: 'task_escalated', title: `Task overdue: ${t.title}`, body: 'A task assigned to your team is now overdue and has been escalated.', related_entity_table: 'tasks', related_entity_id: t.id, link_path: null, email_status: 'not_sent', read_at: null });
+      }
+      audit(ctx, t.tenant_id, 'task_escalated', 'tasks', t.id);
+    }
+    return overdue;
+  },
+  generate_recurring_tasks: (_a, ctx) => {
+    require_(ctx, MANAGE_OPS, 'cannot generate tasks for this tenant');
+    const today = ctx.now.slice(0, 10);
+    const created: Row[] = [];
+    for (const tpl of ctx.backend.visible('task_templates').filter((x) => x.status === 'active' && x.recurrence_frequency)) {
+      const start = tpl.recurrence_frequency === 'daily' ? today : tpl.recurrence_frequency === 'monthly' ? `${today.slice(0, 7)}-01` : today;
+      if (tpl.last_generated_on && String(tpl.last_generated_on) >= start) continue;
+      const task = insert(ctx, 'tasks', { tenant_id: tpl.tenant_id, site_id: tpl.site_id, assignee_id: tpl.default_assignee_id, team_id: tpl.default_team_id, supervisor_id: null, title: tpl.title, description: tpl.description, priority: tpl.priority ?? 'normal', status: 'open', due_at: null, completed_at: null, completed_by: null, requires_evidence: Boolean(tpl.requires_evidence), created_by: ctx.session.userId });
+      touch(ctx, tpl, { last_generated_on: start });
+      audit(ctx, tpl.tenant_id, 'task_generated_from_template', 'tasks', task.id);
+      created.push(task);
+    }
+    return created;
+  },
   reassign_task: (a, ctx) => {
     const t = row(ctx, 'tasks', a.p_task_id, 'task');
     require_(ctx, MANAGE_OPS, 'cannot reassign tasks for this tenant');

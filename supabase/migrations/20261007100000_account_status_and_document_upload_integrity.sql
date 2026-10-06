@@ -295,3 +295,43 @@ end;
 $function$
 
 ;
+
+-- Authorship is server-derived. task_evidence.submitted_by is documented as
+-- "server-derived" but nothing derived it (evidence was stored with no author),
+-- and other columns that record "who did this" were whatever the client sent.
+-- For client requests (auth.uid() is set) the actor column is now always the
+-- caller; service-role/system writes (auth.uid() is NULL) keep what they pass.
+create or replace function public.set_actor_column()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new := jsonb_populate_record(new, jsonb_build_object(tg_argv[0], auth.uid()));
+  elsif tg_table_name = 'attendance_records' and new.status is distinct from old.status then
+    -- A manually marked/changed status is attributed to whoever changed it.
+    new := jsonb_populate_record(new, jsonb_build_object(tg_argv[0], auth.uid()));
+  end if;
+  return new;
+end;
+$$;
+
+create trigger task_evidence_set_actor before insert on public.task_evidence
+  for each row execute function public.set_actor_column('submitted_by');
+create trigger task_comments_set_actor before insert on public.task_comments
+  for each row execute function public.set_actor_column('author_id');
+create trigger tasks_set_actor before insert on public.tasks
+  for each row execute function public.set_actor_column('created_by');
+create trigger compliance_requirements_set_actor before insert on public.compliance_requirements
+  for each row execute function public.set_actor_column('created_by');
+create trigger inventory_movements_set_actor before insert on public.inventory_movements
+  for each row execute function public.set_actor_column('performed_by');
+create trigger attendance_records_set_actor before insert or update on public.attendance_records
+  for each row execute function public.set_actor_column('recorded_by');
+
+revoke execute on function public.set_actor_column() from public, anon, authenticated;
