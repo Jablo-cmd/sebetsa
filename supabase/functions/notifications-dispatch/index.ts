@@ -70,7 +70,7 @@ async function sendTwilio(from: string, to: string, body: string): Promise<Adapt
   return { ok: true, providerMessageId: payload.sid ?? null };
 }
 
-function deliver(row: DeliveryRow, notification: NotificationRow): Promise<AdapterResult> {
+function deliver(row: DeliveryRow, notification: NotificationRow): AdapterResult {
   const to = (row.destination ?? '').trim();
   if (to.length === 0) return { ok: false, error: 'no_destination' };
   const text = `${notification.body}${notification.link_path ? `\n\n${notification.link_path}` : ''}`;
