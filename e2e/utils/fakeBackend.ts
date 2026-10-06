@@ -1,4 +1,5 @@
 import type { Page, Request, Route } from '@playwright/test';
+import { COLUMN_DEFAULTS, CURRENT_DATE_DEFAULTS, TABLE_COLUMNS } from './schemaDefaults';
 
 /**
  * Sebetsa's single, authoritative E2E backend.
@@ -38,6 +39,10 @@ export interface Session {
   tenantId: string | null;
   role: string;
   email: string;
+  /** MFA factors on the auth user (what mfaService reads from the session). */
+  factors?: { id: string; factor_type: 'totp' | 'phone'; status: 'verified' | 'unverified' }[];
+  /** Authenticator assurance level of the session's token (aal2 = MFA step-up completed). */
+  aal?: 'aal1' | 'aal2';
 }
 
 export interface RpcContext {
@@ -125,6 +130,57 @@ const UNIQUE_KEYS: Record<string, string[][]> = {
   team_members: [['team_id', 'employee_id']],
   leave_balances: [['tenant_id', 'employee_id', 'leave_type_id', 'period_year']],
   notification_preferences: [['profile_id']],
+};
+
+/**
+ * Referential actions on delete (parent -> children), taken from the schema's
+ * foreign keys (`select ... from pg_constraint` over supabase/migrations).
+ * The UI's behaviour after deleting a department/region/site depends on these.
+ */
+const ON_DELETE: Record<string, { child: string; column: string; action: 'cascade' | 'set_null' }[]> = {
+  departments: [
+    { child: 'employees', column: 'department_id', action: 'set_null' },
+    { child: 'positions', column: 'department_id', action: 'set_null' },
+  ],
+  positions: [{ child: 'employees', column: 'position_id', action: 'set_null' }],
+  regions: [
+    { child: 'clients', column: 'region_id', action: 'set_null' },
+    { child: 'sites', column: 'region_id', action: 'set_null' },
+    { child: 'employees', column: 'region_id', action: 'set_null' },
+  ],
+  clients: [
+    { child: 'sites', column: 'client_id', action: 'cascade' },
+    { child: 'contracts', column: 'client_id', action: 'cascade' },
+    { child: 'client_contacts', column: 'client_id', action: 'cascade' },
+    { child: 'compliance_records', column: 'client_id', action: 'cascade' },
+  ],
+  contracts: [
+    { child: 'contract_sites', column: 'contract_id', action: 'cascade' },
+    { child: 'contract_documents', column: 'contract_id', action: 'cascade' },
+    { child: 'sla_definitions', column: 'contract_id', action: 'cascade' },
+    { child: 'compliance_records', column: 'contract_id', action: 'cascade' },
+    { child: 'incidents', column: 'contract_id', action: 'set_null' },
+  ],
+  sites: [
+    { child: 'contract_sites', column: 'site_id', action: 'cascade' },
+    { child: 'shifts', column: 'site_id', action: 'cascade' },
+    { child: 'attendance_records', column: 'site_id', action: 'cascade' },
+    { child: 'tasks', column: 'site_id', action: 'cascade' },
+    { child: 'site_assignments', column: 'site_id', action: 'cascade' },
+    { child: 'site_staffing_requirements', column: 'site_id', action: 'cascade' },
+    { child: 'inventory_movements', column: 'site_id', action: 'cascade' },
+    { child: 'sla_definitions', column: 'site_id', action: 'cascade' },
+    { child: 'compliance_records', column: 'site_id', action: 'cascade' },
+    { child: 'teams', column: 'site_id', action: 'set_null' },
+    { child: 'assets', column: 'site_id', action: 'set_null' },
+    { child: 'incidents', column: 'site_id', action: 'set_null' },
+    { child: 'procurement_requests', column: 'site_id', action: 'set_null' },
+    { child: 'employees', column: 'home_site_id', action: 'set_null' },
+  ],
+  teams: [
+    { child: 'team_members', column: 'team_id', action: 'cascade' },
+    { child: 'tasks', column: 'team_id', action: 'set_null' },
+  ],
 };
 
 export class RpcFailure extends Error {
@@ -313,6 +369,8 @@ export class FakeBackend {
   authUsers: Record<string, { password: string; session: Session }>;
   /** When set, the next N storage uploads fail with a 500. */
   failUploads = 0;
+  /** The TOTP code the backend accepts for MFA challenge/verify. */
+  mfaCode = '123456';
   /** When set, password recovery requests answer 429. */
   recoverRateLimited = false;
   private counter = 0;
@@ -397,7 +455,8 @@ export class FakeBackend {
   // ---------------------------------------------------------------- install
 
   async install(page: Page, supabaseOrigin = 'http://localhost:54321'): Promise<void> {
-    await page.route(`${supabaseOrigin}/**`, (route) => this.handle(route, supabaseOrigin));
+    // Context-level so new tabs/popups (e.g. a signed document URL) are intercepted too.
+    await page.context().route(`${supabaseOrigin}/**`, (route) => this.handle(route, supabaseOrigin));
   }
 
   private async handle(route: Route, origin: string): Promise<void> {
@@ -493,10 +552,7 @@ export class FakeBackend {
 
     if (method === 'DELETE') {
       const targets = new Set(applyFilters(this.visible(table), query));
-      this.tables.set(
-        table,
-        this.table(table).filter((row) => !targets.has(row)),
-      );
+      this.deleteRows(table, targets);
       if (!wantsRepresentation) return route.fulfill({ status: 204 });
       return respondRows(route, [...targets], single);
     }
@@ -504,18 +560,42 @@ export class FakeBackend {
     return this.reportUnmocked(route, `${method} /rest/v1/${table}`);
   }
 
+  /** Deletes rows and applies the schema's cascade / set-null rules to dependants. */
+  private deleteRows(table: string, targets: Set<Row>): void {
+    const ids = new Set([...targets].map((row) => row.id));
+    this.tables.set(
+      table,
+      this.table(table).filter((row) => !targets.has(row)),
+    );
+    for (const rule of ON_DELETE[table] ?? []) {
+      const dependants = this.table(rule.child).filter((row) => ids.has(row[rule.column]));
+      if (rule.action === 'set_null') {
+        for (const row of dependants) row[rule.column] = null;
+      } else if (dependants.length > 0) {
+        this.deleteRows(rule.child, new Set(dependants));
+      }
+    }
+  }
+
   private prepareInsert(table: string, payload: Row): Row {
     const row: Row = { ...payload };
+    for (const [column, value] of Object.entries(COLUMN_DEFAULTS[table] ?? {})) {
+      if (row[column] === undefined) row[column] = value;
+    }
+    for (const column of CURRENT_DATE_DEFAULTS[table] ?? []) {
+      if (row[column] === undefined) row[column] = this.now.slice(0, 10);
+    }
+    for (const column of TABLE_COLUMNS[table] ?? []) {
+      if (row[column] === undefined) row[column] = null;
+    }
     if (this.session.role !== 'platform_administrator' && 'tenant_id' in row && table !== 'profiles') {
       if (row.tenant_id !== this.session.tenantId) {
         this.fail(`new row violates row-level security policy for table "${table}"`, '42501', 403);
       }
     }
-    if (!('id' in row) && table !== 'team_members' && table !== 'contract_sites') row.id = this.newId();
-    if (!('created_at' in row)) row.created_at = this.now;
-    if (!('updated_at' in row) && !['team_members', 'contract_sites', 'audit_log', 'notifications'].includes(table)) {
-      row.updated_at = this.now;
-    }
+    if (TABLE_COLUMNS[table]?.includes('id') && !row.id) row.id = this.newId();
+    if (TABLE_COLUMNS[table]?.includes('created_at') && !row.created_at) row.created_at = this.now;
+    if (TABLE_COLUMNS[table]?.includes('updated_at') && !row.updated_at) row.updated_at = this.now;
     return row;
   }
 
@@ -560,6 +640,13 @@ export class FakeBackend {
     if (sign && method === 'POST') {
       return json(route, { signedURL: `/object/sign/${sign[1]}/${sign[2]}?token=e2e-signed-token` });
     }
+    if (sign && method === 'GET') {
+      // Opening a signed URL (new tab): requires the token the signing step issued.
+      if (new URL(request.url()).searchParams.get('token') !== 'e2e-signed-token') {
+        return json(route, { message: 'Invalid token', statusCode: '400' }, 400);
+      }
+      return void (await route.fulfill({ status: 200, contentType: 'application/pdf', body: '%PDF-1.4 e2e' }));
+    }
     const upload = /^\/storage\/v1\/object\/([^/]+)\/(.+)$/.exec(path);
     if (upload && (method === 'POST' || method === 'PUT')) {
       if (this.failUploads > 0) {
@@ -602,6 +689,19 @@ export class FakeBackend {
       return json(route, {});
     }
     if (path === '/auth/v1/resend' && method === 'POST') return json(route, {});
+    const challenge = /^\/auth\/v1\/factors\/([^/]+)\/challenge$/.exec(path);
+    if (challenge && method === 'POST') {
+      return json(route, { id: `challenge-${challenge[1]}`, type: 'totp', expires_at: Math.floor(new Date(this.now).getTime() / 1000) + 300 });
+    }
+    const verify = /^\/auth\/v1\/factors\/([^/]+)\/verify$/.exec(path);
+    if (verify && method === 'POST') {
+      const submitted = (body as { code?: string } | undefined)?.code;
+      if (submitted !== this.mfaCode) {
+        return json(route, { error_code: 'mfa_verification_failed', msg: 'Invalid TOTP code entered', code: 400 }, 400);
+      }
+      this.session = { ...this.session, aal: 'aal2' };
+      return json(route, authSession(this.session, this.now));
+    }
     if (path === '/auth/v1/user' && method === 'PUT') {
       return json(route, authUser(this.session, this.now));
     }
@@ -654,15 +754,33 @@ export function authUser(session: Session, now: string) {
     app_metadata: { provider: 'email', providers: ['email'], role: session.role, ...(session.tenantId ? { tenant_id: session.tenantId } : {}) },
     user_metadata: {},
     identities: [],
-    factors: [],
+    factors: (session.factors ?? []).map((f) => ({ created_at: now, updated_at: now, ...f })),
     created_at: now,
     updated_at: now,
   };
 }
 
+/** An unsigned, decodable JWT (test only): auth-js reads `aal` from it to decide MFA state. */
+export function fakeJwt(session: Session, now: string): string {
+  const iat = Math.floor(new Date(now).getTime() / 1000);
+  const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url');
+  return `${encode({ alg: 'none', typ: 'JWT' })}.${encode({
+    sub: session.userId,
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: session.email,
+    aal: session.aal ?? 'aal1',
+    amr: [{ method: session.aal === 'aal2' ? 'totp' : 'password', timestamp: iat }],
+    session_id: '00000000-0000-4000-8000-00ee00000001',
+    iat,
+    exp: iat + 86400,
+    app_metadata: { role: session.role, ...(session.tenantId ? { tenant_id: session.tenantId } : {}) },
+  })}.e2e-signature`;
+}
+
 export function authSession(session: Session, now: string) {
   return {
-    access_token: 'e2e-access-token',
+    access_token: fakeJwt(session, now),
     token_type: 'bearer',
     expires_in: 86400,
     expires_at: Math.floor(new Date(now).getTime() / 1000) + 86400,

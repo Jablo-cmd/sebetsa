@@ -34,6 +34,375 @@ export type Database = {
   }
   public: {
     Tables: {
+      asset_assignments: {
+        Row: {
+          asset_id: string
+          assigned_at: string
+          assigned_by: string | null
+          assigned_to_employee_id: string | null
+          assigned_to_site_id: string | null
+          assigned_to_team_id: string | null
+          condition_at_assignment: string | null
+          condition_at_return: string | null
+          created_at: string
+          id: string
+          reason: string | null
+          returned_at: string | null
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          asset_id: string
+          assigned_at?: string
+          assigned_by?: string | null
+          assigned_to_employee_id?: string | null
+          assigned_to_site_id?: string | null
+          assigned_to_team_id?: string | null
+          condition_at_assignment?: string | null
+          condition_at_return?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          returned_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          asset_id?: string
+          assigned_at?: string
+          assigned_by?: string | null
+          assigned_to_employee_id?: string | null
+          assigned_to_site_id?: string | null
+          assigned_to_team_id?: string | null
+          condition_at_assignment?: string | null
+          condition_at_return?: string | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          returned_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_assignments_asset_id_fkey"
+            columns: ["asset_id"]
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_assigned_to_employee_id_fkey"
+            columns: ["assigned_to_employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_assigned_to_site_id_fkey"
+            columns: ["assigned_to_site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_assigned_to_team_id_fkey"
+            columns: ["assigned_to_team_id"]
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_maintenance_records: {
+        Row: {
+          asset_id: string
+          cost: number | null
+          created_at: string
+          description: string
+          id: string
+          performed_at: string
+          performed_by: string | null
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          asset_id: string
+          cost?: number | null
+          created_at?: string
+          description: string
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          tenant_id: string
+        }
+        Update: {
+          asset_id?: string
+          cost?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          performed_at?: string
+          performed_by?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_maintenance_records_asset_id_fkey"
+            columns: ["asset_id"]
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_records_performed_by_fkey"
+            columns: ["performed_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_maintenance_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
+          asset_number: string
+          category: string
+          condition: string | null
+          created_at: string
+          custodian_employee_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          serial_number: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          acquisition_cost?: number | null
+          acquisition_date?: string | null
+          asset_number: string
+          category: string
+          condition?: string | null
+          created_at?: string
+          custodian_employee_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acquisition_cost?: number | null
+          acquisition_date?: string | null
+          asset_number?: string
+          category?: string
+          condition?: string | null
+          created_at?: string
+          custodian_employee_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_custodian_employee_id_fkey"
+            columns: ["custodian_employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_breaks: {
+        Row: {
+          attendance_record_id: string
+          break_end: string | null
+          break_start: string
+          created_at: string
+          id: string
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          attendance_record_id: string
+          break_end?: string | null
+          break_start?: string
+          created_at?: string
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          attendance_record_id?: string
+          break_end?: string | null
+          break_start?: string
+          created_at?: string
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_breaks_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_breaks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_corrections: {
+        Row: {
+          attendance_record_id: string
+          created_at: string
+          field: Database["public"]["Enums"]["attendance_correction_field"]
+          id: string
+          new_value: string
+          previous_value: string | null
+          reason: string
+          requested_by: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          attendance_record_id: string
+          created_at?: string
+          field: Database["public"]["Enums"]["attendance_correction_field"]
+          id?: string
+          new_value: string
+          previous_value?: string | null
+          reason: string
+          requested_by?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_record_id?: string
+          created_at?: string
+          field?: Database["public"]["Enums"]["attendance_correction_field"]
+          id?: string
+          new_value?: string
+          previous_value?: string | null
+          reason?: string
+          requested_by?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_corrections_attendance_record_id_fkey"
+            columns: ["attendance_record_id"]
+            referencedRelation: "attendance_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_requested_by_fkey"
+            columns: ["requested_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_corrections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_policies: {
+        Row: {
+          created_at: string
+          early_departure_threshold_minutes: number
+          grace_period_minutes: number
+          id: string
+          overtime_threshold_minutes: number
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          early_departure_threshold_minutes?: number
+          grace_period_minutes?: number
+          id?: string
+          overtime_threshold_minutes?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          early_departure_threshold_minutes?: number
+          grace_period_minutes?: number
+          id?: string
+          overtime_threshold_minutes?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_policies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_records: {
         Row: {
           clock_in_at: string | null
@@ -53,6 +422,7 @@ export type Database = {
           updated_at: string
           worked_minutes: number | null
         }
+        ComputedFields: never
         Insert: {
           clock_in_at?: string | null
           clock_out_at?: string | null
@@ -93,195 +463,30 @@ export type Database = {
           {
             foreignKeyName: "attendance_records_employee_id_fkey"
             columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "attendance_records_recorded_by_fkey"
             columns: ["recorded_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "attendance_records_shift_id_fkey"
             columns: ["shift_id"]
-            isOneToOne: false
             referencedRelation: "shifts"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "attendance_records_site_id_fkey"
             columns: ["site_id"]
-            isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "attendance_records_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      attendance_policies: {
-        Row: {
-          created_at: string
-          early_departure_threshold_minutes: number
-          grace_period_minutes: number
-          id: string
-          overtime_threshold_minutes: number
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          early_departure_threshold_minutes?: number
-          grace_period_minutes?: number
-          id?: string
-          overtime_threshold_minutes?: number
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          early_departure_threshold_minutes?: number
-          grace_period_minutes?: number
-          id?: string
-          overtime_threshold_minutes?: number
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_policies_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: true
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      attendance_breaks: {
-        Row: {
-          attendance_record_id: string
-          break_end: string | null
-          break_start: string
-          created_at: string
-          id: string
-          tenant_id: string
-        }
-        Insert: {
-          attendance_record_id: string
-          break_end?: string | null
-          break_start?: string
-          created_at?: string
-          id?: string
-          tenant_id: string
-        }
-        Update: {
-          attendance_record_id?: string
-          break_end?: string | null
-          break_start?: string
-          created_at?: string
-          id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_breaks_attendance_record_id_fkey"
-            columns: ["attendance_record_id"]
-            isOneToOne: false
-            referencedRelation: "attendance_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_breaks_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      attendance_corrections: {
-        Row: {
-          attendance_record_id: string
-          created_at: string
-          field: Database["public"]["Enums"]["attendance_correction_field"]
-          id: string
-          new_value: string
-          previous_value: string | null
-          reason: string
-          requested_by: string | null
-          review_notes: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          status: Database["public"]["Enums"]["attendance_correction_status"]
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          attendance_record_id: string
-          created_at?: string
-          field: Database["public"]["Enums"]["attendance_correction_field"]
-          id?: string
-          new_value: string
-          previous_value?: string | null
-          reason: string
-          requested_by?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: Database["public"]["Enums"]["attendance_correction_status"]
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          attendance_record_id?: string
-          created_at?: string
-          field?: Database["public"]["Enums"]["attendance_correction_field"]
-          id?: string
-          new_value?: string
-          previous_value?: string | null
-          reason?: string
-          requested_by?: string | null
-          review_notes?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: Database["public"]["Enums"]["attendance_correction_status"]
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "attendance_corrections_attendance_record_id_fkey"
-            columns: ["attendance_record_id"]
-            isOneToOne: false
-            referencedRelation: "attendance_records"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "attendance_corrections_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -293,21 +498,30 @@ export type Database = {
           actor_profile_id: string | null
           after: Json | null
           before: Json | null
+          category: string
           created_at: string
           entity_id: string
           entity_table: string
           id: string
+          metadata: Json | null
+          outcome: string
+          request_id: string | null
           tenant_id: string | null
         }
+        ComputedFields: never
         Insert: {
           action: string
           actor_profile_id?: string | null
           after?: Json | null
           before?: Json | null
+          category?: string
           created_at?: string
           entity_id: string
           entity_table: string
           id?: string
+          metadata?: Json | null
+          outcome?: string
+          request_id?: string | null
           tenant_id?: string | null
         }
         Update: {
@@ -315,124 +529,26 @@ export type Database = {
           actor_profile_id?: string | null
           after?: Json | null
           before?: Json | null
+          category?: string
           created_at?: string
           entity_id?: string
           entity_table?: string
           id?: string
+          metadata?: Json | null
+          outcome?: string
+          request_id?: string | null
           tenant_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "audit_log_actor_profile_id_fkey"
             columns: ["actor_profile_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "audit_log_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clients: {
-        Row: {
-          created_at: string
-          id: string
-          industry: string | null
-          name: string
-          primary_contact_email: string | null
-          primary_contact_name: string | null
-          primary_contact_phone: string | null
-          region_id: string | null
-          status: Database["public"]["Enums"]["entity_status"]
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          industry?: string | null
-          name: string
-          primary_contact_email?: string | null
-          primary_contact_name?: string | null
-          primary_contact_phone?: string | null
-          region_id?: string | null
-          status?: Database["public"]["Enums"]["entity_status"]
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          industry?: string | null
-          name?: string
-          primary_contact_email?: string | null
-          primary_contact_name?: string | null
-          primary_contact_phone?: string | null
-          region_id?: string | null
-          status?: Database["public"]["Enums"]["entity_status"]
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clients_region_id_fkey"
-            columns: ["region_id"]
-            isOneToOne: false
-            referencedRelation: "regions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clients_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contract_sites: {
-        Row: {
-          contract_id: string
-          created_at: string
-          site_id: string
-          tenant_id: string
-        }
-        Insert: {
-          contract_id: string
-          created_at?: string
-          site_id: string
-          tenant_id: string
-        }
-        Update: {
-          contract_id?: string
-          created_at?: string
-          site_id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contract_sites_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contract_sites_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contract_sites_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -452,6 +568,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           client_id: string
           created_at?: string
@@ -482,491 +599,68 @@ export type Database = {
           {
             foreignKeyName: "client_contacts_client_id_fkey"
             columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contract_documents: {
-        Row: {
-          contract_id: string
-          created_at: string
-          file_name: string
-          file_size_bytes: number
-          id: string
-          mime_type: string
-          storage_path: string
-          tenant_id: string
-          uploaded_by: string | null
-          version: number
-        }
-        Insert: {
-          contract_id: string
-          created_at?: string
-          file_name: string
-          file_size_bytes: number
-          id?: string
-          mime_type: string
-          storage_path: string
-          tenant_id: string
-          uploaded_by?: string | null
-          version?: number
-        }
-        Update: {
-          contract_id?: string
-          created_at?: string
-          file_name?: string
-          file_size_bytes?: number
-          id?: string
-          mime_type?: string
-          storage_path?: string
-          tenant_id?: string
-          uploaded_by?: string | null
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contract_documents_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sla_definitions: {
-        Row: {
-          contract_id: string
-          created_at: string
-          id: string
-          is_active: boolean
-          measurement_period: string
-          metric_type: Database["public"]["Enums"]["sla_metric_type"]
-          name: string
-          site_id: string | null
-          target_value: number
-          tenant_id: string
-          threshold_operator: string
-          updated_at: string
-        }
-        Insert: {
-          contract_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          measurement_period?: string
-          metric_type: Database["public"]["Enums"]["sla_metric_type"]
-          name: string
-          site_id?: string | null
-          target_value: number
-          tenant_id: string
-          threshold_operator: string
-          updated_at?: string
-        }
-        Update: {
-          contract_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          measurement_period?: string
-          metric_type?: Database["public"]["Enums"]["sla_metric_type"]
-          name?: string
-          site_id?: string | null
-          target_value?: number
-          tenant_id?: string
-          threshold_operator?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sla_definitions_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      sla_measurements: {
-        Row: {
-          computed_at: string
-          computed_by: string | null
-          id: string
-          measured_value: number
-          period_end: string
-          period_start: string
-          sla_definition_id: string
-          target_met: boolean
-          tenant_id: string
-        }
-        Insert: {
-          computed_at?: string
-          computed_by?: string | null
-          id?: string
-          measured_value: number
-          period_end: string
-          period_start: string
-          sla_definition_id: string
-          target_met: boolean
-          tenant_id: string
-        }
-        Update: {
-          computed_at?: string
-          computed_by?: string | null
-          id?: string
-          measured_value?: number
-          period_end?: string
-          period_start?: string
-          sla_definition_id?: string
-          target_met?: boolean
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sla_measurements_sla_definition_id_fkey"
-            columns: ["sla_definition_id"]
-            isOneToOne: false
-            referencedRelation: "sla_definitions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contracts: {
-        Row: {
-          client_id: string
-          contract_number: string
-          created_at: string
-          end_date: string | null
-          id: string
-          responsible_manager_id: string | null
-          sla_notes: string | null
-          start_date: string
-          status: Database["public"]["Enums"]["contract_status"]
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          client_id: string
-          contract_number: string
-          created_at?: string
-          end_date?: string | null
-          id?: string
-          responsible_manager_id?: string | null
-          sla_notes?: string | null
-          start_date: string
-          status?: Database["public"]["Enums"]["contract_status"]
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          client_id?: string
-          contract_number?: string
-          created_at?: string
-          end_date?: string | null
-          id?: string
-          responsible_manager_id?: string | null
-          sla_notes?: string | null
-          start_date?: string
-          status?: Database["public"]["Enums"]["contract_status"]
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contracts_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "contracts_responsible_manager_id_fkey"
-            columns: ["responsible_manager_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contracts_tenant_id_fkey"
+            foreignKeyName: "client_contacts_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
       }
-      departments: {
+      clients: {
         Row: {
           created_at: string
           id: string
+          industry: string | null
           name: string
+          primary_contact_email: string | null
+          primary_contact_name: string | null
+          primary_contact_phone: string | null
+          region_id: string | null
+          status: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           id?: string
+          industry?: string | null
           name: string
+          primary_contact_email?: string | null
+          primary_contact_name?: string | null
+          primary_contact_phone?: string | null
+          region_id?: string | null
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          industry?: string | null
           name?: string
+          primary_contact_email?: string | null
+          primary_contact_name?: string | null
+          primary_contact_phone?: string | null
+          region_id?: string | null
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "departments_tenant_id_fkey"
+            foreignKeyName: "clients_region_id_fkey"
+            columns: ["region_id"]
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      employee_availability: {
-        Row: {
-          created_at: string
-          day_of_week: number
-          employee_id: string
-          end_time: string
-          id: string
-          start_time: string
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          day_of_week: number
-          employee_id: string
-          end_time: string
-          id?: string
-          start_time: string
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          day_of_week?: number
-          employee_id?: string
-          end_time?: string
-          id?: string
-          start_time?: string
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employee_availability_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_availability_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      employee_availability_exceptions: {
-        Row: {
-          created_at: string
-          employee_id: string
-          end_time: string | null
-          exception_date: string
-          id: string
-          is_available: boolean
-          leave_request_id: string | null
-          reason: string | null
-          start_time: string | null
-          tenant_id: string
-        }
-        Insert: {
-          created_at?: string
-          employee_id: string
-          end_time?: string | null
-          exception_date: string
-          id?: string
-          is_available: boolean
-          leave_request_id?: string | null
-          reason?: string | null
-          start_time?: string | null
-          tenant_id: string
-        }
-        Update: {
-          created_at?: string
-          employee_id?: string
-          end_time?: string | null
-          exception_date?: string
-          id?: string
-          is_available?: boolean
-          leave_request_id?: string | null
-          reason?: string | null
-          start_time?: string | null
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employee_availability_exceptions_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_availability_exceptions_leave_request_id_fkey"
-            columns: ["leave_request_id"]
-            isOneToOne: false
-            referencedRelation: "leave_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_availability_exceptions_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      employee_documents: {
-        Row: {
-          created_at: string
-          employee_id: string
-          expiry_date: string | null
-          file_name: string
-          file_size_bytes: number
-          id: string
-          mime_type: string
-          review_notes: string | null
-          status: Database["public"]["Enums"]["document_status"]
-          storage_path: string
-          supersedes_document_id: string | null
-          tenant_id: string
-          document_type: Database["public"]["Enums"]["document_type"]
-          updated_at: string
-          uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
-          version: number
-        }
-        Insert: {
-          created_at?: string
-          employee_id: string
-          expiry_date?: string | null
-          file_name: string
-          file_size_bytes: number
-          id?: string
-          mime_type: string
-          review_notes?: string | null
-          status?: Database["public"]["Enums"]["document_status"]
-          storage_path: string
-          supersedes_document_id?: string | null
-          tenant_id: string
-          document_type: Database["public"]["Enums"]["document_type"]
-          updated_at?: string
-          uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
-          version?: number
-        }
-        Update: {
-          created_at?: string
-          employee_id?: string
-          expiry_date?: string | null
-          file_name?: string
-          file_size_bytes?: number
-          id?: string
-          mime_type?: string
-          review_notes?: string | null
-          status?: Database["public"]["Enums"]["document_status"]
-          storage_path?: string
-          supersedes_document_id?: string | null
-          tenant_id?: string
-          document_type?: Database["public"]["Enums"]["document_type"]
-          updated_at?: string
-          uploaded_by?: string | null
-          verified_at?: string | null
-          verified_by?: string | null
-          version?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "employee_documents_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_documents_supersedes_document_id_fkey"
-            columns: ["supersedes_document_id"]
-            isOneToOne: false
-            referencedRelation: "employee_documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_documents_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      compliance_requirements: {
-        Row: {
-          applies_to_scope: string
-          category: string
-          created_at: string
-          created_by: string | null
-          description: string | null
-          id: string
-          is_active: boolean
-          name: string
-          recurrence_interval_days: number | null
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          applies_to_scope: string
-          category: string
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          name: string
-          recurrence_interval_days?: number | null
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          applies_to_scope?: string
-          category?: string
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          name?: string
-          recurrence_interval_days?: number | null
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "compliance_requirements_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -992,6 +686,7 @@ export type Database = {
           verified_at: string | null
           verified_by: string | null
         }
+        ComputedFields: never
         Insert: {
           client_id?: string | null
           completed_date?: string | null
@@ -1032,169 +727,622 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "compliance_records_client_id_fkey"
+            columns: ["client_id"]
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_records_contract_id_fkey"
+            columns: ["contract_id"]
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "compliance_records_requirement_id_fkey"
             columns: ["requirement_id"]
-            isOneToOne: false
             referencedRelation: "compliance_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_records_responsible_profile_id_fkey"
+            columns: ["responsible_profile_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_records_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "compliance_records_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_records_verified_by_fkey"
+            columns: ["verified_by"]
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      incidents: {
+      compliance_requirements: {
         Row: {
-          category: Database["public"]["Enums"]["incident_category"]
-          closed_at: string | null
-          closed_by: string | null
-          contract_id: string | null
-          corrective_action_summary: string | null
+          applies_to_scope: string
+          category: string
           created_at: string
-          description: string
+          created_by: string | null
+          description: string | null
           id: string
-          investigation_notes: string | null
-          occurred_at: string
-          reference_number: string
-          reported_by: string | null
-          severity: Database["public"]["Enums"]["incident_severity"]
-          site_id: string | null
-          status: Database["public"]["Enums"]["incident_status"]
+          is_active: boolean
+          name: string
+          recurrence_interval_days: number | null
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
-          category: Database["public"]["Enums"]["incident_category"]
-          closed_at?: string | null
-          closed_by?: string | null
-          contract_id?: string | null
-          corrective_action_summary?: string | null
+          applies_to_scope: string
+          category: string
           created_at?: string
-          description: string
+          created_by?: string | null
+          description?: string | null
           id?: string
-          investigation_notes?: string | null
-          occurred_at: string
-          reference_number?: string
-          reported_by?: string | null
-          severity: Database["public"]["Enums"]["incident_severity"]
-          site_id?: string | null
-          status?: Database["public"]["Enums"]["incident_status"]
+          is_active?: boolean
+          name: string
+          recurrence_interval_days?: number | null
           tenant_id: string
           updated_at?: string
         }
         Update: {
-          category?: Database["public"]["Enums"]["incident_category"]
-          closed_at?: string | null
-          closed_by?: string | null
-          contract_id?: string | null
-          corrective_action_summary?: string | null
+          applies_to_scope?: string
+          category?: string
           created_at?: string
-          description?: string
+          created_by?: string | null
+          description?: string | null
           id?: string
-          investigation_notes?: string | null
-          occurred_at?: string
-          reference_number?: string
-          reported_by?: string | null
-          severity?: Database["public"]["Enums"]["incident_severity"]
-          site_id?: string | null
-          status?: Database["public"]["Enums"]["incident_status"]
+          is_active?: boolean
+          name?: string
+          recurrence_interval_days?: number | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "incidents_tenant_id_fkey"
+            foreignKeyName: "compliance_requirements_created_by_fkey"
+            columns: ["created_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_requirements_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
       }
-      incident_affected_employees: {
+      contract_documents: {
+        Row: {
+          contract_id: string
+          created_at: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          contract_id: string
+          created_at?: string
+          file_name: string
+          file_size_bytes: number
+          id?: string
+          mime_type: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          tenant_id?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_sites: {
+        Row: {
+          contract_id: string
+          created_at: string
+          site_id: string
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          contract_id: string
+          created_at?: string
+          site_id: string
+          tenant_id: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          site_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_sites_contract_id_fkey"
+            columns: ["contract_id"]
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_sites_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_sites_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          client_id: string
+          contract_number: string
+          created_at: string
+          end_date: string | null
+          id: string
+          responsible_manager_id: string | null
+          sla_notes: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["contract_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          client_id: string
+          contract_number: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          responsible_manager_id?: string | null
+          sla_notes?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          contract_number?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          responsible_manager_id?: string | null
+          sla_notes?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_responsible_manager_id_fkey"
+            columns: ["responsible_manager_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_actions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          goal: string
+          id: string
+          owner_profile_id: string | null
+          review_id: string | null
+          status: string
+          target_date: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id: string
+          goal: string
+          id?: string
+          owner_profile_id?: string | null
+          review_id?: string | null
+          status?: string
+          target_date?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          employee_id?: string
+          goal?: string
+          id?: string
+          owner_profile_id?: string | null
+          review_id?: string | null
+          status?: string
+          target_date?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_actions_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_actions_owner_profile_id_fkey"
+            columns: ["owner_profile_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_actions_review_id_fkey"
+            columns: ["review_id"]
+            referencedRelation: "performance_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "development_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          employee_id: string
+          end_time: string
+          id: string
+          start_time: string
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          employee_id: string
+          end_time: string
+          id?: string
+          start_time: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          employee_id?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_availability_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_availability_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_availability_exceptions: {
         Row: {
           created_at: string
           employee_id: string
+          end_time: string | null
+          exception_date: string
           id: string
-          incident_id: string
-          involvement: string
+          is_available: boolean
+          leave_request_id: string | null
+          reason: string | null
+          start_time: string | null
           tenant_id: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           employee_id: string
+          end_time?: string | null
+          exception_date: string
           id?: string
-          incident_id: string
-          involvement?: string
+          is_available: boolean
+          leave_request_id?: string | null
+          reason?: string | null
+          start_time?: string | null
           tenant_id: string
         }
         Update: {
           created_at?: string
           employee_id?: string
+          end_time?: string | null
+          exception_date?: string
           id?: string
-          incident_id?: string
-          involvement?: string
+          is_available?: boolean
+          leave_request_id?: string | null
+          reason?: string | null
+          start_time?: string | null
           tenant_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "incident_affected_employees_incident_id_fkey"
-            columns: ["incident_id"]
-            isOneToOne: false
-            referencedRelation: "incidents"
+            foreignKeyName: "employee_availability_exceptions_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "incident_affected_employees_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
+            foreignKeyName: "employee_availability_exceptions_leave_request_id_fkey"
+            columns: ["leave_request_id"]
+            referencedRelation: "leave_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_availability_exceptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
       }
-      incident_actions: {
+      employee_documents: {
         Row: {
-          completed_at: string | null
           created_at: string
-          description: string
-          due_date: string | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
           id: string
-          incident_id: string
-          owner_profile_id: string | null
-          status: Database["public"]["Enums"]["incident_action_status"]
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          status_before_archive:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date?: string | null
+          file_name: string
+          file_size_bytes: number
+          id?: string
+          mime_type: string
+          review_notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          status_before_archive?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path: string
+          supersedes_document_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          employee_id?: string
+          expiry_date?: string | null
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          mime_type?: string
+          review_notes?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          status_before_archive?:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path?: string
+          supersedes_document_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_supersedes_document_id_fkey"
+            columns: ["supersedes_document_id"]
+            referencedRelation: "employee_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_verified_by_fkey"
+            columns: ["verified_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_qualifications: {
+        Row: {
+          created_at: string
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          name: string
+          status: Database["public"]["Enums"]["credential_status"]
           tenant_id: string
           updated_at: string
           verified_at: string | null
           verified_by: string | null
         }
+        ComputedFields: never
         Insert: {
-          completed_at?: string | null
           created_at?: string
-          description: string
-          due_date?: string | null
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id?: string | null
+          expiry_date?: string | null
           id?: string
-          incident_id: string
-          owner_profile_id?: string | null
-          status?: Database["public"]["Enums"]["incident_action_status"]
+          issue_date?: string | null
+          issuing_organization?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["credential_status"]
           tenant_id: string
           updated_at?: string
           verified_at?: string | null
           verified_by?: string | null
         }
         Update: {
-          completed_at?: string | null
           created_at?: string
-          description?: string
-          due_date?: string | null
+          credential_type?: Database["public"]["Enums"]["credential_type"]
+          employee_id?: string
+          evidence_document_id?: string | null
+          expiry_date?: string | null
           id?: string
-          incident_id?: string
-          owner_profile_id?: string | null
-          status?: Database["public"]["Enums"]["incident_action_status"]
+          issue_date?: string | null
+          issuing_organization?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["credential_status"]
           tenant_id?: string
           updated_at?: string
           verified_at?: string | null
@@ -1202,10 +1350,98 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "incident_actions_incident_id_fkey"
-            columns: ["incident_id"]
-            isOneToOne: false
-            referencedRelation: "incidents"
+            foreignKeyName: "employee_qualifications_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_qualifications_evidence_document_id_fkey"
+            columns: ["evidence_document_id"]
+            referencedRelation: "employee_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_qualifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_qualifications_verified_by_fkey"
+            columns: ["verified_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_skills: {
+        Row: {
+          created_at: string
+          employee_id: string
+          evidence_document_id: string | null
+          id: string
+          proficiency_level: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          employee_id: string
+          evidence_document_id?: string | null
+          id?: string
+          proficiency_level?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          tenant_id: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          evidence_document_id?: string | null
+          id?: string
+          proficiency_level?: Database["public"]["Enums"]["proficiency_level"]
+          skill_id?: string
+          tenant_id?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_skills_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_skills_evidence_document_id_fkey"
+            columns: ["evidence_document_id"]
+            referencedRelation: "employee_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_skills_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_skills_verified_by_fkey"
+            columns: ["verified_by"]
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1232,6 +1468,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           department_id?: string | null
@@ -1278,49 +1515,556 @@ export type Database = {
           {
             foreignKeyName: "employees_department_id_fkey"
             columns: ["department_id"]
-            isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "employees_home_site_id_fkey"
             columns: ["home_site_id"]
-            isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "employees_position_id_fkey"
             columns: ["position_id"]
-            isOneToOne: false
             referencedRelation: "positions"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "employees_profile_id_fkey"
             columns: ["profile_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "employees_region_id_fkey"
             columns: ["region_id"]
-            isOneToOne: false
             referencedRelation: "regions"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "employees_supervisor_id_fkey"
             columns: ["supervisor_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "employees_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_actions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          incident_id: string
+          owner_profile_id: string | null
+          status: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          incident_id: string
+          owner_profile_id?: string | null
+          status?: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          incident_id?: string
+          owner_profile_id?: string | null
+          status?: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id?: string
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_actions_incident_id_fkey"
+            columns: ["incident_id"]
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_actions_owner_profile_id_fkey"
+            columns: ["owner_profile_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_actions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_actions_verified_by_fkey"
+            columns: ["verified_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_affected_employees: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          incident_id: string
+          involvement: string
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          incident_id: string
+          involvement?: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          incident_id?: string
+          involvement?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_affected_employees_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_affected_employees_incident_id_fkey"
+            columns: ["incident_id"]
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_affected_employees_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          category: Database["public"]["Enums"]["incident_category"]
+          closed_at: string | null
+          closed_by: string | null
+          contract_id: string | null
+          corrective_action_summary: string | null
+          created_at: string
+          description: string
+          id: string
+          investigation_notes: string | null
+          occurred_at: string
+          reference_number: string
+          reported_by: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["incident_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          category: Database["public"]["Enums"]["incident_category"]
+          closed_at?: string | null
+          closed_by?: string | null
+          contract_id?: string | null
+          corrective_action_summary?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          investigation_notes?: string | null
+          occurred_at: string
+          reference_number: string
+          reported_by?: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["incident_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["incident_category"]
+          closed_at?: string | null
+          closed_by?: string | null
+          contract_id?: string | null
+          corrective_action_summary?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          investigation_notes?: string | null
+          occurred_at?: string
+          reference_number?: string
+          reported_by?: string | null
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["incident_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidents_closed_by_fkey"
+            columns: ["closed_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_contract_id_fkey"
+            columns: ["contract_id"]
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          reorder_threshold: number | null
+          sku: string
+          tenant_id: string
+          unit: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          reorder_threshold?: number | null
+          sku: string
+          tenant_id: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          reorder_threshold?: number | null
+          sku?: string
+          tenant_id?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          movement_type: Database["public"]["Enums"]["inventory_movement_type"]
+          performed_by: string | null
+          quantity: number
+          reference: string | null
+          site_id: string
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          movement_type: Database["public"]["Enums"]["inventory_movement_type"]
+          performed_by?: string | null
+          quantity: number
+          reference?: string | null
+          site_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          movement_type?: Database["public"]["Enums"]["inventory_movement_type"]
+          performed_by?: string | null
+          quantity?: number
+          reference?: string | null
+          site_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_item_id_fkey"
+            columns: ["item_id"]
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_performed_by_fkey"
+            columns: ["performed_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_balance_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          id: string
+          leave_request_id: string | null
+          leave_type_id: string
+          period_year: number
+          tenant_id: string
+          transaction_type: string
+        }
+        ComputedFields: never
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          id?: string
+          leave_request_id?: string | null
+          leave_type_id: string
+          period_year: number
+          tenant_id: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          id?: string
+          leave_request_id?: string | null
+          leave_type_id?: string
+          period_year?: number
+          tenant_id?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balance_transactions_created_by_fkey"
+            columns: ["created_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_transactions_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_transactions_leave_request_id_fkey"
+            columns: ["leave_request_id"]
+            referencedRelation: "leave_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_transactions_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balance_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_balances: {
+        Row: {
+          accrued: number
+          adjustment: number
+          carried_over: number
+          created_at: string
+          employee_id: string
+          id: string
+          leave_type_id: string
+          opening_balance: number
+          pending: number
+          period_year: number
+          remaining: number | null
+          tenant_id: string
+          updated_at: string
+          used: number
+        }
+        ComputedFields: never
+        Insert: {
+          accrued?: number
+          adjustment?: number
+          carried_over?: number
+          created_at?: string
+          employee_id: string
+          id?: string
+          leave_type_id: string
+          opening_balance?: number
+          pending?: number
+          period_year: number
+          remaining?: never
+          tenant_id: string
+          updated_at?: string
+          used?: number
+        }
+        Update: {
+          accrued?: number
+          adjustment?: number
+          carried_over?: number
+          created_at?: string
+          employee_id?: string
+          id?: string
+          leave_type_id?: string
+          opening_balance?: number
+          pending?: number
+          period_year?: number
+          remaining?: never
+          tenant_id?: string
+          updated_at?: string
+          used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balances_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_policies: {
+        Row: {
+          created_at: string
+          default_annual_days: number | null
+          id: string
+          leave_type_id: string
+          max_carry_over_days: number | null
+          max_consecutive_days: number | null
+          min_notice_days: number
+          requires_documentation: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          default_annual_days?: number | null
+          id?: string
+          leave_type_id: string
+          max_carry_over_days?: number | null
+          max_consecutive_days?: number | null
+          min_notice_days?: number
+          requires_documentation?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_annual_days?: number | null
+          id?: string
+          leave_type_id?: string
+          max_carry_over_days?: number | null
+          max_consecutive_days?: number | null
+          min_notice_days?: number
+          requires_documentation?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_policies_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_policies_tenant_id_fkey"
+            columns: ["tenant_id"]
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1347,6 +2091,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -1391,35 +2136,30 @@ export type Database = {
           {
             foreignKeyName: "leave_requests_cancelled_by_fkey"
             columns: ["cancelled_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "leave_requests_decided_by_fkey"
             columns: ["decided_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "leave_requests_employee_id_fkey"
             columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "leave_requests_leave_type_id_fkey"
             columns: ["leave_type_id"]
-            isOneToOne: false
             referencedRelation: "leave_types"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "leave_requests_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1437,6 +2177,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           default_annual_days?: number | null
@@ -1463,203 +2204,78 @@ export type Database = {
           {
             foreignKeyName: "leave_types_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
       }
-      leave_policies: {
+      notification_deliveries: {
         Row: {
+          attempts: number
+          channel: string
+          claim_expires_at: string | null
+          claimed_at: string | null
           created_at: string
-          default_annual_days: number | null
+          destination: string | null
+          error: string | null
           id: string
-          leave_type_id: string
-          max_carry_over_days: number | null
-          max_consecutive_days: number | null
-          min_notice_days: number
-          requires_documentation: boolean
-          tenant_id: string
+          notification_id: string
+          provider_message_id: string | null
+          recipient_profile_id: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
           updated_at: string
+          worker_id: string | null
         }
+        ComputedFields: never
         Insert: {
+          attempts?: number
+          channel: string
+          claim_expires_at?: string | null
+          claimed_at?: string | null
           created_at?: string
-          default_annual_days?: number | null
+          destination?: string | null
+          error?: string | null
           id?: string
-          leave_type_id: string
-          max_carry_over_days?: number | null
-          max_consecutive_days?: number | null
-          min_notice_days?: number
-          requires_documentation?: boolean
-          tenant_id: string
+          notification_id: string
+          provider_message_id?: string | null
+          recipient_profile_id: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
           updated_at?: string
+          worker_id?: string | null
         }
         Update: {
+          attempts?: number
+          channel?: string
+          claim_expires_at?: string | null
+          claimed_at?: string | null
           created_at?: string
-          default_annual_days?: number | null
+          destination?: string | null
+          error?: string | null
           id?: string
-          leave_type_id?: string
-          max_carry_over_days?: number | null
-          max_consecutive_days?: number | null
-          min_notice_days?: number
-          requires_documentation?: boolean
-          tenant_id?: string
+          notification_id?: string
+          provider_message_id?: string | null
+          recipient_profile_id?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
           updated_at?: string
+          worker_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "leave_policies_leave_type_id_fkey"
-            columns: ["leave_type_id"]
-            isOneToOne: false
-            referencedRelation: "leave_types"
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            referencedRelation: "notifications"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "leave_policies_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      leave_balances: {
-        Row: {
-          accrued: number
-          adjustment: number
-          carried_over: number
-          created_at: string
-          employee_id: string
-          id: string
-          leave_type_id: string
-          opening_balance: number
-          pending: number
-          period_year: number
-          remaining: number
-          tenant_id: string
-          updated_at: string
-          used: number
-        }
-        Insert: {
-          accrued?: number
-          adjustment?: number
-          carried_over?: number
-          created_at?: string
-          employee_id: string
-          id?: string
-          leave_type_id: string
-          opening_balance?: number
-          pending?: number
-          period_year: number
-          remaining?: number
-          tenant_id: string
-          updated_at?: string
-          used?: number
-        }
-        Update: {
-          accrued?: number
-          adjustment?: number
-          carried_over?: number
-          created_at?: string
-          employee_id?: string
-          id?: string
-          leave_type_id?: string
-          opening_balance?: number
-          pending?: number
-          period_year?: number
-          remaining?: number
-          tenant_id?: string
-          updated_at?: string
-          used?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "leave_balances_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balances_leave_type_id_fkey"
-            columns: ["leave_type_id"]
-            isOneToOne: false
-            referencedRelation: "leave_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balances_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      leave_balance_transactions: {
-        Row: {
-          amount: number
-          created_at: string
-          created_by: string | null
-          employee_id: string
-          id: string
-          leave_request_id: string | null
-          leave_type_id: string
-          period_year: number
-          tenant_id: string
-          transaction_type: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          created_by?: string | null
-          employee_id: string
-          id?: string
-          leave_request_id?: string | null
-          leave_type_id: string
-          period_year: number
-          tenant_id: string
-          transaction_type: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          created_by?: string | null
-          employee_id?: string
-          id?: string
-          leave_request_id?: string | null
-          leave_type_id?: string
-          period_year?: number
-          tenant_id?: string
-          transaction_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "leave_balance_transactions_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balance_transactions_leave_request_id_fkey"
-            columns: ["leave_request_id"]
-            isOneToOne: false
-            referencedRelation: "leave_requests"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balance_transactions_leave_type_id_fkey"
-            columns: ["leave_type_id"]
-            isOneToOne: false
-            referencedRelation: "leave_types"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leave_balance_transactions_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
+            foreignKeyName: "notification_deliveries_recipient_profile_id_fkey"
+            columns: ["recipient_profile_id"]
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1674,6 +2290,7 @@ export type Database = {
           updated_at: string
           whatsapp_enabled: boolean
         }
+        ComputedFields: never
         Insert: {
           email_enabled?: boolean
           profile_id: string
@@ -1696,7 +2313,6 @@ export type Database = {
           {
             foreignKeyName: "notification_preferences_profile_id_fkey"
             columns: ["profile_id"]
-            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1717,6 +2333,7 @@ export type Database = {
           title: string
           type: string
         }
+        ComputedFields: never
         Insert: {
           body: string
           created_at?: string
@@ -1749,14 +2366,12 @@ export type Database = {
           {
             foreignKeyName: "notifications_recipient_profile_id_fkey"
             columns: ["recipient_profile_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "notifications_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1780,6 +2395,7 @@ export type Database = {
           updated_at: string
           website: string | null
         }
+        ComputedFields: never
         Insert: {
           address?: string | null
           created_at?: string
@@ -1816,6 +2432,74 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_reviews: {
+        Row: {
+          created_at: string
+          employee_comments: string | null
+          employee_id: string
+          finalized_at: string | null
+          id: string
+          manager_comments: string | null
+          overall_rating: number | null
+          review_period_end: string
+          review_period_start: string
+          reviewer_profile_id: string | null
+          status: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          employee_comments?: string | null
+          employee_id: string
+          finalized_at?: string | null
+          id?: string
+          manager_comments?: string | null
+          overall_rating?: number | null
+          review_period_end: string
+          review_period_start: string
+          reviewer_profile_id?: string | null
+          status?: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_comments?: string | null
+          employee_id?: string
+          finalized_at?: string | null
+          id?: string
+          manager_comments?: string | null
+          overall_rating?: number | null
+          review_period_end?: string
+          review_period_start?: string
+          reviewer_profile_id?: string | null
+          status?: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reviews_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_reviewer_profile_id_fkey"
+            columns: ["reviewer_profile_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_reviews_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       positions: {
         Row: {
           created_at: string
@@ -1826,6 +2510,7 @@ export type Database = {
           title: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           department_id?: string | null
@@ -1848,14 +2533,86 @@ export type Database = {
           {
             foreignKeyName: "positions_department_id_fkey"
             columns: ["department_id"]
-            isOneToOne: false
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "positions_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          item_description: string
+          quantity: number
+          rejected_reason: string | null
+          requested_by: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["procurement_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          item_description: string
+          quantity: number
+          rejected_reason?: string | null
+          requested_by?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["procurement_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          id?: string
+          item_description?: string
+          quantity?: number
+          rejected_reason?: string | null
+          requested_by?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["procurement_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_requests_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1875,6 +2632,7 @@ export type Database = {
           tenant_id: string | null
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           avatar_url?: string | null
           created_at?: string
@@ -1905,7 +2663,6 @@ export type Database = {
           {
             foreignKeyName: "profiles_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1921,6 +2678,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           code?: string | null
           created_at?: string
@@ -1943,7 +2701,6 @@ export type Database = {
           {
             foreignKeyName: "regions_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -1962,6 +2719,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           break_minutes?: number
           created_at?: string
@@ -1990,7 +2748,6 @@ export type Database = {
           {
             foreignKeyName: "shift_definitions_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2006,6 +2763,7 @@ export type Database = {
           substitute_employee_id: string
           tenant_id: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           id?: string
@@ -2028,28 +2786,24 @@ export type Database = {
           {
             foreignKeyName: "shift_substitutions_original_employee_id_fkey"
             columns: ["original_employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "shift_substitutions_shift_id_fkey"
             columns: ["shift_id"]
-            isOneToOne: false
             referencedRelation: "shifts"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "shift_substitutions_substitute_employee_id_fkey"
             columns: ["substitute_employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "shift_substitutions_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2070,6 +2824,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           employee_id: string
@@ -2102,35 +2857,30 @@ export type Database = {
           {
             foreignKeyName: "shifts_employee_id_fkey"
             columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "shifts_shift_definition_id_fkey"
             columns: ["shift_definition_id"]
-            isOneToOne: false
             referencedRelation: "shift_definitions"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "shifts_site_id_fkey"
             columns: ["site_id"]
-            isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "shifts_supervisor_id_fkey"
             columns: ["supervisor_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "shifts_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2148,6 +2898,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           employee_id: string
@@ -2174,21 +2925,18 @@ export type Database = {
           {
             foreignKeyName: "site_assignments_employee_id_fkey"
             columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "site_assignments_site_id_fkey"
             columns: ["site_id"]
-            isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "site_assignments_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2204,6 +2952,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           id?: string
@@ -2226,14 +2975,12 @@ export type Database = {
           {
             foreignKeyName: "site_staffing_requirements_site_id_fkey"
             columns: ["site_id"]
-            isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "site_staffing_requirements_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2252,6 +2999,7 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           address?: string | null
           client_id: string
@@ -2280,21 +3028,252 @@ export type Database = {
           {
             foreignKeyName: "sites_client_id_fkey"
             columns: ["client_id"]
-            isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "sites_region_id_fkey"
             columns: ["region_id"]
-            isOneToOne: false
             referencedRelation: "regions"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "sites_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skills: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skills_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sla_definitions: {
+        Row: {
+          contract_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          measurement_period: string
+          metric_type: Database["public"]["Enums"]["sla_metric_type"]
+          name: string
+          site_id: string | null
+          target_value: number
+          tenant_id: string
+          threshold_operator: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          contract_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          measurement_period?: string
+          metric_type: Database["public"]["Enums"]["sla_metric_type"]
+          name: string
+          site_id?: string | null
+          target_value: number
+          tenant_id: string
+          threshold_operator: string
+          updated_at?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          measurement_period?: string
+          metric_type?: Database["public"]["Enums"]["sla_metric_type"]
+          name?: string
+          site_id?: string | null
+          target_value?: number
+          tenant_id?: string
+          threshold_operator?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_definitions_contract_id_fkey"
+            columns: ["contract_id"]
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_definitions_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_definitions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sla_measurements: {
+        Row: {
+          computed_at: string
+          computed_by: string | null
+          id: string
+          measured_value: number
+          period_end: string
+          period_start: string
+          sla_definition_id: string
+          target_met: boolean
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          computed_at?: string
+          computed_by?: string | null
+          id?: string
+          measured_value: number
+          period_end: string
+          period_start: string
+          sla_definition_id: string
+          target_met: boolean
+          tenant_id: string
+        }
+        Update: {
+          computed_at?: string
+          computed_by?: string | null
+          id?: string
+          measured_value?: number
+          period_end?: string
+          period_start?: string
+          sla_definition_id?: string
+          target_met?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_measurements_computed_by_fkey"
+            columns: ["computed_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_measurements_sla_definition_id_fkey"
+            columns: ["sla_definition_id"]
+            referencedRelation: "sla_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_measurements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sod_rules: {
+        Row: {
+          description: string
+          enforced: boolean
+          rule_key: string
+        }
+        ComputedFields: never
+        Insert: {
+          description: string
+          enforced?: boolean
+          rule_key: string
+        }
+        Update: {
+          description?: string
+          enforced?: boolean
+          rule_key?: string
+        }
+        Relationships: []
+      }
+      task_checklist_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          label: string
+          notes: string | null
+          sort_order: number
+          task_id: string
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          label: string
+          notes?: string | null
+          sort_order?: number
+          task_id: string
+          tenant_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          label?: string
+          notes?: string | null
+          sort_order?: number
+          task_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_checklist_items_completed_by_fkey"
+            columns: ["completed_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_checklist_items_task_id_fkey"
+            columns: ["task_id"]
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_checklist_items_tenant_id_fkey"
+            columns: ["tenant_id"]
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2309,6 +3288,7 @@ export type Database = {
           task_id: string
           tenant_id: string
         }
+        ComputedFields: never
         Insert: {
           author_id?: string | null
           body: string
@@ -2329,21 +3309,151 @@ export type Database = {
           {
             foreignKeyName: "task_comments_author_id_fkey"
             columns: ["author_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "task_comments_task_id_fkey"
             columns: ["task_id"]
-            isOneToOne: false
             referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "task_comments_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_evidence: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["task_evidence_kind"]
+          note: string | null
+          submitted_by: string | null
+          task_id: string
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["task_evidence_kind"]
+          note?: string | null
+          submitted_by?: string | null
+          task_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["task_evidence_kind"]
+          note?: string | null
+          submitted_by?: string | null
+          task_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_evidence_submitted_by_fkey"
+            columns: ["submitted_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_evidence_task_id_fkey"
+            columns: ["task_id"]
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_evidence_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_templates: {
+        Row: {
+          created_at: string
+          default_assignee_id: string | null
+          default_team_id: string | null
+          description: string | null
+          expected_duration_minutes: number | null
+          id: string
+          instructions: string | null
+          last_generated_on: string | null
+          priority: Database["public"]["Enums"]["task_priority"]
+          recurrence_frequency: string | null
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          default_assignee_id?: string | null
+          default_team_id?: string | null
+          description?: string | null
+          expected_duration_minutes?: number | null
+          id?: string
+          instructions?: string | null
+          last_generated_on?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence_frequency?: string | null
+          requires_evidence?: boolean
+          site_id: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_assignee_id?: string | null
+          default_team_id?: string | null
+          description?: string | null
+          expected_duration_minutes?: number | null
+          id?: string
+          instructions?: string | null
+          last_generated_on?: string | null
+          priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence_frequency?: string | null
+          requires_evidence?: boolean
+          site_id?: string
+          status?: Database["public"]["Enums"]["entity_status"]
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_templates_default_assignee_id_fkey"
+            columns: ["default_assignee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_templates_default_team_id_fkey"
+            columns: ["default_team_id"]
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_templates_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2369,6 +3479,7 @@ export type Database = {
           title: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           assignee_id?: string | null
           completed_at?: string | null
@@ -2411,213 +3522,42 @@ export type Database = {
           {
             foreignKeyName: "tasks_assignee_id_fkey"
             columns: ["assignee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_completed_by_fkey"
+            columns: ["completed_by"]
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "tasks_created_by_fkey"
             columns: ["created_by"]
-            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "tasks_site_id_fkey"
             columns: ["site_id"]
-            isOneToOne: false
             referencedRelation: "sites"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "tasks_supervisor_id_fkey"
             columns: ["supervisor_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "tasks_team_id_fkey"
             columns: ["team_id"]
-            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "tasks_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_checklist_items: {
-        Row: {
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string
-          id: string
-          is_completed: boolean
-          label: string
-          notes: string | null
-          sort_order: number
-          task_id: string
-          tenant_id: string
-        }
-        Insert: {
-          completed_at?: string | null
-          completed_by?: string | null
-          created_at?: string
-          id?: string
-          is_completed?: boolean
-          label: string
-          notes?: string | null
-          sort_order?: number
-          task_id: string
-          tenant_id: string
-        }
-        Update: {
-          completed_at?: string | null
-          completed_by?: string | null
-          created_at?: string
-          id?: string
-          is_completed?: boolean
-          label?: string
-          notes?: string | null
-          sort_order?: number
-          task_id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_checklist_items_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_checklist_items_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_evidence: {
-        Row: {
-          created_at: string
-          id: string
-          kind: Database["public"]["Enums"]["task_evidence_kind"]
-          note: string | null
-          submitted_by: string | null
-          task_id: string
-          tenant_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          kind?: Database["public"]["Enums"]["task_evidence_kind"]
-          note?: string | null
-          submitted_by?: string | null
-          task_id: string
-          tenant_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          kind?: Database["public"]["Enums"]["task_evidence_kind"]
-          note?: string | null
-          submitted_by?: string | null
-          task_id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_evidence_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_evidence_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_templates: {
-        Row: {
-          created_at: string
-          default_assignee_id: string | null
-          default_team_id: string | null
-          description: string | null
-          expected_duration_minutes: number | null
-          id: string
-          instructions: string | null
-          last_generated_on: string | null
-          priority: Database["public"]["Enums"]["task_priority"]
-          recurrence_frequency: string | null
-          requires_evidence: boolean
-          site_id: string
-          status: Database["public"]["Enums"]["entity_status"]
-          tenant_id: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          default_assignee_id?: string | null
-          default_team_id?: string | null
-          description?: string | null
-          expected_duration_minutes?: number | null
-          id?: string
-          instructions?: string | null
-          last_generated_on?: string | null
-          priority?: Database["public"]["Enums"]["task_priority"]
-          recurrence_frequency?: string | null
-          requires_evidence?: boolean
-          site_id: string
-          status?: Database["public"]["Enums"]["entity_status"]
-          tenant_id: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          default_assignee_id?: string | null
-          default_team_id?: string | null
-          description?: string | null
-          expected_duration_minutes?: number | null
-          id?: string
-          instructions?: string | null
-          last_generated_on?: string | null
-          priority?: Database["public"]["Enums"]["task_priority"]
-          recurrence_frequency?: string | null
-          requires_evidence?: boolean
-          site_id?: string
-          status?: Database["public"]["Enums"]["entity_status"]
-          tenant_id?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_templates_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_templates_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -2630,6 +3570,7 @@ export type Database = {
           team_id: string
           tenant_id: string
         }
+        ComputedFields: never
         Insert: {
           employee_id: string
           joined_at?: string
@@ -2646,449 +3587,74 @@ export type Database = {
           {
             foreignKeyName: "team_members_employee_id_fkey"
             columns: ["employee_id"]
-            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "team_members_team_id_fkey"
             columns: ["team_id"]
-            isOneToOne: false
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "team_members_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
       }
-      assets: {
+      teams: {
         Row: {
-          acquisition_cost: number | null
-          acquisition_date: string | null
-          asset_number: string
-          category: string
-          condition: string | null
           created_at: string
-          custodian_employee_id: string | null
           id: string
+          lead_employee_id: string | null
           name: string
-          notes: string | null
-          serial_number: string | null
           site_id: string | null
-          status: Database["public"]["Enums"]["asset_status"]
+          status: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
-          acquisition_cost?: number | null
-          acquisition_date?: string | null
-          asset_number: string
-          category: string
-          condition?: string | null
           created_at?: string
-          custodian_employee_id?: string | null
           id?: string
+          lead_employee_id?: string | null
           name: string
-          notes?: string | null
-          serial_number?: string | null
           site_id?: string | null
-          status?: Database["public"]["Enums"]["asset_status"]
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id: string
           updated_at?: string
         }
         Update: {
-          acquisition_cost?: number | null
-          acquisition_date?: string | null
-          asset_number?: string
-          category?: string
-          condition?: string | null
           created_at?: string
-          custodian_employee_id?: string | null
           id?: string
+          lead_employee_id?: string | null
           name?: string
-          notes?: string | null
-          serial_number?: string | null
           site_id?: string | null
-          status?: Database["public"]["Enums"]["asset_status"]
+          status?: Database["public"]["Enums"]["entity_status"]
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "assets_tenant_id_fkey"
+            foreignKeyName: "teams_lead_employee_id_fkey"
+            columns: ["lead_employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_site_id_fkey"
+            columns: ["site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teams_tenant_id_fkey"
             columns: ["tenant_id"]
-            isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      asset_assignments: {
-        Row: {
-          assigned_at: string
-          assigned_by: string | null
-          assigned_to_employee_id: string | null
-          assigned_to_site_id: string | null
-          assigned_to_team_id: string | null
-          asset_id: string
-          condition_at_assignment: string | null
-          condition_at_return: string | null
-          created_at: string
-          id: string
-          reason: string | null
-          returned_at: string | null
-          tenant_id: string
-        }
-        Insert: {
-          assigned_at?: string
-          assigned_by?: string | null
-          assigned_to_employee_id?: string | null
-          assigned_to_site_id?: string | null
-          assigned_to_team_id?: string | null
-          asset_id: string
-          condition_at_assignment?: string | null
-          condition_at_return?: string | null
-          created_at?: string
-          id?: string
-          reason?: string | null
-          returned_at?: string | null
-          tenant_id: string
-        }
-        Update: {
-          assigned_at?: string
-          assigned_by?: string | null
-          assigned_to_employee_id?: string | null
-          assigned_to_site_id?: string | null
-          assigned_to_team_id?: string | null
-          asset_id?: string
-          condition_at_assignment?: string | null
-          condition_at_return?: string | null
-          created_at?: string
-          id?: string
-          reason?: string | null
-          returned_at?: string | null
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "asset_assignments_asset_id_fkey"
-            columns: ["asset_id"]
-            isOneToOne: false
-            referencedRelation: "assets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      asset_maintenance_records: {
-        Row: {
-          asset_id: string
-          cost: number | null
-          created_at: string
-          description: string
-          id: string
-          performed_at: string
-          performed_by: string | null
-          tenant_id: string
-        }
-        Insert: {
-          asset_id: string
-          cost?: number | null
-          created_at?: string
-          description: string
-          id?: string
-          performed_at?: string
-          performed_by?: string | null
-          tenant_id: string
-        }
-        Update: {
-          asset_id?: string
-          cost?: number | null
-          created_at?: string
-          description?: string
-          id?: string
-          performed_at?: string
-          performed_by?: string | null
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "asset_maintenance_records_asset_id_fkey"
-            columns: ["asset_id"]
-            isOneToOne: false
-            referencedRelation: "assets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      inventory_items: {
-        Row: {
-          category: string
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-          reorder_threshold: number | null
-          sku: string
-          tenant_id: string
-          unit: string
-          updated_at: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-          reorder_threshold?: number | null
-          sku: string
-          tenant_id: string
-          unit?: string
-          updated_at?: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          reorder_threshold?: number | null
-          sku?: string
-          tenant_id?: string
-          unit?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inventory_items_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      inventory_movements: {
-        Row: {
-          created_at: string
-          id: string
-          item_id: string
-          movement_type: Database["public"]["Enums"]["inventory_movement_type"]
-          performed_by: string | null
-          quantity: number
-          reference: string | null
-          site_id: string
-          tenant_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          item_id: string
-          movement_type: Database["public"]["Enums"]["inventory_movement_type"]
-          performed_by?: string | null
-          quantity: number
-          reference?: string | null
-          site_id: string
-          tenant_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          item_id?: string
-          movement_type?: Database["public"]["Enums"]["inventory_movement_type"]
-          performed_by?: string | null
-          quantity?: number
-          reference?: string | null
-          site_id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inventory_movements_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "inventory_items"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      procurement_requests: {
-        Row: {
-          approved_at: string | null
-          approved_by: string | null
-          created_at: string
-          estimated_cost: number | null
-          id: string
-          item_description: string
-          quantity: number
-          rejected_reason: string | null
-          requested_by: string | null
-          site_id: string | null
-          status: Database["public"]["Enums"]["procurement_status"]
-          tenant_id: string
-          updated_at: string
-        }
-        Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
-          created_at?: string
-          estimated_cost?: number | null
-          id?: string
-          item_description: string
-          quantity: number
-          rejected_reason?: string | null
-          requested_by?: string | null
-          site_id?: string | null
-          status?: Database["public"]["Enums"]["procurement_status"]
-          tenant_id: string
-          updated_at?: string
-        }
-        Update: {
-          approved_at?: string | null
-          approved_by?: string | null
-          created_at?: string
-          estimated_cost?: number | null
-          id?: string
-          item_description?: string
-          quantity?: number
-          rejected_reason?: string | null
-          requested_by?: string | null
-          site_id?: string | null
-          status?: Database["public"]["Enums"]["procurement_status"]
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "procurement_requests_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      skills: {
-        Row: { category: string; created_at: string; id: string; name: string; tenant_id: string; updated_at: string }
-        Insert: { category: string; created_at?: string; id?: string; name: string; tenant_id: string; updated_at?: string }
-        Update: { category?: string; created_at?: string; id?: string; name?: string; tenant_id?: string; updated_at?: string }
-        Relationships: [
-          { foreignKeyName: "skills_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
-        ]
-      }
-      employee_skills: {
-        Row: {
-          created_at: string
-          employee_id: string
-          evidence_document_id: string | null
-          id: string
-          proficiency_level: Database["public"]["Enums"]["proficiency_level"]
-          skill_id: string
-          tenant_id: string
-          updated_at: string
-          verified_at: string | null
-          verified_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          employee_id: string
-          evidence_document_id?: string | null
-          id?: string
-          proficiency_level?: Database["public"]["Enums"]["proficiency_level"]
-          skill_id: string
-          tenant_id: string
-          updated_at?: string
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          employee_id?: string
-          evidence_document_id?: string | null
-          id?: string
-          proficiency_level?: Database["public"]["Enums"]["proficiency_level"]
-          skill_id?: string
-          tenant_id?: string
-          updated_at?: string
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          { foreignKeyName: "employee_skills_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
-          { foreignKeyName: "employee_skills_skill_id_fkey"; columns: ["skill_id"]; isOneToOne: false; referencedRelation: "skills"; referencedColumns: ["id"] },
-        ]
-      }
-      employee_qualifications: {
-        Row: {
-          created_at: string
-          credential_type: Database["public"]["Enums"]["credential_type"]
-          employee_id: string
-          evidence_document_id: string | null
-          expiry_date: string | null
-          id: string
-          issue_date: string | null
-          issuing_organization: string | null
-          name: string
-          status: Database["public"]["Enums"]["credential_status"]
-          tenant_id: string
-          updated_at: string
-          verified_at: string | null
-          verified_by: string | null
-        }
-        Insert: {
-          created_at?: string
-          credential_type: Database["public"]["Enums"]["credential_type"]
-          employee_id: string
-          evidence_document_id?: string | null
-          expiry_date?: string | null
-          id?: string
-          issue_date?: string | null
-          issuing_organization?: string | null
-          name: string
-          status?: Database["public"]["Enums"]["credential_status"]
-          tenant_id: string
-          updated_at?: string
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Update: {
-          created_at?: string
-          credential_type?: Database["public"]["Enums"]["credential_type"]
-          employee_id?: string
-          evidence_document_id?: string | null
-          expiry_date?: string | null
-          id?: string
-          issue_date?: string | null
-          issuing_organization?: string | null
-          name?: string
-          status?: Database["public"]["Enums"]["credential_status"]
-          tenant_id?: string
-          updated_at?: string
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          { foreignKeyName: "employee_qualifications_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
-        ]
-      }
-      training_programs: {
-        Row: { category: string; created_at: string; description: string | null; id: string; is_active: boolean; name: string; tenant_id: string; updated_at: string }
-        Insert: { category: string; created_at?: string; description?: string | null; id?: string; is_active?: boolean; name: string; tenant_id: string; updated_at?: string }
-        Update: { category?: string; created_at?: string; description?: string | null; id?: string; is_active?: boolean; name?: string; tenant_id?: string; updated_at?: string }
-        Relationships: [
-          { foreignKeyName: "training_programs_tenant_id_fkey"; columns: ["tenant_id"]; isOneToOne: false; referencedRelation: "organizations"; referencedColumns: ["id"] },
-        ]
-      }
-      training_requirements: {
-        Row: { created_at: string; id: string; is_active: boolean; required_for_role: Database["public"]["Enums"]["user_role"] | null; required_for_site_id: string | null; tenant_id: string; training_program_id: string }
-        Insert: { created_at?: string; id?: string; is_active?: boolean; required_for_role?: Database["public"]["Enums"]["user_role"] | null; required_for_site_id?: string | null; tenant_id: string; training_program_id: string }
-        Update: { created_at?: string; id?: string; is_active?: boolean; required_for_role?: Database["public"]["Enums"]["user_role"] | null; required_for_site_id?: string | null; tenant_id?: string; training_program_id?: string }
-        Relationships: [
-          { foreignKeyName: "training_requirements_program_id_fkey"; columns: ["training_program_id"]; isOneToOne: false; referencedRelation: "training_programs"; referencedColumns: ["id"] },
         ]
       }
       training_enrollments: {
@@ -3105,6 +3671,7 @@ export type Database = {
           training_program_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           completed_at?: string | null
           created_at?: string
@@ -3132,62 +3699,187 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          { foreignKeyName: "training_enrollments_program_id_fkey"; columns: ["training_program_id"]; isOneToOne: false; referencedRelation: "training_programs"; referencedColumns: ["id"] },
-          { foreignKeyName: "training_enrollments_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
+          {
+            foreignKeyName: "training_enrollments_employee_id_fkey"
+            columns: ["employee_id"]
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_resulting_qualification_id_fkey"
+            columns: ["resulting_qualification_id"]
+            referencedRelation: "employee_qualifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_training_program_id_fkey"
+            columns: ["training_program_id"]
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      performance_reviews: {
+      training_programs: {
         Row: {
+          category: string
           created_at: string
-          employee_id: string
-          employee_comments: string | null
-          finalized_at: string | null
+          description: string | null
           id: string
-          manager_comments: string | null
-          overall_rating: number | null
-          review_period_end: string
-          review_period_start: string
-          reviewer_profile_id: string | null
-          status: Database["public"]["Enums"]["performance_review_status"]
+          is_active: boolean
+          name: string
           tenant_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
+          category: string
           created_at?: string
-          employee_id: string
-          employee_comments?: string | null
-          finalized_at?: string | null
+          description?: string | null
           id?: string
-          manager_comments?: string | null
-          overall_rating?: number | null
-          review_period_end: string
-          review_period_start: string
-          reviewer_profile_id?: string | null
-          status?: Database["public"]["Enums"]["performance_review_status"]
+          is_active?: boolean
+          name: string
           tenant_id: string
           updated_at?: string
         }
         Update: {
+          category?: string
           created_at?: string
-          employee_id?: string
-          employee_comments?: string | null
-          finalized_at?: string | null
+          description?: string | null
           id?: string
-          manager_comments?: string | null
-          overall_rating?: number | null
-          review_period_end?: string
-          review_period_start?: string
-          reviewer_profile_id?: string | null
-          status?: Database["public"]["Enums"]["performance_review_status"]
+          is_active?: boolean
+          name?: string
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
-          { foreignKeyName: "performance_reviews_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
+          {
+            foreignKeyName: "training_programs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      development_actions: {
+      training_requirements: {
         Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          required_for_role: Database["public"]["Enums"]["user_role"] | null
+          required_for_site_id: string | null
+          tenant_id: string
+          training_program_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          required_for_role?: Database["public"]["Enums"]["user_role"] | null
+          required_for_site_id?: string | null
+          tenant_id: string
+          training_program_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          required_for_role?: Database["public"]["Enums"]["user_role"] | null
+          required_for_site_id?: string | null
+          tenant_id?: string
+          training_program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_requirements_required_for_site_id_fkey"
+            columns: ["required_for_site_id"]
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_requirements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_requirements_training_program_id_fkey"
+            columns: ["training_program_id"]
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_scopes: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          profile_id: string
+          scope_id: string
+          scope_type: string
+          tenant_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          profile_id: string
+          scope_id: string
+          scope_type: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          profile_id?: string
+          scope_id?: string
+          scope_type?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_scopes_granted_by_fkey"
+            columns: ["granted_by"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_scopes_profile_id_fkey"
+            columns: ["profile_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_scopes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      add_development_action: {
+        Args: {
+          p_employee_id: string
+          p_goal: string
+          p_owner_profile_id?: string | null
+          p_review_id?: string | null
+          p_target_date?: string | null
+        }
+        Returns: {
           completed_at: string | null
           created_at: string
           employee_id: string
@@ -3200,96 +3892,72 @@ export type Database = {
           tenant_id: string
           updated_at: string
         }
-        Insert: {
-          completed_at?: string | null
-          created_at?: string
-          employee_id: string
-          goal: string
-          id?: string
-          owner_profile_id?: string | null
-          review_id?: string | null
-          status?: string
-          target_date?: string | null
-          tenant_id: string
-          updated_at?: string
+        SetofOptions: {
+          from: "*"
+          to: "development_actions"
+          isOneToOne: true
+          isSetofReturn: false
         }
-        Update: {
-          completed_at?: string | null
-          created_at?: string
-          employee_id?: string
-          goal?: string
-          id?: string
-          owner_profile_id?: string | null
-          review_id?: string | null
-          status?: string
-          target_date?: string | null
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          { foreignKeyName: "development_actions_employee_id_fkey"; columns: ["employee_id"]; isOneToOne: false; referencedRelation: "employees"; referencedColumns: ["id"] },
-        ]
       }
-      teams: {
-        Row: {
+      add_incident_action: {
+        Args: {
+          p_description: string
+          p_due_date?: string | null
+          p_incident_id: string
+          p_owner_profile_id?: string | null
+        }
+        Returns: {
+          completed_at: string | null
           created_at: string
+          description: string
+          due_date: string | null
           id: string
-          lead_employee_id: string | null
-          name: string
-          site_id: string | null
-          status: Database["public"]["Enums"]["entity_status"]
+          incident_id: string
+          owner_profile_id: string | null
+          status: Database["public"]["Enums"]["incident_action_status"]
           tenant_id: string
           updated_at: string
+          verified_at: string | null
+          verified_by: string | null
         }
-        Insert: {
-          created_at?: string
-          id?: string
-          lead_employee_id?: string | null
-          name: string
-          site_id?: string | null
-          status?: Database["public"]["Enums"]["entity_status"]
-          tenant_id: string
-          updated_at?: string
+        SetofOptions: {
+          from: "*"
+          to: "incident_actions"
+          isOneToOne: true
+          isSetofReturn: false
         }
-        Update: {
-          created_at?: string
-          id?: string
-          lead_employee_id?: string | null
-          name?: string
-          site_id?: string | null
-          status?: Database["public"]["Enums"]["entity_status"]
-          tenant_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "teams_lead_employee_id_fkey"
-            columns: ["lead_employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "teams_site_id_fkey"
-            columns: ["site_id"]
-            isOneToOne: false
-            referencedRelation: "sites"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "teams_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
       }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
+      adjust_leave_balance: {
+        Args: {
+          p_amount: number
+          p_employee_id: string
+          p_leave_type_id: string
+          p_note?: string | null
+          p_period_year: number
+        }
+        Returns: {
+          accrued: number
+          adjustment: number
+          carried_over: number
+          created_at: string
+          employee_id: string
+          id: string
+          leave_type_id: string
+          opening_balance: number
+          pending: number
+          period_year: number
+          remaining: number | null
+          tenant_id: string
+          updated_at: string
+          used: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_balances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_create_user: {
         Args: {
           p_email: string
@@ -3297,12 +3965,37 @@ export type Database = {
           p_last_name: string
           p_phone: string
           p_role: Database["public"]["Enums"]["user_role"]
-          p_tenant_id?: string
+          p_tenant_id?: string | null
         }
         Returns: {
           temporary_password: string
           user_id: string
         }[]
+      }
+      admin_set_user_status: {
+        Args: {
+          p_status: Database["public"]["Enums"]["profile_status"]
+          p_user_id: string
+        }
+        Returns: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          status: Database["public"]["Enums"]["profile_status"]
+          tenant_id: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_update_user_role: {
         Args: {
@@ -3310,6 +4003,137 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      advance_performance_review: {
+        Args: {
+          p_employee_comments?: string | null
+          p_manager_comments?: string | null
+          p_new_status: Database["public"]["Enums"]["performance_review_status"]
+          p_overall_rating?: number | null
+          p_review_id: string
+        }
+        Returns: {
+          created_at: string
+          employee_comments: string | null
+          employee_id: string
+          finalized_at: string | null
+          id: string
+          manager_comments: string | null
+          overall_rating: number | null
+          review_period_end: string
+          review_period_start: string
+          reviewer_profile_id: string | null
+          status: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "performance_reviews"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      advance_procurement_request: {
+        Args: {
+          p_new_status: Database["public"]["Enums"]["procurement_status"]
+          p_request_id: string
+        }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          item_description: string
+          quantity: number
+          rejected_reason: string | null
+          requested_by: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["procurement_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "procurement_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      approve_leave_request: {
+        Args: { p_decision_notes?: string; p_leave_request_id: string }
+        Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      assert_separation_of_duties: {
+        Args: { p_rule: string; p_subjects: string[] }
+        Returns: undefined
+      }
+      assign_asset: {
+        Args: {
+          p_asset_id: string
+          p_assigned_to_employee_id?: string | null
+          p_assigned_to_site_id?: string | null
+          p_assigned_to_team_id?: string | null
+          p_condition?: string | null
+          p_reason?: string | null
+        }
+        Returns: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
+          asset_number: string
+          category: string
+          condition: string | null
+          created_at: string
+          custodian_employee_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          serial_number: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "assets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      can_access_site: {
+        Args: { p_site_id: string; p_tenant_id: string }
+        Returns: boolean
+      }
+      can_approve_leave: {
+        Args: { target_tenant_id: string }
+        Returns: boolean
       }
       can_assign_role: {
         Args: {
@@ -3322,6 +4146,7 @@ export type Database = {
         Args: { target_tenant_id: string }
         Returns: boolean
       }
+      can_manage_leave: { Args: { target_tenant_id: string }; Returns: boolean }
       can_manage_operations: {
         Args: { target_tenant_id: string }
         Returns: boolean
@@ -3334,31 +4159,72 @@ export type Database = {
         Args: { target_tenant_id: string }
         Returns: boolean
       }
-      compute_attendance_metrics: {
-        Args: { p_attendance_record_id: string }
+      can_view_leave_broad: {
+        Args: { target_tenant_id: string }
+        Returns: boolean
+      }
+      cancel_document_upload: {
+        Args: { p_document_id: string }
+        Returns: undefined
+      }
+      cancel_leave_request: {
+        Args: { p_leave_request_id: string }
         Returns: {
-          clock_in_at: string | null
-          clock_out_at: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
-          early_departure_minutes: number | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
           employee_id: string
+          end_date: string
+          half_day_period: string | null
           id: string
-          late_minutes: number | null
-          notes: string | null
-          overtime_minutes: number | null
-          recorded_by: string | null
-          shift_id: string | null
-          site_id: string
-          status: Database["public"]["Enums"]["attendance_status"]
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
           tenant_id: string
           updated_at: string
-          worked_minutes: number | null
         }
         SetofOptions: {
           from: "*"
-          to: "attendance_records"
+          to: "leave_requests"
           isOneToOne: true
           isSetofReturn: false
+        }
+      }
+      claim_notification_deliveries: {
+        Args: {
+          p_lease_seconds?: number | null
+          p_limit?: number | null
+          p_worker_id?: string | null
+        }
+        Returns: {
+          attempts: number
+          channel: string
+          claim_expires_at: string | null
+          claimed_at: string | null
+          created_at: string
+          destination: string | null
+          error: string | null
+          id: string
+          notification_id: string
+          provider_message_id: string | null
+          recipient_profile_id: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+          worker_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "notification_deliveries"
+          isOneToOne: false
+          isSetofReturn: true
         }
       }
       clock_in: {
@@ -3415,7 +4281,320 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      start_break: {
+      complete_employee_training: {
+        Args: {
+          p_enrollment_id: string
+          p_result?: string | null
+          p_status: Database["public"]["Enums"]["training_enrollment_status"]
+        }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          enrolled_at: string
+          id: string
+          result: string | null
+          resulting_qualification_id: string | null
+          status: Database["public"]["Enums"]["training_enrollment_status"]
+          tenant_id: string
+          training_program_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "training_enrollments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      complete_incident_action: {
+        Args: { p_action_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          incident_id: string
+          owner_profile_id: string | null
+          status: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "incident_actions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      complete_task: {
+        Args: { p_task_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      compute_attendance_metrics: {
+        Args: { p_attendance_record_id: string }
+        Returns: {
+          clock_in_at: string | null
+          clock_out_at: string | null
+          created_at: string
+          early_departure_minutes: number | null
+          employee_id: string
+          id: string
+          late_minutes: number | null
+          notes: string | null
+          overtime_minutes: number | null
+          recorded_by: string | null
+          shift_id: string | null
+          site_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          tenant_id: string
+          updated_at: string
+          worked_minutes: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      compute_sla_measurement: {
+        Args: {
+          p_period_end: string
+          p_period_start: string
+          p_sla_definition_id: string
+        }
+        Returns: {
+          computed_at: string
+          computed_by: string | null
+          id: string
+          measured_value: number
+          period_end: string
+          period_start: string
+          sla_definition_id: string
+          target_met: boolean
+          tenant_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "sla_measurements"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_contract_document_slot: {
+        Args: {
+          p_contract_id: string
+          p_file_name: string
+          p_file_size_bytes: number
+          p_mime_type: string
+        }
+        Returns: {
+          contract_id: string
+          created_at: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          storage_path: string
+          tenant_id: string
+          uploaded_by: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "contract_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_document_upload_slot: {
+        Args: {
+          p_document_type: Database["public"]["Enums"]["document_type"]
+          p_employee_id: string
+          p_expiry_date?: string | null
+          p_file_name: string
+          p_file_size_bytes: number
+          p_mime_type: string
+        }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          status_before_archive:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_notification: {
+        Args: {
+          p_body: string
+          p_link_path?: string | null
+          p_recipient_profile_id: string
+          p_related_entity_id?: string | null
+          p_related_entity_table?: string | null
+          p_tenant_id?: string | null
+          p_title: string
+          p_type: string
+        }
+        Returns: {
+          body: string
+          created_at: string
+          email_status: Database["public"]["Enums"]["notification_email_status"]
+          id: string
+          link_path: string | null
+          read_at: string | null
+          recipient_profile_id: string
+          related_entity_id: string | null
+          related_entity_table: string | null
+          tenant_id: string | null
+          title: string
+          type: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_performance_review: {
+        Args: {
+          p_employee_id: string
+          p_review_period_end: string
+          p_review_period_start: string
+          p_reviewer_profile_id: string
+        }
+        Returns: {
+          created_at: string
+          employee_comments: string | null
+          employee_id: string
+          finalized_at: string | null
+          id: string
+          manager_comments: string | null
+          overall_rating: number | null
+          review_period_end: string
+          review_period_start: string
+          reviewer_profile_id: string | null
+          status: Database["public"]["Enums"]["performance_review_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "performance_reviews"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      current_tenant_id: { Args: Record<PropertyKey, never>; Returns: string }
+      decide_attendance_correction: {
+        Args: {
+          p_approve: boolean
+          p_correction_id: string
+          p_review_notes?: string | null
+        }
+        Returns: {
+          attendance_record_id: string
+          created_at: string
+          field: Database["public"]["Enums"]["attendance_correction_field"]
+          id: string
+          new_value: string
+          previous_value: string | null
+          reason: string
+          requested_by: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["attendance_correction_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "attendance_corrections"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      decide_procurement_request: {
+        Args: {
+          p_approve: boolean
+          p_rejected_reason?: string | null
+          p_request_id: string
+        }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          item_description: string
+          quantity: number
+          rejected_reason: string | null
+          requested_by: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["procurement_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "procurement_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      employee_profile_id: { Args: { p_employee_id: string }; Returns: string }
+      end_break: {
         Args: { p_attendance_record_id: string }
         Returns: {
           attendance_record_id: string
@@ -3432,19 +4611,438 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      end_break: {
-        Args: { p_attendance_record_id: string }
+      enroll_employee_training: {
+        Args: { p_employee_id: string; p_training_program_id: string }
         Returns: {
-          attendance_record_id: string
-          break_end: string | null
-          break_start: string
+          completed_at: string | null
           created_at: string
+          employee_id: string
+          enrolled_at: string
           id: string
+          result: string | null
+          resulting_qualification_id: string | null
+          status: Database["public"]["Enums"]["training_enrollment_status"]
+          tenant_id: string
+          training_program_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "training_enrollments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      escalate_overdue_tasks: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      generate_recurring_tasks: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_inventory_balance: {
+        Args: { p_item_id: string; p_site_id: string }
+        Returns: number
+      }
+      get_leave_affected_shifts: {
+        Args: { p_leave_request_id: string }
+        Returns: {
+          created_at: string
+          employee_id: string
+          ends_at: string
+          id: string
+          notes: string | null
+          shift_definition_id: string | null
+          site_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["shift_status"]
+          supervisor_id: string | null
+          tenant_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "shifts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_operational_metrics: {
+        Args: {
+          p_period_end: string
+          p_period_start: string
+          p_tenant_id: string
+        }
+        Returns: {
+          active_asset_count: number
+          active_contract_count: number
+          active_employee_count: number
+          approved_leave_days: number
+          assets_in_maintenance_count: number
+          attendance_rate_pct: number
+          contracts_expiring_count: number
+          critical_incident_count: number
+          late_attendance_count: number
+          open_incident_count: number
+          overdue_task_count: number
+          pending_leave_requests: number
+          qualifications_expiring_count: number
+          task_completion_rate_pct: number
+          trainings_completed_count: number
+        }[]
+      }
+      grant_user_scope: {
+        Args: { p_profile_id: string; p_scope_id: string; p_scope_type: string }
+        Returns: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          profile_id: string
+          scope_id: string
+          scope_type: string
           tenant_id: string
         }
         SetofOptions: {
           from: "*"
-          to: "attendance_breaks"
+          to: "user_scopes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      is_own_employee: { Args: { p_employee_id: string }; Returns: boolean }
+      is_platform_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
+      is_scoped_role: { Args: Record<PropertyKey, never>; Returns: boolean }
+      leave_request_duration_days: {
+        Args: {
+          p_end_date: string
+          p_is_half_day: boolean
+          p_start_date: string
+        }
+        Returns: number
+      }
+      link_incident_employee: {
+        Args: {
+          p_employee_id: string
+          p_incident_id: string
+          p_involvement?: string | null
+        }
+        Returns: {
+          created_at: string
+          employee_id: string
+          id: string
+          incident_id: string
+          involvement: string
+          tenant_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "incident_affected_employees"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      provision_employee_login: {
+        Args: {
+          p_employee_id: string
+          p_phone?: string | null
+          p_role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: {
+          temporary_password: string
+          user_id: string
+        }[]
+      }
+      purge_audit_log: { Args: { p_older_than?: string }; Returns: number }
+      reactivate_employee: {
+        Args: { p_employee_id: string }
+        Returns: {
+          created_at: string
+          department_id: string | null
+          email: string | null
+          employee_number: string
+          employment_end_date: string | null
+          employment_start_date: string
+          employment_status: Database["public"]["Enums"]["employment_status"]
+          employment_type: Database["public"]["Enums"]["employment_type"]
+          first_name: string
+          home_site_id: string | null
+          id: string
+          last_name: string
+          phone: string | null
+          position_id: string | null
+          profile_id: string | null
+          region_id: string | null
+          supervisor_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employees"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      reassign_task: {
+        Args: {
+          p_new_assignee_id: string
+          p_reason?: string | null
+          p_task_id: string
+        }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      recompute_leave_balance: {
+        Args: {
+          p_employee_id: string
+          p_leave_type_id: string
+          p_period_year: number
+        }
+        Returns: {
+          accrued: number
+          adjustment: number
+          carried_over: number
+          created_at: string
+          employee_id: string
+          id: string
+          leave_type_id: string
+          opening_balance: number
+          pending: number
+          period_year: number
+          remaining: number | null
+          tenant_id: string
+          updated_at: string
+          used: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_balances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_asset_maintenance: {
+        Args: {
+          p_asset_id: string
+          p_cost?: number | null
+          p_description: string
+          p_performed_at?: string | null
+        }
+        Returns: {
+          asset_id: string
+          cost: number | null
+          created_at: string
+          description: string
+          id: string
+          performed_at: string
+          performed_by: string | null
+          tenant_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "asset_maintenance_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_inventory_movement: {
+        Args: {
+          p_allow_negative?: boolean | null
+          p_item_id: string
+          p_movement_type: Database["public"]["Enums"]["inventory_movement_type"]
+          p_quantity: number
+          p_reference?: string | null
+          p_site_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          item_id: string
+          movement_type: Database["public"]["Enums"]["inventory_movement_type"]
+          performed_by: string | null
+          quantity: number
+          reference: string | null
+          site_id: string
+          tenant_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "inventory_movements"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      reject_leave_request: {
+        Args: { p_decision_notes?: string; p_leave_request_id: string }
+        Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          employee_id: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      replace_document: {
+        Args: {
+          p_expiry_date?: string | null
+          p_file_name: string
+          p_file_size_bytes: number
+          p_mime_type: string
+          p_old_document_id: string
+        }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          status_before_archive:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      report_incident: {
+        Args: {
+          p_category: Database["public"]["Enums"]["incident_category"]
+          p_contract_id?: string | null
+          p_description: string
+          p_occurred_at: string
+          p_severity: Database["public"]["Enums"]["incident_severity"]
+          p_site_id?: string | null
+          p_tenant_id: string
+        }
+        Returns: {
+          category: Database["public"]["Enums"]["incident_category"]
+          closed_at: string | null
+          closed_by: string | null
+          contract_id: string | null
+          corrective_action_summary: string | null
+          created_at: string
+          description: string
+          id: string
+          investigation_notes: string | null
+          occurred_at: string
+          reference_number: string
+          reported_by: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["incident_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "incidents"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -3479,621 +5077,32 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      decide_attendance_correction: {
-        Args: {
-          p_approve: boolean
-          p_correction_id: string
-          p_review_notes?: string
-        }
-        Returns: {
-          attendance_record_id: string
-          created_at: string
-          field: Database["public"]["Enums"]["attendance_correction_field"]
-          id: string
-          new_value: string
-          previous_value: string | null
-          reason: string
-          requested_by: string | null
-          review_notes: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          status: Database["public"]["Enums"]["attendance_correction_status"]
-          tenant_id: string
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "attendance_corrections"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      get_operational_metrics: {
-        Args: { p_tenant_id: string; p_period_start: string; p_period_end: string }
-        Returns: {
-          active_employee_count: number
-          attendance_rate_pct: number
-          late_attendance_count: number
-          pending_leave_requests: number
-          approved_leave_days: number
-          task_completion_rate_pct: number
-          overdue_task_count: number
-          open_incident_count: number
-          critical_incident_count: number
-          active_asset_count: number
-          assets_in_maintenance_count: number
-          active_contract_count: number
-          contracts_expiring_count: number
-          qualifications_expiring_count: number
-          trainings_completed_count: number
-        }[]
-      }
-      set_employee_skill: {
-        Args: { p_employee_id: string; p_skill_id: string; p_proficiency_level: Database["public"]["Enums"]["proficiency_level"] }
-        Returns: Database["public"]["Tables"]["employee_skills"]["Row"]
-      }
-      verify_employee_skill: {
-        Args: { p_employee_skill_id: string }
-        Returns: Database["public"]["Tables"]["employee_skills"]["Row"]
-      }
-      upsert_employee_qualification: {
-        Args: {
-          p_id: string | null
-          p_employee_id: string
-          p_credential_type: Database["public"]["Enums"]["credential_type"]
-          p_name: string
-          p_issuing_organization?: string | null
-          p_issue_date?: string | null
-          p_expiry_date?: string | null
-          p_evidence_document_id?: string | null
-        }
-        Returns: Database["public"]["Tables"]["employee_qualifications"]["Row"]
-      }
-      verify_employee_qualification: {
-        Args: { p_id: string; p_approve: boolean }
-        Returns: Database["public"]["Tables"]["employee_qualifications"]["Row"]
-      }
-      sync_expired_qualifications: {
-        Args: { p_tenant_id: string }
-        Returns: Database["public"]["Tables"]["employee_qualifications"]["Row"][]
-      }
-      enroll_employee_training: {
-        Args: { p_training_program_id: string; p_employee_id: string }
-        Returns: Database["public"]["Tables"]["training_enrollments"]["Row"]
-      }
-      complete_employee_training: {
-        Args: { p_enrollment_id: string; p_status: Database["public"]["Enums"]["training_enrollment_status"]; p_result?: string | null }
-        Returns: Database["public"]["Tables"]["training_enrollments"]["Row"]
-      }
-      create_performance_review: {
-        Args: { p_employee_id: string; p_reviewer_profile_id: string; p_review_period_start: string; p_review_period_end: string }
-        Returns: Database["public"]["Tables"]["performance_reviews"]["Row"]
-      }
-      advance_performance_review: {
-        Args: {
-          p_review_id: string
-          p_new_status: Database["public"]["Enums"]["performance_review_status"]
-          p_manager_comments?: string | null
-          p_employee_comments?: string | null
-          p_overall_rating?: number | null
-        }
-        Returns: Database["public"]["Tables"]["performance_reviews"]["Row"]
-      }
-      add_development_action: {
-        Args: { p_employee_id: string; p_goal: string; p_owner_profile_id?: string | null; p_target_date?: string | null; p_review_id?: string | null }
-        Returns: Database["public"]["Tables"]["development_actions"]["Row"]
-      }
-      update_development_action_status: {
-        Args: { p_id: string; p_status: string }
-        Returns: Database["public"]["Tables"]["development_actions"]["Row"]
-      }
-      compute_sla_measurement: {
-        Args: { p_sla_definition_id: string; p_period_start: string; p_period_end: string }
-        Returns: Database["public"]["Tables"]["sla_measurements"]["Row"]
-      }
-      create_contract_document_slot: {
-        Args: {
-          p_contract_id: string
-          p_file_name: string
-          p_mime_type: string
-          p_file_size_bytes: number
-        }
-        Returns: Database["public"]["Tables"]["contract_documents"]["Row"]
-      }
-      assign_asset: {
-        Args: {
-          p_asset_id: string
-          p_assigned_to_employee_id?: string | null
-          p_assigned_to_team_id?: string | null
-          p_assigned_to_site_id?: string | null
-          p_condition?: string | null
-          p_reason?: string | null
-        }
-        Returns: Database["public"]["Tables"]["assets"]["Row"]
-      }
       return_asset: {
         Args: {
           p_asset_id: string
           p_condition_at_return?: string | null
-          p_new_status?: Database["public"]["Enums"]["asset_status"]
-        }
-        Returns: Database["public"]["Tables"]["assets"]["Row"]
-      }
-      transition_asset_status: {
-        Args: { p_asset_id: string; p_new_status: Database["public"]["Enums"]["asset_status"] }
-        Returns: Database["public"]["Tables"]["assets"]["Row"]
-      }
-      record_asset_maintenance: {
-        Args: {
-          p_asset_id: string
-          p_description: string
-          p_cost?: number | null
-          p_performed_at?: string
-        }
-        Returns: Database["public"]["Tables"]["asset_maintenance_records"]["Row"]
-      }
-      record_inventory_movement: {
-        Args: {
-          p_item_id: string
-          p_site_id: string
-          p_movement_type: Database["public"]["Enums"]["inventory_movement_type"]
-          p_quantity: number
-          p_reference?: string | null
-          p_allow_negative?: boolean
-        }
-        Returns: Database["public"]["Tables"]["inventory_movements"]["Row"]
-      }
-      get_inventory_balance: {
-        Args: { p_item_id: string; p_site_id: string }
-        Returns: number
-      }
-      submit_procurement_request: {
-        Args: {
-          p_tenant_id: string
-          p_item_description: string
-          p_quantity: number
-          p_site_id?: string | null
-          p_estimated_cost?: number | null
-        }
-        Returns: Database["public"]["Tables"]["procurement_requests"]["Row"]
-      }
-      decide_procurement_request: {
-        Args: { p_request_id: string; p_approve: boolean; p_rejected_reason?: string | null }
-        Returns: Database["public"]["Tables"]["procurement_requests"]["Row"]
-      }
-      advance_procurement_request: {
-        Args: { p_request_id: string; p_new_status: Database["public"]["Enums"]["procurement_status"] }
-        Returns: Database["public"]["Tables"]["procurement_requests"]["Row"]
-      }
-      report_incident: {
-        Args: {
-          p_tenant_id: string
-          p_category: Database["public"]["Enums"]["incident_category"]
-          p_severity: Database["public"]["Enums"]["incident_severity"]
-          p_occurred_at: string
-          p_description: string
-          p_site_id?: string | null
-          p_contract_id?: string | null
-        }
-        Returns: Database["public"]["Tables"]["incidents"]["Row"]
-      }
-      link_incident_employee: {
-        Args: { p_incident_id: string; p_employee_id: string; p_involvement?: string }
-        Returns: Database["public"]["Tables"]["incident_affected_employees"]["Row"]
-      }
-      transition_incident_status: {
-        Args: {
-          p_incident_id: string
-          p_new_status: Database["public"]["Enums"]["incident_status"]
-          p_notes?: string | null
-        }
-        Returns: Database["public"]["Tables"]["incidents"]["Row"]
-      }
-      add_incident_action: {
-        Args: {
-          p_incident_id: string
-          p_description: string
-          p_owner_profile_id?: string | null
-          p_due_date?: string | null
-        }
-        Returns: Database["public"]["Tables"]["incident_actions"]["Row"]
-      }
-      complete_incident_action: {
-        Args: { p_action_id: string }
-        Returns: Database["public"]["Tables"]["incident_actions"]["Row"]
-      }
-      verify_incident_action: {
-        Args: { p_action_id: string }
-        Returns: Database["public"]["Tables"]["incident_actions"]["Row"]
-      }
-      upsert_compliance_record: {
-        Args: {
-          p_id: string | null
-          p_requirement_id: string
-          p_site_id?: string | null
-          p_client_id?: string | null
-          p_contract_id?: string | null
-          p_responsible_profile_id?: string | null
-          p_due_date?: string | null
-          p_expiry_date?: string | null
-          p_evidence_storage_path?: string | null
-          p_notes?: string | null
-        }
-        Returns: Database["public"]["Tables"]["compliance_records"]["Row"]
-      }
-      verify_compliance_record: {
-        Args: { p_id: string; p_approve: boolean }
-        Returns: Database["public"]["Tables"]["compliance_records"]["Row"]
-      }
-      sync_expired_compliance_records: {
-        Args: { p_tenant_id: string }
-        Returns: Database["public"]["Tables"]["compliance_records"]["Row"][]
-      }
-      complete_task: {
-        Args: { p_task_id: string }
-        Returns: {
-          assignee_id: string | null
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          due_at: string | null
-          id: string
-          priority: Database["public"]["Enums"]["task_priority"]
-          requires_evidence: boolean
-          site_id: string
-          status: Database["public"]["Enums"]["task_status"]
-          supervisor_id: string | null
-          team_id: string | null
-          tenant_id: string
-          title: string
-          updated_at: string
-        }
-        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: true; isSetofReturn: false }
-      }
-      verify_task: {
-        Args: { p_task_id: string }
-        Returns: {
-          assignee_id: string | null
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          due_at: string | null
-          id: string
-          priority: Database["public"]["Enums"]["task_priority"]
-          requires_evidence: boolean
-          site_id: string
-          status: Database["public"]["Enums"]["task_status"]
-          supervisor_id: string | null
-          team_id: string | null
-          tenant_id: string
-          title: string
-          updated_at: string
-        }
-        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: true; isSetofReturn: false }
-      }
-      reassign_task: {
-        Args: { p_new_assignee_id: string; p_reason?: string; p_task_id: string }
-        Returns: {
-          assignee_id: string | null
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          due_at: string | null
-          id: string
-          priority: Database["public"]["Enums"]["task_priority"]
-          requires_evidence: boolean
-          site_id: string
-          status: Database["public"]["Enums"]["task_status"]
-          supervisor_id: string | null
-          team_id: string | null
-          tenant_id: string
-          title: string
-          updated_at: string
-        }
-        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: true; isSetofReturn: false }
-      }
-      generate_recurring_tasks: {
-        Args: { p_tenant_id: string }
-        Returns: {
-          assignee_id: string | null
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          due_at: string | null
-          id: string
-          priority: Database["public"]["Enums"]["task_priority"]
-          requires_evidence: boolean
-          site_id: string
-          status: Database["public"]["Enums"]["task_status"]
-          supervisor_id: string | null
-          team_id: string | null
-          tenant_id: string
-          title: string
-          updated_at: string
-        }[]
-        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: false; isSetofReturn: true }
-      }
-      escalate_overdue_tasks: {
-        Args: { p_tenant_id: string }
-        Returns: {
-          assignee_id: string | null
-          completed_at: string | null
-          completed_by: string | null
-          created_at: string
-          created_by: string | null
-          description: string | null
-          due_at: string | null
-          id: string
-          priority: Database["public"]["Enums"]["task_priority"]
-          requires_evidence: boolean
-          site_id: string
-          status: Database["public"]["Enums"]["task_status"]
-          supervisor_id: string | null
-          team_id: string | null
-          tenant_id: string
-          title: string
-          updated_at: string
-        }[]
-        SetofOptions: { from: "*"; to: "tasks"; isOneToOne: false; isSetofReturn: true }
-      }
-      create_document_upload_slot: {
-        Args: {
-          p_document_type: Database["public"]["Enums"]["document_type"]
-          p_employee_id: string
-          p_expiry_date?: string
-          p_file_name: string
-          p_file_size_bytes: number
-          p_mime_type: string
+          p_new_status?: Database["public"]["Enums"]["asset_status"] | null
         }
         Returns: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
+          asset_number: string
+          category: string
+          condition: string | null
           created_at: string
-          document_type: Database["public"]["Enums"]["document_type"]
-          employee_id: string
-          expiry_date: string | null
-          file_name: string
-          file_size_bytes: number
+          custodian_employee_id: string | null
           id: string
-          mime_type: string
-          review_notes: string | null
-          status: Database["public"]["Enums"]["document_status"]
-          storage_path: string
-          supersedes_document_id: string | null
-          tenant_id: string
-          updated_at: string
-          uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
-          version: number
-        }
-        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: true; isSetofReturn: false }
-      }
-      verify_document: {
-        Args: { p_approve: boolean; p_document_id: string; p_review_notes?: string }
-        Returns: {
-          created_at: string
-          document_type: Database["public"]["Enums"]["document_type"]
-          employee_id: string
-          expiry_date: string | null
-          file_name: string
-          file_size_bytes: number
-          id: string
-          mime_type: string
-          review_notes: string | null
-          status: Database["public"]["Enums"]["document_status"]
-          storage_path: string
-          supersedes_document_id: string | null
-          tenant_id: string
-          updated_at: string
-          uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
-          version: number
-        }
-        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: true; isSetofReturn: false }
-      }
-      replace_document: {
-        Args: {
-          p_expiry_date?: string
-          p_file_name: string
-          p_file_size_bytes: number
-          p_mime_type: string
-          p_old_document_id: string
-        }
-        Returns: {
-          created_at: string
-          document_type: Database["public"]["Enums"]["document_type"]
-          employee_id: string
-          expiry_date: string | null
-          file_name: string
-          file_size_bytes: number
-          id: string
-          mime_type: string
-          review_notes: string | null
-          status: Database["public"]["Enums"]["document_status"]
-          storage_path: string
-          supersedes_document_id: string | null
-          tenant_id: string
-          updated_at: string
-          uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
-          version: number
-        }
-        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: true; isSetofReturn: false }
-      }
-      sync_expired_documents: {
-        Args: { p_tenant_id: string }
-        Returns: {
-          created_at: string
-          document_type: Database["public"]["Enums"]["document_type"]
-          employee_id: string
-          expiry_date: string | null
-          file_name: string
-          file_size_bytes: number
-          id: string
-          mime_type: string
-          review_notes: string | null
-          status: Database["public"]["Enums"]["document_status"]
-          storage_path: string
-          supersedes_document_id: string | null
-          tenant_id: string
-          updated_at: string
-          uploaded_by: string | null
-          verified_at: string | null
-          verified_by: string | null
-          version: number
-        }[]
-        SetofOptions: { from: "*"; to: "employee_documents"; isOneToOne: false; isSetofReturn: true }
-      }
-      can_approve_leave: {
-        Args: { target_tenant_id: string }
-        Returns: boolean
-      }
-      can_manage_leave: {
-        Args: { target_tenant_id: string }
-        Returns: boolean
-      }
-      can_view_leave_broad: {
-        Args: { target_tenant_id: string }
-        Returns: boolean
-      }
-      leave_request_duration_days: {
-        Args: {
-          p_end_date: string
-          p_is_half_day: boolean
-          p_start_date: string
-        }
-        Returns: number
-      }
-      submit_leave_request: {
-        Args: {
-          p_employee_id: string
-          p_end_date: string
-          p_half_day_period?: string
-          p_is_half_day?: boolean
-          p_leave_type_id: string
-          p_reason?: string
-          p_start_date: string
-          p_supporting_document_ref?: string
-        }
-        Returns: {
-          cancelled_at: string | null
-          cancelled_by: string | null
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          decision_notes: string | null
-          employee_id: string
-          end_date: string
-          half_day_period: string | null
-          id: string
-          is_half_day: boolean
-          leave_type_id: string
-          reason: string | null
-          start_date: string
-          status: Database["public"]["Enums"]["leave_status"]
-          supporting_document_ref: string | null
+          name: string
+          notes: string | null
+          serial_number: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["asset_status"]
           tenant_id: string
           updated_at: string
         }
         SetofOptions: {
           from: "*"
-          to: "leave_requests"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      cancel_leave_request: {
-        Args: { p_leave_request_id: string }
-        Returns: {
-          cancelled_at: string | null
-          cancelled_by: string | null
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          decision_notes: string | null
-          employee_id: string
-          end_date: string
-          half_day_period: string | null
-          id: string
-          is_half_day: boolean
-          leave_type_id: string
-          reason: string | null
-          start_date: string
-          status: Database["public"]["Enums"]["leave_status"]
-          supporting_document_ref: string | null
-          tenant_id: string
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "leave_requests"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      approve_leave_request: {
-        Args: { p_decision_notes?: string; p_leave_request_id: string }
-        Returns: {
-          cancelled_at: string | null
-          cancelled_by: string | null
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          decision_notes: string | null
-          employee_id: string
-          end_date: string
-          half_day_period: string | null
-          id: string
-          is_half_day: boolean
-          leave_type_id: string
-          reason: string | null
-          start_date: string
-          status: Database["public"]["Enums"]["leave_status"]
-          supporting_document_ref: string | null
-          tenant_id: string
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "leave_requests"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      reject_leave_request: {
-        Args: { p_decision_notes?: string; p_leave_request_id: string }
-        Returns: {
-          cancelled_at: string | null
-          cancelled_by: string | null
-          created_at: string
-          decided_at: string | null
-          decided_by: string | null
-          decision_notes: string | null
-          employee_id: string
-          end_date: string
-          half_day_period: string | null
-          id: string
-          is_half_day: boolean
-          leave_type_id: string
-          reason: string | null
-          start_date: string
-          status: Database["public"]["Enums"]["leave_status"]
-          supporting_document_ref: string | null
-          tenant_id: string
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "leave_requests"
+          to: "assets"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -4127,162 +5136,207 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      adjust_leave_balance: {
+      revoke_user_scope: {
+        Args: { p_scope_row_id: string }
+        Returns: undefined
+      }
+      seed_default_leave_types: {
+        Args: { p_tenant_id: string }
+        Returns: undefined
+      }
+      set_employee_skill: {
         Args: {
-          p_amount: number
           p_employee_id: string
-          p_leave_type_id: string
-          p_note?: string
-          p_period_year: number
+          p_proficiency_level: Database["public"]["Enums"]["proficiency_level"]
+          p_skill_id: string
         }
         Returns: {
-          accrued: number
-          adjustment: number
-          carried_over: number
           created_at: string
           employee_id: string
+          evidence_document_id: string | null
           id: string
-          leave_type_id: string
-          opening_balance: number
-          pending: number
-          period_year: number
-          remaining: number
+          proficiency_level: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
           tenant_id: string
           updated_at: string
-          used: number
+          verified_at: string | null
+          verified_by: string | null
         }
         SetofOptions: {
           from: "*"
-          to: "leave_balances"
+          to: "employee_skills"
           isOneToOne: true
           isSetofReturn: false
         }
       }
-      recompute_leave_balance: {
-        Args: {
-          p_employee_id: string
-          p_leave_type_id: string
-          p_period_year: number
-        }
+      start_break: {
+        Args: { p_attendance_record_id: string }
         Returns: {
-          accrued: number
-          adjustment: number
-          carried_over: number
+          attendance_record_id: string
+          break_end: string | null
+          break_start: string
           created_at: string
-          employee_id: string
           id: string
-          leave_type_id: string
-          opening_balance: number
-          pending: number
-          period_year: number
-          remaining: number
           tenant_id: string
-          updated_at: string
-          used: number
         }
         SetofOptions: {
           from: "*"
-          to: "leave_balances"
+          to: "attendance_breaks"
           isOneToOne: true
           isSetofReturn: false
         }
       }
-      get_leave_affected_shifts: {
-        Args: { p_leave_request_id: string }
+      submit_leave_request: {
+        Args: {
+          p_employee_id: string
+          p_end_date: string
+          p_half_day_period?: string | null
+          p_is_half_day?: boolean | null
+          p_leave_type_id: string
+          p_reason?: string | null
+          p_start_date: string
+          p_supporting_document_ref?: string | null
+        }
         Returns: {
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
           employee_id: string
-          ends_at: string
+          end_date: string
+          half_day_period: string | null
+          id: string
+          is_half_day: boolean
+          leave_type_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          supporting_document_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leave_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      submit_procurement_request: {
+        Args: {
+          p_estimated_cost?: number | null
+          p_item_description: string
+          p_quantity: number
+          p_site_id?: string | null
+          p_tenant_id: string
+        }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          estimated_cost: number | null
+          id: string
+          item_description: string
+          quantity: number
+          rejected_reason: string | null
+          requested_by: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["procurement_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "procurement_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      sync_expired_compliance_records: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          client_id: string | null
+          completed_date: string | null
+          contract_id: string | null
+          created_at: string
+          due_date: string | null
+          evidence_storage_path: string | null
+          expiry_date: string | null
           id: string
           notes: string | null
-          shift_definition_id: string | null
-          site_id: string
-          starts_at: string
-          status: Database["public"]["Enums"]["shift_status"]
-          supervisor_id: string | null
+          requirement_id: string
+          responsible_profile_id: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["compliance_status"]
           tenant_id: string
           updated_at: string
+          verified_at: string | null
+          verified_by: string | null
         }[]
         SetofOptions: {
           from: "*"
-          to: "shifts"
+          to: "compliance_records"
           isOneToOne: false
           isSetofReturn: true
         }
       }
-      create_notification: {
-        Args: {
-          p_body: string
-          p_link_path?: string
-          p_recipient_profile_id: string
-          p_related_entity_id?: string
-          p_related_entity_table?: string
-          p_tenant_id?: string
-          p_title: string
-          p_type: string
-        }
-        Returns: {
-          body: string
-          created_at: string
-          email_status: Database["public"]["Enums"]["notification_email_status"]
-          id: string
-          link_path: string | null
-          read_at: string | null
-          recipient_profile_id: string
-          related_entity_id: string | null
-          related_entity_table: string | null
-          tenant_id: string | null
-          title: string
-          type: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "notifications"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      current_tenant_id: { Args: never; Returns: string }
-      is_platform_admin: { Args: never; Returns: boolean }
-      provision_employee_login: {
-        Args: {
-          p_employee_id: string
-          p_phone?: string
-          p_role: Database["public"]["Enums"]["user_role"]
-        }
-        Returns: {
-          temporary_password: string
-          user_id: string
-        }[]
-      }
-      reactivate_employee: {
-        Args: { p_employee_id: string }
+      sync_expired_documents: {
+        Args: { p_tenant_id: string }
         Returns: {
           created_at: string
-          department_id: string | null
-          email: string | null
-          employee_number: string
-          employment_end_date: string | null
-          employment_start_date: string
-          employment_status: Database["public"]["Enums"]["employment_status"]
-          employment_type: Database["public"]["Enums"]["employment_type"]
-          first_name: string
-          home_site_id: string | null
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
           id: string
-          last_name: string
-          phone: string | null
-          position_id: string | null
-          profile_id: string | null
-          region_id: string | null
-          supervisor_id: string | null
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          status_before_archive:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path: string
+          supersedes_document_id: string | null
           tenant_id: string
           updated_at: string
-        }
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }[]
         SetofOptions: {
           from: "*"
-          to: "employees"
-          isOneToOne: true
-          isSetofReturn: false
+          to: "employee_documents"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      sync_expired_qualifications: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          created_at: string
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          name: string
+          status: Database["public"]["Enums"]["credential_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "employee_qualifications"
+          isOneToOne: false
+          isSetofReturn: true
         }
       }
       terminate_employee: {
@@ -4315,27 +5369,350 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      transition_asset_status: {
+        Args: {
+          p_asset_id: string
+          p_new_status: Database["public"]["Enums"]["asset_status"]
+        }
+        Returns: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
+          asset_number: string
+          category: string
+          condition: string | null
+          created_at: string
+          custodian_employee_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          serial_number: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "assets"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      transition_incident_status: {
+        Args: {
+          p_incident_id: string
+          p_new_status: Database["public"]["Enums"]["incident_status"]
+          p_notes?: string | null
+        }
+        Returns: {
+          category: Database["public"]["Enums"]["incident_category"]
+          closed_at: string | null
+          closed_by: string | null
+          contract_id: string | null
+          corrective_action_summary: string | null
+          created_at: string
+          description: string
+          id: string
+          investigation_notes: string | null
+          occurred_at: string
+          reference_number: string
+          reported_by: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          site_id: string | null
+          status: Database["public"]["Enums"]["incident_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "incidents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      update_development_action_status: {
+        Args: { p_id: string; p_status: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          employee_id: string
+          goal: string
+          id: string
+          owner_profile_id: string | null
+          review_id: string | null
+          status: string
+          target_date: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "development_actions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      upsert_compliance_record: {
+        Args: {
+          p_client_id: string | null
+          p_contract_id: string | null
+          p_due_date: string | null
+          p_evidence_storage_path?: string | null
+          p_expiry_date: string | null
+          p_id: string | null
+          p_notes?: string | null
+          p_requirement_id: string
+          p_responsible_profile_id: string | null
+          p_site_id: string | null
+        }
+        Returns: {
+          client_id: string | null
+          completed_date: string | null
+          contract_id: string | null
+          created_at: string
+          due_date: string | null
+          evidence_storage_path: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          requirement_id: string
+          responsible_profile_id: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["compliance_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "compliance_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      upsert_employee_qualification: {
+        Args: {
+          p_credential_type: Database["public"]["Enums"]["credential_type"]
+          p_employee_id: string
+          p_evidence_document_id?: string | null
+          p_expiry_date?: string | null
+          p_id: string | null
+          p_issue_date?: string | null
+          p_issuing_organization?: string | null
+          p_name: string
+        }
+        Returns: {
+          created_at: string
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          name: string
+          status: Database["public"]["Enums"]["credential_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_qualifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      verify_compliance_record: {
+        Args: { p_approve: boolean; p_id: string }
+        Returns: {
+          client_id: string | null
+          completed_date: string | null
+          contract_id: string | null
+          created_at: string
+          due_date: string | null
+          evidence_storage_path: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          requirement_id: string
+          responsible_profile_id: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["compliance_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "compliance_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      verify_document: {
+        Args: {
+          p_approve: boolean
+          p_document_id: string
+          p_review_notes?: string | null
+        }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          status_before_archive:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      verify_employee_qualification: {
+        Args: { p_approve: boolean; p_id: string }
+        Returns: {
+          created_at: string
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          name: string
+          status: Database["public"]["Enums"]["credential_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_qualifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      verify_employee_skill: {
+        Args: { p_employee_skill_id: string }
+        Returns: {
+          created_at: string
+          employee_id: string
+          evidence_document_id: string | null
+          id: string
+          proficiency_level: Database["public"]["Enums"]["proficiency_level"]
+          skill_id: string
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "employee_skills"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      verify_incident_action: {
+        Args: { p_action_id: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          incident_id: string
+          owner_profile_id: string | null
+          status: Database["public"]["Enums"]["incident_action_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "incident_actions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      verify_task: {
+        Args: { p_task_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       write_audit_log: {
         Args: {
           p_action: string
           p_actor_profile_id: string
-          p_after?: Json
-          p_before?: Json
+          p_after?: Json | null
+          p_before?: Json | null
           p_entity_id: string
           p_entity_table: string
           p_tenant_id: string
         }
         Returns: undefined
       }
+      write_security_audit_event: {
+        Args: {
+          p_action: string
+          p_actor_profile_id: string
+          p_entity_id: string
+          p_entity_table: string
+          p_metadata?: Json | null
+          p_outcome?: string | null
+          p_request_id?: string | null
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      attendance_status:
-        | "present"
-        | "late"
-        | "absent"
-        | "excused"
-        | "unconfirmed"
-      attendance_correction_field: "clock_in_at" | "clock_out_at" | "status"
       asset_status:
         | "available"
         | "assigned"
@@ -4344,12 +5721,14 @@ export type Database = {
         | "damaged"
         | "retired"
         | "disposed"
+      attendance_correction_field: "clock_in_at" | "clock_out_at" | "status"
       attendance_correction_status: "pending" | "approved" | "rejected"
-      credential_type: "qualification" | "certification"
-      credential_status: "pending_verification" | "verified" | "expired" | "revoked"
-      proficiency_level: "beginner" | "intermediate" | "advanced" | "expert"
-      training_enrollment_status: "scheduled" | "in_progress" | "completed" | "failed" | "cancelled"
-      performance_review_status: "draft" | "manager_review" | "employee_review" | "acknowledgement" | "finalized"
+      attendance_status:
+        | "present"
+        | "late"
+        | "absent"
+        | "excused"
+        | "unconfirmed"
       compliance_status:
         | "pending"
         | "in_progress"
@@ -4357,7 +5736,19 @@ export type Database = {
         | "non_compliant"
         | "expired"
         | "waived"
-      contract_status: "draft" | "active" | "expiring" | "expired" | "suspended" | "terminated"
+      contract_status:
+        | "draft"
+        | "active"
+        | "expired"
+        | "terminated"
+        | "expiring"
+        | "suspended"
+      credential_status:
+        | "pending_verification"
+        | "verified"
+        | "expired"
+        | "revoked"
+      credential_type: "qualification" | "certification"
       document_status:
         | "uploaded"
         | "pending_review"
@@ -4386,13 +5777,6 @@ export type Database = {
         | "security"
         | "operational_other"
       incident_severity: "low" | "medium" | "high" | "critical"
-      inventory_movement_type:
-        | "receipt"
-        | "issue"
-        | "transfer_in"
-        | "transfer_out"
-        | "adjustment"
-        | "return"
       incident_status:
         | "reported"
         | "acknowledged"
@@ -4400,9 +5784,27 @@ export type Database = {
         | "corrective_action"
         | "pending_closure"
         | "closed"
-      leave_status: "pending" | "approved" | "rejected" | "cancelled" | "revoked"
+      inventory_movement_type:
+        | "receipt"
+        | "issue"
+        | "transfer_in"
+        | "transfer_out"
+        | "adjustment"
+        | "return"
+      leave_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "revoked"
       notification_email_status: "not_sent" | "sent" | "failed"
       organization_status: "pending" | "active" | "inactive" | "suspended"
+      performance_review_status:
+        | "draft"
+        | "manager_review"
+        | "employee_review"
+        | "acknowledgement"
+        | "finalized"
       procurement_status:
         | "requested"
         | "submitted"
@@ -4412,6 +5814,7 @@ export type Database = {
         | "received"
         | "completed"
         | "cancelled"
+      proficiency_level: "beginner" | "intermediate" | "advanced" | "expert"
       profile_status: "active" | "inactive" | "suspended"
       shift_status: "scheduled" | "confirmed" | "cancelled" | "completed"
       sla_metric_type:
@@ -4428,6 +5831,12 @@ export type Database = {
         | "cancelled"
         | "escalated"
         | "verified"
+      training_enrollment_status:
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "failed"
+        | "cancelled"
       user_role:
         | "platform_administrator"
         | "organization_administrator"
@@ -4453,12 +5862,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4482,11 +5891,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4507,11 +5916,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4532,11 +5941,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4549,11 +5958,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4568,6 +5977,17 @@ export const Constants = {
   },
   public: {
     Enums: {
+      asset_status: [
+        "available",
+        "assigned",
+        "maintenance",
+        "lost",
+        "damaged",
+        "retired",
+        "disposed",
+      ],
+      attendance_correction_field: ["clock_in_at", "clock_out_at", "status"],
+      attendance_correction_status: ["pending", "approved", "rejected"],
       attendance_status: [
         "present",
         "late",
@@ -4575,9 +5995,29 @@ export const Constants = {
         "excused",
         "unconfirmed",
       ],
-      attendance_correction_field: ["clock_in_at", "clock_out_at", "status"],
-      attendance_correction_status: ["pending", "approved", "rejected"],
-      contract_status: ["draft", "active", "expiring", "expired", "suspended", "terminated"],
+      compliance_status: [
+        "pending",
+        "in_progress",
+        "compliant",
+        "non_compliant",
+        "expired",
+        "waived",
+      ],
+      contract_status: [
+        "draft",
+        "active",
+        "expired",
+        "terminated",
+        "expiring",
+        "suspended",
+      ],
+      credential_status: [
+        "pending_verification",
+        "verified",
+        "expired",
+        "revoked",
+      ],
+      credential_type: ["qualification", "certification"],
       document_status: [
         "uploaded",
         "pending_review",
@@ -4599,11 +6039,61 @@ export const Constants = {
       employment_status: ["active", "on_leave", "suspended", "terminated"],
       employment_type: ["full_time", "part_time", "contract", "temporary"],
       entity_status: ["active", "inactive", "onboarding", "offboarded"],
+      incident_action_status: ["open", "in_progress", "completed", "verified"],
+      incident_category: [
+        "workplace_safety",
+        "property_damage",
+        "client_incident",
+        "near_miss",
+        "security",
+        "operational_other",
+      ],
+      incident_severity: ["low", "medium", "high", "critical"],
+      incident_status: [
+        "reported",
+        "acknowledged",
+        "investigating",
+        "corrective_action",
+        "pending_closure",
+        "closed",
+      ],
+      inventory_movement_type: [
+        "receipt",
+        "issue",
+        "transfer_in",
+        "transfer_out",
+        "adjustment",
+        "return",
+      ],
       leave_status: ["pending", "approved", "rejected", "cancelled", "revoked"],
       notification_email_status: ["not_sent", "sent", "failed"],
       organization_status: ["pending", "active", "inactive", "suspended"],
+      performance_review_status: [
+        "draft",
+        "manager_review",
+        "employee_review",
+        "acknowledgement",
+        "finalized",
+      ],
+      procurement_status: [
+        "requested",
+        "submitted",
+        "approved",
+        "rejected",
+        "ordered",
+        "received",
+        "completed",
+        "cancelled",
+      ],
+      proficiency_level: ["beginner", "intermediate", "advanced", "expert"],
       profile_status: ["active", "inactive", "suspended"],
       shift_status: ["scheduled", "confirmed", "cancelled", "completed"],
+      sla_metric_type: [
+        "staffing_fulfillment",
+        "task_completion_rate",
+        "incident_response_hours",
+        "compliance_completion_rate",
+      ],
       task_evidence_kind: ["note", "confirmation"],
       task_priority: ["low", "normal", "high", "urgent"],
       task_status: [
@@ -4613,6 +6103,13 @@ export const Constants = {
         "cancelled",
         "escalated",
         "verified",
+      ],
+      training_enrollment_status: [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "failed",
+        "cancelled",
       ],
       user_role: [
         "platform_administrator",
@@ -4628,4 +6125,3 @@ export const Constants = {
     },
   },
 } as const
-

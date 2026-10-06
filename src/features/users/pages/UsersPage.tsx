@@ -14,6 +14,8 @@ import { EditUserModal } from '@/features/users/components/EditUserModal';
 import { ChangeRoleModal } from '@/features/users/components/ChangeRoleModal';
 import { DeactivateUserDialog } from '@/features/users/components/DeactivateUserDialog';
 import { canManageUsers } from '@/features/users/utils/userPermissions';
+import { userService } from '@/features/users/services/userService';
+import { getDbErrorMessage } from '@/lib/dbErrors';
 import type { Profile } from '@/types/profile.types';
 
 export function UsersPage() {
@@ -27,7 +29,19 @@ export function UsersPage() {
   const [roleChangeUser, setRoleChangeUser] = useState<Profile | null>(null);
   const [deactivatingUser, setDeactivatingUser] = useState<Profile | null>(null);
 
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const canManage = canManageUsers(actorRole);
+
+  const handleReactivate = async (target: Profile) => {
+    setActionError(null);
+    try {
+      await userService.reactivateUser(target.id);
+      await refetch();
+    } catch (err) {
+      setActionError(getDbErrorMessage(err, 'Failed to reactivate the user.'));
+    }
+  };
 
   return (
     <PageContainer>
@@ -47,7 +61,7 @@ export function UsersPage() {
 
       <UsersFiltersBar filters={filters} onChange={setFilters} />
 
-      <ErrorAlert message={error} />
+      <ErrorAlert message={error ?? actionError} />
 
       {isLoading ? (
         <LoadingBlock label="Loading users…" />
@@ -59,6 +73,7 @@ export function UsersPage() {
             onEdit={setEditingUser}
             onChangeRole={setRoleChangeUser}
             onDeactivate={setDeactivatingUser}
+            onReactivate={(target) => void handleReactivate(target)}
           />
           <UsersPagination page={page} pageSize={pageSize} totalCount={totalCount} onPageChange={setPage} />
         </>

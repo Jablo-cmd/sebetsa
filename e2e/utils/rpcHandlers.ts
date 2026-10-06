@@ -293,7 +293,8 @@ const documents: Record<string, RpcHandler> = {
     const old = row(ctx, 'employee_documents', a.p_old_document_id, 'document');
     if (!(isOwnEmployee(ctx, old.employee_id) || can(ctx, MANAGE_EMP))) ctx.fail('insufficient_privilege: cannot replace this document', '42501', 403);
     checkFile(ctx, a);
-    touch(ctx, old, { status: 'archived' });
+    if (old.status === 'archived') ctx.fail('invalid_transition: this version has already been replaced');
+    touch(ctx, old, { status: 'archived', status_before_archive: old.status });
     const id = ctx.backend.newId();
     const created = insert(ctx, 'employee_documents', {
       id, tenant_id: old.tenant_id, employee_id: old.employee_id, document_type: old.document_type, file_name: a.p_file_name, mime_type: a.p_mime_type,
@@ -303,6 +304,18 @@ const documents: Record<string, RpcHandler> = {
     });
     audit(ctx, old.tenant_id, 'document_replaced', 'employee_documents', created.id);
     return created;
+  },
+  cancel_document_upload: (a, ctx) => {
+    const d = row(ctx, 'employee_documents', a.p_document_id, 'document');
+    if (d.uploaded_by !== ctx.session.userId) ctx.fail('insufficient_privilege: only the uploader can cancel an upload', '42501', 403);
+    if (d.status !== 'uploaded' || d.verified_by) ctx.fail('invalid_transition: only a fresh, unreviewed upload can be cancelled');
+    if (d.supersedes_document_id) {
+      const prev = ctx.backend.table('employee_documents').find((x) => x.id === d.supersedes_document_id && x.status === 'archived');
+      if (prev) touch(ctx, prev, { status: prev.status_before_archive ?? 'uploaded', status_before_archive: null });
+    }
+    ctx.backend.tables.set('employee_documents', ctx.backend.table('employee_documents').filter((x) => x !== d));
+    audit(ctx, d.tenant_id, 'document_upload_cancelled', 'employee_documents', d.id);
+    return null;
   },
   verify_document: (a, ctx) => {
     const d = row(ctx, 'employee_documents', a.p_document_id, 'document');
@@ -516,6 +529,15 @@ const people: Record<string, RpcHandler> = {
     insert(ctx, 'profiles', { id: userId, tenant_id: tenantId, first_name: a.p_first_name, last_name: a.p_last_name, email: a.p_email, phone: a.p_phone || null, avatar_url: null, role: a.p_role, status: 'active' });
     audit(ctx, tenantId, 'user_created', 'profiles', userId);
     return [{ user_id: userId, temporary_password: 'Temp-Passw0rd-E2E!' }];
+  },
+  admin_set_user_status: (a, ctx) => {
+    const p = row(ctx, 'profiles', a.p_user_id, 'profile');
+    require_(ctx, MANAGE_EMP, "cannot manage this user's tenant");
+    sod(ctx, 'user.status', [a.p_user_id as string]);
+    const privileged = ['platform_administrator', 'organization_administrator'];
+    if (privileged.includes(String(p.role)) && !privileged.includes(ctx.session.role)) ctx.fail('insufficient_privilege: cannot change the status of this user', '42501', 403);
+    audit(ctx, p.tenant_id, 'user_status_changed', 'profiles', p.id);
+    return touch(ctx, p, { status: a.p_status });
   },
   admin_update_user_role: (a, ctx) => {
     const p = row(ctx, 'profiles', a.p_user_id, 'profile');

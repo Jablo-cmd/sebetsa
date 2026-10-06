@@ -1,150 +1,153 @@
-import { test, expect } from '@playwright/test';
-import { fulfillJson, seedAuthenticatedSession } from './utils/mockAuth';
-import {
-  buildMockProfileRow,
-  buildMockSchoolRow,
-  installDataMocks,
-  installRpcMock,
-  installUsersListMock,
-} from './utils/mockData';
+import { test, expect } from './utils/test';
+import { ID, PERSONAS } from './utils/sebetsaFixtures';
 
-const TEACHER_ID = '44444444-4444-4444-4444-444444444444';
-
-test('admin can view the users directory', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installUsersListMock(page, [
-    buildMockProfileRow(),
-    buildMockProfileRow({ id: TEACHER_ID, firstName: 'Zola', lastName: 'Teacher', email: 'zola@riverside.test', role: 'teacher' }),
-  ]);
-
+test('an organisation administrator sees every user in their organisation and none from another', async ({ page, app }) => {
+  await app.open('organization_administrator');
   await page.goto('/users');
-  const main = page.getByRole('main');
-  await expect(main.getByRole('heading', { name: 'Users' })).toBeVisible();
-  // Scoped to main: the signed-in principal's own name also appears in the
-  // sidebar's account identity link.
-  await expect(main.getByRole('link', { name: 'Ada Principal' })).toBeVisible();
-  await expect(main.getByRole('link', { name: 'Zola Teacher' })).toBeVisible();
-  await expect(main.getByText('Showing 1–2 of 2')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Thabo Nkosi' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Chris Client' })).toBeVisible();
+  await expect(page.getByRole('row')).toHaveCount(10); // header + 9 users of this tenant
+  await expect(page.getByText('Rhea Rival')).toHaveCount(0);
+  await expect(page.getByText('rhea.rival@rivalservices.example')).toHaveCount(0);
 });
 
-test('admin can create a user and sees a one-time temporary password', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installUsersListMock(page, [buildMockProfileRow()]);
-  await installRpcMock(page, 'admin_create_user', (route) =>
-    fulfillJson(route, [{ user_id: '66666666-6666-6666-6666-666666666666', temporary_password: 'Tmp9xQ2vLkZo1==' }]),
-  );
+test('searching filters users by name or email', async ({ page, app }) => {
+  await app.open('organization_administrator');
+  await page.goto('/users');
+  await page.getByLabel('Search users').fill('lerato');
+  await expect(page.getByRole('link', { name: 'Lerato Mahlangu' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Thabo Nkosi' })).toHaveCount(0);
+  await page.getByLabel('Search users').fill('harbourpoint');
+  await expect(page.getByRole('link', { name: 'Chris Client' })).toBeVisible();
+});
 
+test('creating a user shows a one-time temporary password and stores the user in the admin\'s tenant', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator');
   await page.goto('/users');
   await page.getByRole('button', { name: 'Add user' }).click();
-  await page.getByLabel('First name').fill('New');
-  await page.getByLabel('Last name').fill('Teacher');
-  await page.getByLabel('Email').fill('new.teacher@riverside.test');
-  await page.locator('#create-user-role').selectOption('teacher');
-  await page.getByRole('button', { name: 'Create user' }).click();
+  await page.getByLabel('First name').fill('Naledi');
+  await page.getByLabel('Last name').fill('Khumalo');
+  await page.getByLabel('Email').fill('naledi.khumalo@brightway.example');
+  await page.getByRole('dialog').getByLabel('Role').selectOption('site_manager');
+  await page.getByRole('dialog').getByRole('button', { name: 'Create user' }).click();
 
-  await expect(page.getByRole('status')).toHaveText('The account was created successfully.');
-  await expect(page.getByText('Tmp9xQ2vLkZo1==')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Done' }).click();
-  await expect(page.getByRole('heading', { name: 'Add user' })).toHaveCount(0);
+  await expect(page.getByText('Temp-Passw0rd-E2E!')).toBeVisible();
+  const created = backend.find('profiles', { email: 'naledi.khumalo@brightway.example' });
+  expect(created.role).toBe('site_manager');
+  expect(created.tenant_id).toBe(ID.org);
+  const rpc = backend.requests.find((r) => r.rpc === 'admin_create_user');
+  expect(rpc?.body).not.toHaveProperty('p_tenant_id'); // tenant comes from the caller, never the client
 });
 
-test('admin can edit a user', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installUsersListMock(page, [
-    buildMockProfileRow({ id: TEACHER_ID, firstName: 'Zola', lastName: 'Teacher', email: 'zola@riverside.test', role: 'teacher' }),
-  ]);
-  await page.route('**/rest/v1/profiles*', async (route) => {
-    if (route.request().method() !== 'PATCH') return route.fallback();
-    await fulfillJson(route, buildMockProfileRow({ id: TEACHER_ID, firstName: 'Zolani', lastName: 'Teacher', role: 'teacher' }));
-  });
-
+test('creating a user with an already-registered email is rejected with a clear message', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator');
   await page.goto('/users');
-  await page.getByRole('button', { name: 'Edit' }).click();
-  await expect(page.getByRole('heading', { name: 'Edit user' })).toBeVisible();
+  await page.getByRole('button', { name: 'Add user' }).click();
+  await page.getByLabel('First name').fill('Copy');
+  await page.getByLabel('Last name').fill('Cat');
+  await page.getByLabel('Email').fill(PERSONAS.employee.email);
+  await page.getByRole('dialog').getByLabel('Role').selectOption('employee');
+  await page.getByRole('dialog').getByRole('button', { name: 'Create user' }).click();
 
-  await page.getByLabel('First name').fill('Zolani');
-  await page.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toHaveText('That email address is already registered.');
+  expect(backend.table('profiles').filter((p) => p.email === PERSONAS.employee.email)).toHaveLength(1);
+});
+
+test('editing a user never sends tenant_id or role in the update payload', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator');
+  await page.goto('/users');
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Edit' }).click();
+  await page.getByLabel('Phone').fill('0821234567');
+  await page.getByRole('dialog').getByRole('button', { name: /Save/ }).click();
 
   await expect(page.getByRole('heading', { name: 'Edit user' })).toHaveCount(0);
+  const patch = backend.requests.find((r) => r.method === 'PATCH' && r.table === 'profiles');
+  expect(patch).toBeDefined();
+  expect(Object.keys(patch?.body as object)).not.toContain('tenant_id');
+  expect(Object.keys(patch?.body as object)).not.toContain('role');
+  expect(backend.find('profiles', { id: PERSONAS.employee_two.profileId }).phone).toBe('0821234567');
 });
 
-test('admin can assign a role to a teacher', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installUsersListMock(page, [
-    buildMockProfileRow({ id: TEACHER_ID, firstName: 'Zola', lastName: 'Teacher', email: 'zola@riverside.test', role: 'teacher' }),
-  ]);
-  await installRpcMock(page, 'admin_update_user_role', (route) => fulfillJson(route, null));
-
+test('an organisation administrator changes another user\'s role through the controlled RPC', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator');
   await page.goto('/users');
-  await page.getByRole('button', { name: 'Change role' }).click();
-  await expect(page.getByRole('heading', { name: 'Change role' })).toBeVisible();
-  await expect(page.locator('#change-role-select')).toHaveValue('teacher');
-
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Change role' }).click();
+  await page.getByRole('dialog').getByLabel('Role').selectOption('supervisor');
   await page.getByRole('button', { name: 'Confirm change' }).click();
+
   await expect(page.getByRole('heading', { name: 'Change role' })).toHaveCount(0);
+  expect(backend.find('profiles', { id: PERSONAS.employee_two.profileId }).role).toBe('supervisor');
+  expect(backend.requests.some((r) => r.method === 'PATCH' && r.table === 'profiles' && 'role' in (r.body as object))).toBe(false);
+  expect(backend.table('audit_log').some((a) => a.action === 'role_changed' && a.entity_id === PERSONAS.employee_two.profileId)).toBe(true);
 });
 
-test('editing a user never sends tenant_id in the update payload', async ({ page }) => {
-  // Regression guard for the profiles.tenant_id self-service escalation
-  // fix (see supabase/migrations/20260803140000_prevent_direct_tenant_change.sql).
-  // The real protection is the DB-side trigger (verified in the RLS
-  // harness, supabase/rls-tests/), which blocks this even if the app ever
-  // did send it — this test exists so a future change to the edit-user
-  // form that starts sending tenant_id fails fast in CI, long before it
-  // would reach that trigger in production.
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  await installUsersListMock(page, [
-    buildMockProfileRow({ id: TEACHER_ID, firstName: 'Zola', lastName: 'Teacher', email: 'zola@riverside.test', role: 'teacher' }),
-  ]);
-
-  let patchBody: unknown;
-  await page.route('**/rest/v1/profiles*', async (route) => {
-    if (route.request().method() !== 'PATCH') return route.fallback();
-    patchBody = route.request().postDataJSON();
-    await fulfillJson(route, buildMockProfileRow({ id: TEACHER_ID, firstName: 'Zolani', lastName: 'Teacher', role: 'teacher' }));
-  });
-
+test('nobody can change their own role (separation of duties)', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator');
   await page.goto('/users');
-  await page.getByRole('button', { name: 'Edit' }).click();
-  await page.getByLabel('First name').fill('Zolani');
-  await page.getByRole('button', { name: 'Save changes' }).click();
+  await page.getByRole('row', { name: /Olivia Okafor/ }).getByRole('button', { name: 'Change role' }).click();
+  await page.getByRole('dialog').getByLabel('Role').selectOption('operations_manager');
+  await page.getByRole('button', { name: 'Confirm change' }).click();
 
-  await expect(page.getByRole('heading', { name: 'Edit user' })).toHaveCount(0);
-  expect(patchBody).not.toHaveProperty('tenant_id');
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('cannot approve, verify or close a record you raised');
+  expect(backend.find('profiles', { id: PERSONAS.organization_administrator.profileId }).role).toBe('organization_administrator');
 });
 
-test('a role without profile.view_any is blocked from the users directory', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'teacher' });
-  await installDataMocks(page, {
-    profile: buildMockProfileRow({ role: 'teacher' }),
-    school: buildMockSchoolRow(),
-  });
+test('deactivating a user marks them inactive and removes the Deactivate action', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator');
+  await page.goto('/users');
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Deactivate' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Deactivate' }).click();
 
+  await expect(page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Deactivate' })).toHaveCount(0);
+  expect(backend.find('profiles', { id: PERSONAS.employee_two.profileId }).status).toBe('inactive');
+  // Status changes go through the controlled RPC, never a direct table write.
+  expect(backend.requests.some((r) => r.method === 'PATCH' && r.table === 'profiles' && 'status' in (r.body as object))).toBe(false);
+  expect(backend.requests.some((r) => r.rpc === 'admin_set_user_status')).toBe(true);
+});
+
+test('a deactivated user can be reactivated', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator', {
+    customize: (t) => {
+      const p = t.profiles.find((x) => x.id === PERSONAS.employee_two.profileId);
+      if (p) p.status = 'inactive';
+    },
+  });
+  await page.goto('/users');
+  await expect(page.getByRole('row', { name: /Lerato Mahlangu/ })).toContainText('inactive');
+  await page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Reactivate' }).click();
+
+  await expect(page.getByRole('row', { name: /Lerato Mahlangu/ })).toContainText('active');
+  await expect(page.getByRole('row', { name: /Lerato Mahlangu/ }).getByRole('button', { name: 'Reactivate' })).toHaveCount(0);
+  expect(backend.find('profiles', { id: PERSONAS.employee_two.profileId }).status).toBe('active');
+});
+
+test('nobody can deactivate their own account', async ({ page, app }) => {
+  const backend = await app.open('organization_administrator');
+  await page.goto('/users');
+  await page.getByRole('row', { name: /Olivia Okafor/ }).getByRole('button', { name: 'Deactivate' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Deactivate' }).click();
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('cannot approve, verify or close a record you raised');
+  expect(backend.find('profiles', { id: PERSONAS.organization_administrator.profileId }).status).toBe('active');
+});
+
+test('a user cannot manage someone more senior than themselves', async ({ page, app }) => {
+  await app.open('hr_user');
+  await page.goto('/users');
+  await expect(page.getByRole('row', { name: /Olivia Okafor/ })).toBeVisible();
+  await expect(page.getByRole('row', { name: /Olivia Okafor/ }).getByRole('button', { name: 'Edit' })).toHaveCount(0);
+  await expect(page.getByRole('row', { name: /Olivia Okafor/ }).getByRole('button', { name: 'Change role' })).toHaveCount(0);
+});
+
+test('operations managers and employees cannot open user management', async ({ page, app }) => {
+  await app.open('operations_manager');
   await page.goto('/users');
   await expect(page).toHaveURL('http://localhost:5173/dashboard');
-  await expect(page.getByRole('link', { name: 'Users' })).toHaveCount(0);
 });
 
-test('tenant isolation: a user outside the caller\'s tenant cannot be viewed', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'principal' });
-  await installDataMocks(page, { profile: buildMockProfileRow(), school: buildMockSchoolRow() });
-  // RLS scopes profile reads to the caller's own tenant — a cross-tenant id
-  // resolves to no row at all, which the client surfaces as "not found"
-  // rather than leaking whether the id exists in another school.
-  await page.route('**/rest/v1/profiles*', async (route) => {
-    const url = new URL(route.request().url());
-    if (url.searchParams.get('id')?.includes('99999999')) {
-      return fulfillJson(route, null);
-    }
-    return route.fallback();
-  });
-
-  await page.goto('/users/99999999-9999-9999-9999-999999999999');
-  await expect(page.getByRole('heading', { name: 'User not found' })).toBeVisible();
+test('a user detail page for a user in another tenant shows nothing', async ({ page, app }) => {
+  await app.open('organization_administrator');
+  await page.goto(`/users/${ID.rivalProfile}`);
+  await expect(page.getByText('Rhea Rival')).toHaveCount(0);
+  await expect(page.getByText('rhea.rival@rivalservices.example')).toHaveCount(0);
 });

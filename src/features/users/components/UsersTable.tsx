@@ -11,6 +11,7 @@ export interface UsersTableProps {
   onEdit: (user: Profile) => void;
   onChangeRole: (user: Profile) => void;
   onDeactivate: (user: Profile) => void;
+  onReactivate: (user: Profile) => void;
 }
 
 const STATUS_TONES: Record<ProfileStatus, StatusTone> = {
@@ -19,7 +20,7 @@ const STATUS_TONES: Record<ProfileStatus, StatusTone> = {
   suspended: 'danger',
 };
 
-export function UsersTable({ users, actorRole, onEdit, onChangeRole, onDeactivate }: UsersTableProps) {
+export function UsersTable({ users, actorRole, onEdit, onChangeRole, onDeactivate, onReactivate }: UsersTableProps) {
   if (users.length === 0) {
     return (
       <div className="rounded-card border border-border bg-surface-raised px-4 py-10 text-center text-sm text-content-tertiary">
@@ -91,6 +92,15 @@ export function UsersTable({ users, actorRole, onEdit, onChangeRole, onDeactivat
                         >
                           Change role
                         </button>
+                        {user.status === 'inactive' && (
+                          <button
+                            type="button"
+                            onClick={() => onReactivate(user)}
+                            className="focus-ring rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"
+                          >
+                            Reactivate
+                          </button>
+                        )}
                         {user.status === 'active' && (
                           <button
                             type="button"

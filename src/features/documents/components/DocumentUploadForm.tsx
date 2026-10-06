@@ -2,7 +2,6 @@ import { useState, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { documentService } from '@/features/documents/services/documentService';
-import { retryOnNetworkError } from '@/lib/retry';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 import { ACCEPTED_MIME_TYPES, MAX_FILE_SIZE_BYTES } from '@/features/documents/types/document.types';
 import type { DocumentType } from '@/features/documents/types/document.types';
@@ -51,7 +50,7 @@ export function DocumentUploadForm({ employeeId, onUploaded }: DocumentUploadFor
     setIsSubmitting(true);
     setError(null);
     try {
-      await retryOnNetworkError(() => documentService.uploadDocument(employeeId, documentType, file, expiryDate || undefined));
+      await documentService.uploadDocument(employeeId, documentType, file, expiryDate || undefined);
       setFile(null);
       setExpiryDate('');
       onUploaded();

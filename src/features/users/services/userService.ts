@@ -87,16 +87,20 @@ async function updateUserRole(userId: string, role: UserRole): Promise<void> {
   if (error) throw error;
 }
 
-async function deactivateUser(userId: string): Promise<Profile> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ status: 'inactive' })
-    .eq('id', userId)
-    .select('*')
-    .single();
+/**
+ * Privileged: the only path that changes an account's status — see
+ * admin_set_user_status in supabase/migrations. Besides updating the profile
+ * it bans/unbans the auth user, and while an account is not active the
+ * database refuses it all tenant data (current_tenant_id() returns NULL).
+ */
+async function setUserStatus(userId: string, status: 'active' | 'inactive'): Promise<Profile> {
+  const { data, error } = await supabase.rpc('admin_set_user_status', { p_user_id: userId, p_status: status });
   if (error) throw error;
   return toProfile(data);
 }
+
+const deactivateUser = (userId: string) => setUserStatus(userId, 'inactive');
+const reactivateUser = (userId: string) => setUserStatus(userId, 'active');
 
 export const userService = {
   getUsers,
@@ -105,4 +109,5 @@ export const userService = {
   updateUser,
   updateUserRole,
   deactivateUser,
+  reactivateUser,
 };

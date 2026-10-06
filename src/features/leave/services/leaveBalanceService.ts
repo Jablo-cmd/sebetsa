@@ -15,7 +15,8 @@ function toLeaveBalance(row: LeaveBalanceRow): LeaveBalance {
     pending: row.pending,
     adjustment: row.adjustment,
     carriedOver: row.carried_over,
-    remaining: row.remaining,
+    // Generated column (opening + accrued + adjustment + carried_over - used - pending): never NULL in practice.
+    remaining: row.remaining ?? 0,
   };
 }
 

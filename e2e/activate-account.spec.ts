@@ -1,83 +1,34 @@
-import { test, expect } from '@playwright/test';
-import { buildMockUser, fulfillJson, installAuthMocks, seedAuthenticatedSession } from './utils/mockAuth';
-import { installGuardianInvitationRpcMock } from './utils/mockData';
+import { test, expect } from './utils/test';
 
-test('shows an invalid-invitation notice when there is no recovery session', async ({ page }) => {
+test('shows an invalid-invitation notice when there is no recovery session', async ({ page, app }) => {
+  await app.open('employee', { signedIn: false });
   await page.goto('/activate-account');
 
   await expect(page.getByRole('alert')).toHaveText('This invitation link is invalid or has expired.');
+  await expect(page.getByLabel('Choose a password')).toHaveCount(0);
   await page.getByRole('link', { name: 'Go to sign in' }).click();
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test('a guardian with a pending invitation sees their linked children and can activate their account', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'guardian' });
-  await installAuthMocks(page, {
-    user: (route) => fulfillJson(route, { user: buildMockUser({ role: 'guardian' }) }),
-    logout: (route) => fulfillJson(route, {}, 204),
-  });
-  await installGuardianInvitationRpcMock(page, 'get_my_guardian_invitation', (route) =>
-    fulfillJson(route, {
-      guardianFirstName: 'John',
-      guardianLastName: 'Smith',
-      schoolName: 'Riverside Secondary School',
-      invitation: {
-        id: 'invitation-1',
-        status: 'pending',
-        effectiveStatus: 'pending',
-        expiresAt: '2026-08-30T00:00:00Z',
-        acceptedAt: null,
-      },
-      children: [{ id: 'learner-1', firstName: 'Maria', lastName: 'Johnson' }],
-    }),
-  );
-  await installGuardianInvitationRpcMock(page, 'accept_guardian_invitation', (route) =>
-    fulfillJson(route, {
-      id: 'invitation-1',
-      status: 'accepted',
-      accepted_at: '2026-08-24T00:00:00Z',
-    }),
-  );
-
+test('an invited user sets a password, is signed out, and is told to sign in', async ({ page, app }) => {
+  const backend = await app.open('employee');
   await page.goto('/activate-account');
+  await expect(page.getByRole('heading', { name: 'Activate your account' })).toBeVisible();
 
-  await expect(page.getByText('Welcome, John.')).toBeVisible();
-  await expect(page.getByText('Riverside Secondary School has invited you')).toBeVisible();
-  await expect(page.getByText('Maria Johnson')).toBeVisible();
+  await page.locator('#new-password').fill('short');
+  await page.locator('#confirm-new-password').fill('short');
+  await page.getByRole('button', { name: 'Activate my account' }).click();
+  await expect(page.getByRole('alert').or(page.getByText(/at least 8 characters/i)).first()).toBeVisible();
+  expect(backend.authCalls.filter((c) => c.method === 'PUT')).toEqual([]);
 
-  await page.locator('#new-password').fill('newsecurepass123');
-  await page.locator('#confirm-new-password').fill('newsecurepass123');
+  await page.locator('#new-password').fill('A-strong-passphrase-1');
+  await page.locator('#confirm-new-password').fill('A-strong-passphrase-1');
   await page.getByRole('button', { name: 'Activate my account' }).click();
 
   await expect(page).toHaveURL(/\/login$/);
+  const updates = backend.authCalls.filter((c) => c.path === '/auth/v1/user' && c.method === 'PUT');
+  expect(updates).toHaveLength(1);
+  expect(updates[0].body).toMatchObject({ password: 'A-strong-passphrase-1' });
+  expect(backend.authCalls.some((c) => c.path === '/auth/v1/logout')).toBe(true);
   await expect(page.getByRole('status')).toHaveText('Your account is now active. Please sign in.');
-});
-
-test('a revoked invitation blocks activation with a clear message and no password form', async ({ page }) => {
-  await seedAuthenticatedSession(page, { role: 'guardian' });
-  await installAuthMocks(page, { user: (route) => fulfillJson(route, { user: buildMockUser({ role: 'guardian' }) }) });
-  await installGuardianInvitationRpcMock(page, 'get_my_guardian_invitation', (route) =>
-    fulfillJson(route, {
-      guardianFirstName: 'John',
-      guardianLastName: 'Smith',
-      schoolName: 'Riverside Secondary School',
-      invitation: {
-        id: 'invitation-1',
-        status: 'revoked',
-        effectiveStatus: 'revoked',
-        expiresAt: '2026-08-23T00:00:00Z',
-        acceptedAt: null,
-      },
-      children: [],
-    }),
-  );
-
-  await page.goto('/activate-account');
-
-  await expect(page.getByRole('alert')).toHaveText(
-    'This invitation has been revoked by your school. Please contact them for a new one.',
-  );
-  await expect(page.locator('#new-password')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Go to sign in' }).click();
-  await expect(page).toHaveURL(/\/login$/);
 });

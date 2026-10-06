@@ -86,7 +86,7 @@ begin
   call test_util.record('scope restrictive policies exist on the 8 operational tables', n = 8, format('%s policies', n));
 
   select count(*) into n from public.sod_rules where enforced;
-  call test_util.record('all 12 separation-of-duties rules are enforced', n = 12, format('%s enforced rules', n));
+  call test_util.record('all 13 separation-of-duties rules are enforced', n = 13, format('%s enforced rules', n));
 
   select count(*) into n from pg_trigger
   where not tgisinternal and tgname like '%\_sod\_guard';
@@ -95,4 +95,18 @@ begin
   select count(*) into n from pg_trigger
   where not tgisinternal and tgrelid = 'public.audit_log'::regclass;
   call test_util.record('audit_log has append-only and enrichment triggers', n = 3, format('%s triggers', n));
+end $$;
+
+do $$
+declare ok boolean;
+begin
+  select not has_column_privilege('authenticated', 'public.profiles', 'status', 'UPDATE')
+    into ok;
+  call test_util.record('authenticated cannot update profiles.status directly (admin_set_user_status only)', ok);
+
+  select has_function_privilege('authenticated', 'public.admin_set_user_status(uuid,public.profile_status)', 'EXECUTE')
+     and has_function_privilege('authenticated', 'public.cancel_document_upload(uuid)', 'EXECUTE')
+     and not has_function_privilege('anon', 'public.admin_set_user_status(uuid,public.profile_status)', 'EXECUTE')
+    into ok;
+  call test_util.record('account status and upload-cancel RPCs are authenticated-only', ok);
 end $$;

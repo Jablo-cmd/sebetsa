@@ -1,6 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { FakeBackend, authSession, type BackendOptions, type Row, type RpcHandler } from './fakeBackend';
+import { FakeBackend, authSession, type BackendOptions, type Row, type RpcHandler, type Session } from './fakeBackend';
 import { FIXED_NOW, ID, PERSONAS, buildDataset, sessionFor, type SignInAs } from './sebetsaFixtures';
 import { defaultRpcHandlers } from './rpcHandlers';
 
@@ -31,6 +31,10 @@ export interface OpenOptions {
   /** Mutate the freshly built dataset before the backend is created. */
   customize?: (tables: Record<string, Row[]>) => void;
   rpc?: Record<string, RpcHandler>;
+  /** MFA factors already enrolled on the signed-in auth user. */
+  mfaFactors?: NonNullable<Session['factors']>;
+  /** Assurance level of the seeded session (default aal1; aal2 = step-up already completed). */
+  aal?: Session['aal'];
   /** Extra known password logins: email → password (session role taken from fixtures). */
   logins?: Record<string, string>;
 }
@@ -47,7 +51,7 @@ export class AppHarness {
     options.customize?.(tables);
     for (const [name, rows] of Object.entries(options.tables ?? {})) tables[name] = rows;
 
-    const session = sessionFor(as);
+    const session: Session = { ...sessionFor(as), factors: options.mfaFactors, aal: options.aal };
     const authUsers: BackendOptions['authUsers'] = {};
     for (const persona of Object.values(PERSONAS)) {
       authUsers[persona.email.toLowerCase()] = {
@@ -114,14 +118,14 @@ export const test = base.extend<{ app: AppHarness; strictNetwork: void }>({
     async ({ page, app }, use) => {
       // Lowest-priority catch-all (registered first): nothing may leave the app
       // origin, and the Supabase origin is handled only by an installed backend.
-      await page.route(
+      await page.context().route(
         (url) => url.origin !== APP_ORIGIN && url.origin !== SUPABASE_ORIGIN,
         async (route) => {
           app.offOrigin.push(`${route.request().method()} ${route.request().url()}`);
           await route.abort('blockedbyclient');
         },
       );
-      await page.route(`${SUPABASE_ORIGIN}/**`, async (route) => {
+      await page.context().route(`${SUPABASE_ORIGIN}/**`, async (route) => {
         app.offOrigin.push(`UNMODELLED ${route.request().method()} ${route.request().url()} (no backend installed)`);
         await route.fulfill({ status: 501, contentType: 'application/json', body: JSON.stringify({ message: 'no e2e backend installed', code: 'E2E_UNMOCKED' }) });
       });

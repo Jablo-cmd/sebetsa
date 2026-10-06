@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { retryOnNetworkError } from '@/lib/retry';
 import type { EmployeeDocumentRow } from '@/lib/dbTypes';
 import type { EmployeeDocument, DocumentType } from '@/features/documents/types/document.types';
 
@@ -49,10 +50,28 @@ async function uploadDocument(
   });
   if (slotError) throw slotError;
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(slot.storage_path, file, { contentType: file.type });
-  if (uploadError) throw uploadError;
-
+  await uploadOrDiscard(slot.id, slot.storage_path, file);
   return toDocument(slot);
+}
+
+/**
+ * Uploads the file for a slot the database has already recorded. Only this
+ * step is retried on a transient network failure (re-running the slot RPC
+ * would create a second record). If the file never reaches storage the slot is
+ * discarded, so a failed upload leaves no phantom "Uploaded" document — and a
+ * cancelled replacement restores the previous version.
+ */
+async function uploadOrDiscard(documentId: string, storagePath: string, file: File): Promise<void> {
+  try {
+    await retryOnNetworkError(async () => {
+      const { error } = await supabase.storage.from(BUCKET).upload(storagePath, file, { contentType: file.type, upsert: true });
+      if (error) throw error;
+    });
+  } catch (uploadError) {
+    // Best effort: if even this fails the slot stays visible as an upload the user can replace.
+    await supabase.rpc('cancel_document_upload', { p_document_id: documentId });
+    throw uploadError;
+  }
 }
 
 async function replaceDocument(oldDocumentId: string, file: File, expiryDate?: string): Promise<EmployeeDocument> {
@@ -65,9 +84,7 @@ async function replaceDocument(oldDocumentId: string, file: File, expiryDate?: s
   });
   if (rpcError) throw rpcError;
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(newRow.storage_path, file, { contentType: file.type });
-  if (uploadError) throw uploadError;
-
+  await uploadOrDiscard(newRow.id, newRow.storage_path, file);
   return toDocument(newRow);
 }
 

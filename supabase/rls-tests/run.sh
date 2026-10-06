@@ -69,7 +69,12 @@ fi
 
 echo "RLS harness mode: $MODE"
 
-psql_exec -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+# Mirror Supabase: extensions live in their own schema, which is on the
+# database's default search_path but NOT on a function's pinned search_path.
+# (A pgcrypto call from a function pinned to `public, auth` fails here exactly
+# as it would on a hosted project.)
+psql_exec -c "CREATE SCHEMA IF NOT EXISTS extensions; CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;"
+psql_exec -c "ALTER DATABASE $DB_NAME SET search_path = public, extensions;"
 psql_exec < "$SCRIPT_DIR/00_auth_stub.sql"
 psql_exec < "$SCRIPT_DIR/00_platform_stub.sql"
 psql_exec < "$SCRIPT_DIR/01_test_util.sql"
