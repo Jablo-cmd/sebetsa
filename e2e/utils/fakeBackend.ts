@@ -524,11 +524,13 @@ export class FakeBackend {
       if ('tenant_id' in patch && targets.some((t) => t.tenant_id !== patch.tenant_id)) {
         this.fail('new row violates row-level security policy', '42501', 403);
       }
-      for (const row of targets) {
+      const changes = targets.map((row) => {
         const statusChanged = table === 'attendance_records' && 'status' in patch && patch.status !== row.status;
-        Object.assign(row, patch, 'updated_at' in row ? { updated_at: this.now } : {}, statusChanged ? { recorded_by: this.session.userId } : {});
-      }
-      for (const row of targets) this.assertUnique(table, row, row);
+        return { row, next: { ...row, ...patch, ...('updated_at' in row ? { updated_at: this.now } : {}), ...(statusChanged ? { recorded_by: this.session.userId } : {}) } };
+      });
+      // Validate every new row first: a rejected statement must change nothing (it is one transaction).
+      for (const { row, next } of changes) this.assertUnique(table, next, row);
+      for (const { row, next } of changes) Object.assign(row, next);
       if (!wantsRepresentation) return route.fulfill({ status: 204 });
       return respondRows(route, this.embed(targets, query.select ?? '*'), single);
     }
@@ -602,6 +604,17 @@ export class FakeBackend {
   }
 
   private assertUnique(table: string, row: Row, self?: Row): void {
+    // shifts_no_overlap: exclude using gist (employee_id with =, tstzrange(starts_at, ends_at) with &&) where status <> 'cancelled'
+    if (table === 'shifts' && row.status !== 'cancelled') {
+      if (Date.parse(String(row.ends_at)) <= Date.parse(String(row.starts_at))) {
+        this.fail('new row for relation "shifts" violates check constraint "shifts_check"', '23514', 400);
+      }
+      const clash = this.table('shifts').find(
+        (other) => other !== self && other !== row && other.employee_id === row.employee_id && other.status !== 'cancelled' &&
+          Date.parse(String(other.starts_at)) < Date.parse(String(row.ends_at)) && Date.parse(String(row.starts_at)) < Date.parse(String(other.ends_at)),
+      );
+      if (clash) this.fail('conflicting key value violates exclusion constraint "shifts_no_overlap"', '23P01', 409);
+    }
     for (const columns of UNIQUE_KEYS[table] ?? []) {
       const clash = this.table(table).find((other) => other !== self && other !== row && columns.every((c) => other[c] === row[c] && row[c] !== undefined));
       if (clash) this.fail(`duplicate key value violates unique constraint "${table}_${columns.join('_')}_key"`, '23505', 409);

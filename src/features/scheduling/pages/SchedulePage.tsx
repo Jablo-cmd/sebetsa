@@ -85,9 +85,14 @@ export function SchedulePage() {
       return;
     }
     let cancelled = false;
-    void employeeService.getEmployeeCandidatesByIds(missingIds).then((results) => {
-      if (!cancelled) setExtraEmployees(results);
-    });
+    employeeService
+      .getEmployeeCandidatesByIds(missingIds)
+      .then((results) => {
+        if (!cancelled) setExtraEmployees(results);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setRosterError(getDbErrorMessage(err, 'Failed to load employees with relief shifts.'));
+      });
     return () => {
       cancelled = true;
     };

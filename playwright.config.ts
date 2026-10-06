@@ -16,6 +16,9 @@ export default defineConfig({
   globalTimeout: 25 * 60_000,
   use: {
     baseURL: 'http://localhost:5173',
+    // Dates and times are asserted literally; never depend on the machine's zone.
+    timezoneId: 'UTC',
+    locale: 'en-ZA',
     trace: 'retain-on-failure',
     actionTimeout: 10_000,
     navigationTimeout: 15_000,

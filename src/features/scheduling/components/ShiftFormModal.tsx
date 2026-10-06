@@ -92,9 +92,14 @@ export function ShiftFormModal({
     const id = shift?.employeeId ?? initialEmployeeId;
     if (!id) return;
     let cancelled = false;
-    void employeeService.getEmployee(id).then((result) => {
-      if (!cancelled && result) setSelectedEmployee({ id: result.id, firstName: result.firstName, lastName: result.lastName });
-    });
+    employeeService
+      .getEmployee(id)
+      .then((result) => {
+        if (!cancelled && result) setSelectedEmployee({ id: result.id, firstName: result.firstName, lastName: result.lastName });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to load the employee.'));
+      });
     return () => {
       cancelled = true;
     };
@@ -103,9 +108,14 @@ export function ShiftFormModal({
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
-    void employeeService.searchEmployeeCandidates(tenantId, employeeSearch).then((results) => {
-      if (!cancelled) setCandidates(results);
-    });
+    employeeService
+      .searchEmployeeCandidates(tenantId, employeeSearch)
+      .then((results) => {
+        if (!cancelled) setCandidates(results);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setSubmitError(getDbErrorMessage(err, 'Failed to search employees.'));
+      });
     return () => {
       cancelled = true;
     };
