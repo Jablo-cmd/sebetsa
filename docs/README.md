@@ -1,39 +1,28 @@
-# Funda360 Documentation
+# Sebetsa Documentation
 
-## Foundation Documents
+Sebetsa is an enterprise multi-tenant workforce and operations platform.
 
-1. Context & Architecture  
-2. Product Requirements Document  
-3. Business Requirements Specification  
-4. Functional Requirements Specification  
-5. System Design Document  
-6. Database Design Specification  
-7. API Design Specification  
-8. Design System & Frontend Standards  
-9. RBAC & Security Permissions Specification  
-10. Testing Strategy & Quality Assurance Master Plan  
-11. DevOps & Infrastructure Architecture Guide  
-12. Deployment, Release & Operations Runbook  
-13. Business Continuity & Disaster Recovery Plan  
-14. Implementation & Rollout Strategy  
+## Core engineering documents
 
-## Domain implementation notes
+- [Enterprise readiness](./ENTERPRISE_READINESS.md)
+- [Security policy](../SECURITY.md)
+- [Architecture and implementation notes](./)
+- Domain specifications and runbooks maintained with the relevant feature area.
 
-- [FINANCE.md](./FINANCE.md) — fee ledger, invoicing, allocation, statements, receipts, bank reconciliation
-- [PAYMENT_GATEWAY.md](./PAYMENT_GATEWAY.md) — provider-agnostic online payment architecture + go-live checklist
+## Platform backbone
 
----
+Organisation → Region → Client → Site → Workforce
 
-These documents form the **official engineering and business foundation** for the Funda360 platform. They provide a comprehensive blueprint covering:
+The platform covers workforce management, scheduling, attendance, tasks, site operations, documents, compliance, incidents, procurement, inventory, assets, contracts, SLAs, performance, training, skills and reporting.
 
-- **Strategic Context:** Vision, architecture, and product positioning.  
-- **Requirements:** Business, functional, and technical specifications.  
-- **Design:** System, database, API, and frontend standards.  
-- **Security & Governance:** RBAC, compliance, and operational safeguards.  
-- **Quality Assurance:** Testing strategy and defect management.  
-- **Operations:** DevOps, deployment, release, and monitoring.  
-- **Resilience:** Continuity and disaster recovery planning.  
-- **Implementation:** Rollout methodology, onboarding, and training.  
+## Security baseline
 
-Together, they ensure that every stakeholder—executives, architects, developers, QA engineers, operations teams, and customers—has a **single source of truth** guiding the successful delivery and scaling of Funda360 across South Africa and the wider African education market.
+Database authorization is authoritative. Tenant-scoped data uses PostgreSQL RLS and FORCE RLS. Privileged state transitions use controlled server-side functions. Service-role credentials never belong in the browser.
 
+## Release rule
+
+A release is not complete because the UI builds. It must pass typecheck, lint, unit tests, Edge Function checks, RLS regression tests, E2E, production configuration validation and dependency/security checks.
+
+## Documentation integrity
+
+Funda360 reference material that was intentionally retained for engineering-pattern comparison is clearly marked as reference material and must never be used as Sebetsa production configuration, deployment identity, authentication branding or database authority.
