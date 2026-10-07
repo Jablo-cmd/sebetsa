@@ -379,6 +379,16 @@ export const TABLE_COLUMNS: Record<string, string[]> = {
     "performed_by",
     "created_at"
   ],
+  "job_runs": [
+    "id",
+    "job_name",
+    "tenant_id",
+    "status",
+    "rows_affected",
+    "error",
+    "started_at",
+    "finished_at"
+  ],
   "leave_balance_transactions": [
     "id",
     "tenant_id",
@@ -568,6 +578,11 @@ export const TABLE_COLUMNS: Record<string, string[]> = {
     "created_at",
     "updated_at",
     "status"
+  ],
+  "security_settings": [
+    "key",
+    "bool_value",
+    "updated_at"
   ],
   "shift_definitions": [
     "id",
@@ -878,6 +893,9 @@ export const COLUMN_DEFAULTS: Record<string, Record<string, unknown>> = {
   "inventory_items": {
     "is_active": true,
     "unit": "each"
+  },
+  "job_runs": {
+    "rows_affected": 0
   },
   "leave_balances": {
     "accrued": 0,
@@ -1591,6 +1609,11 @@ export const ON_DELETE: Record<string, { child: string; column: string; action: 
     },
     {
       "child": "inventory_movements",
+      "column": "tenant_id",
+      "action": "cascade"
+    },
+    {
+      "child": "job_runs",
       "column": "tenant_id",
       "action": "cascade"
     },

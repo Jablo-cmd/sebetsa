@@ -1875,6 +1875,47 @@ export type Database = {
           },
         ]
       }
+      job_runs: {
+        Row: {
+          error: string | null
+          finished_at: string | null
+          id: string
+          job_name: string
+          rows_affected: number
+          started_at: string
+          status: string
+          tenant_id: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          job_name: string
+          rows_affected?: number
+          started_at?: string
+          status: string
+          tenant_id?: string | null
+        }
+        Update: {
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          job_name?: string
+          rows_affected?: number
+          started_at?: string
+          status?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_balance_transactions: {
         Row: {
           amount: number
@@ -2705,6 +2746,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      security_settings: {
+        Row: {
+          bool_value: boolean
+          key: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          bool_value: boolean
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          bool_value?: boolean
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       shift_definitions: {
         Row: {
@@ -4810,6 +4870,156 @@ export type Database = {
       is_own_employee: { Args: { p_employee_id: string }; Returns: boolean }
       is_platform_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
       is_scoped_role: { Args: Record<PropertyKey, never>; Returns: boolean }
+      job_escalate_overdue_tasks: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      job_generate_recurring_tasks: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          assignee_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          requires_evidence: boolean
+          site_id: string
+          status: Database["public"]["Enums"]["task_status"]
+          supervisor_id: string | null
+          team_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "tasks"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      job_health: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          failures_since_success: number
+          job_name: string
+          last_status: string
+          last_success_at: string
+        }[]
+      }
+      job_sync_expired_compliance_records: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          client_id: string | null
+          completed_date: string | null
+          contract_id: string | null
+          created_at: string
+          due_date: string | null
+          evidence_storage_path: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          requirement_id: string
+          responsible_profile_id: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["compliance_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "compliance_records"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      job_sync_expired_documents: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          employee_id: string
+          expiry_date: string | null
+          file_name: string
+          file_size_bytes: number
+          id: string
+          mime_type: string
+          review_notes: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          status_before_archive:
+            | Database["public"]["Enums"]["document_status"]
+            | null
+          storage_path: string
+          supersedes_document_id: string | null
+          tenant_id: string
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "employee_documents"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      job_sync_expired_qualifications: {
+        Args: { p_tenant_id: string }
+        Returns: {
+          created_at: string
+          credential_type: Database["public"]["Enums"]["credential_type"]
+          employee_id: string
+          evidence_document_id: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          name: string
+          status: Database["public"]["Enums"]["credential_status"]
+          tenant_id: string
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "employee_qualifications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       leave_request_duration_days: {
         Args: {
           p_end_date: string
@@ -4839,6 +5049,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      mfa_roles: { Args: Record<PropertyKey, never>; Returns: string[] }
+      mfa_satisfied: { Args: Record<PropertyKey, never>; Returns: boolean }
       provision_employee_login: {
         Args: {
           p_employee_id: string
@@ -5188,6 +5400,11 @@ export type Database = {
       revoke_user_scope: {
         Args: { p_scope_row_id: string }
         Returns: undefined
+      }
+      run_scheduled_job: { Args: { p_job: string }; Returns: Json }
+      schedule_platform_jobs: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       seed_default_leave_types: {
         Args: { p_tenant_id: string }
