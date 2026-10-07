@@ -42,6 +42,7 @@ and — just as importantly — what it does *not* do until it is configured.
 - **Retries:** exponential backoff starting at 2 minutes, capped at one hour; after 5 attempts the row is `dead_letter` with the last error. Provider message ids are unique, so a replay cannot record the same message twice.
 - **Logging:** one structured JSON line per event (`unauthorized`, `claim_failed`, `batch_complete`) with counts only — no destinations, bodies or secrets.
 - **Response:** `{ ok, scanned, sent, failed, skippedUnconfigured }`.
+- **Concurrency is tested for real:** `supabase/rls-tests/concurrency.sh` runs two simultaneous sessions claiming from 40 committed deliveries and asserts the claims are disjoint, complete and fenced (a worker that does not hold the lease cannot finish the row). It runs as part of the RLS gate in CI.
 - Pure logic (secret comparison, channel configuration, batch limits, retry schedule) lives in `logic.ts` and is unit-tested with `deno test` in CI.
 
 ## Production activation
@@ -52,6 +53,10 @@ and — just as importantly — what it does *not* do until it is configured.
 4. Ask users to enable channels at `/notifications/settings` (and make sure their profile has an email / phone number).
 
 Steps 1–3 are **not verified in this repository** — they require the live Supabase project. See the readiness scorecard.
+
+## Webhooks
+
+No inbound webhook endpoint exists in this repository (the only Edge Function is the dispatcher, which is called with a shared secret). There is therefore nothing to authenticate, replay-protect or deduplicate yet, and no adversarial webhook tests exist. When provider delivery receipts are built they must verify the provider signature and timestamp, reject replays, be idempotent on the provider event id, and ship with those adversarial tests.
 
 ## Not built yet
 

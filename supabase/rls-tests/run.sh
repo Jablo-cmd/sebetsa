@@ -99,6 +99,20 @@ for test_file in "$SCRIPT_DIR"/tests/*.test.sql; do
   echo "::endgroup::"
 done
 
+echo "::group::Concurrency: notification outbox claim"
+if [ "$MODE" = url ]; then
+  conc_args=(psql "$TEST_URL")
+else
+  conc_args=(docker exec -i "$CONTAINER_NAME" psql -U postgres -d "$DB_NAME")
+fi
+if bash "$SCRIPT_DIR/concurrency.sh" "${conc_args[@]}"; then
+  echo "PASS concurrency"
+else
+  echo "::error::FAIL concurrency"
+  suite_failures+=("concurrency.sh")
+fi
+echo "::endgroup::"
+
 psql_exec -c "select name, passed, detail from test_util.results order by id;"
 RECORD_FAILS=$(psql_exec -t -A -c "select count(*) from test_util.results where not passed;")
 RECORD_TOTAL=$(psql_exec -t -A -c "select count(*) from test_util.results;")
