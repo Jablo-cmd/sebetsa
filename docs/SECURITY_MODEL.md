@@ -80,5 +80,5 @@ The suite asserts that all thirteen rules are installed and that the guards exis
 ## 9. Not covered
 
 - Live verification of any of the above on the hosted project.
-- Provider webhooks (none are implemented, so there is nothing to authenticate or replay-protect yet).
+- Provider webhooks against real providers: the signed, replay-protected, idempotent receipt endpoint exists and is tested against reference vectors, but has never received live Resend/Twilio traffic.
 - Live verification of MFA settings, per-user time zones for quiet hours, and automated anomaly alerting.

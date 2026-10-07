@@ -54,12 +54,28 @@ and — just as importantly — what it does *not* do until it is configured.
 
 Steps 1–3 are **not verified in this repository** — they require the live Supabase project. See the readiness scorecard.
 
-## Webhooks
+## Delivery receipts (provider webhooks)
 
-No inbound webhook endpoint exists in this repository (the only Edge Function is the dispatcher, which is called with a shared secret). There is therefore nothing to authenticate, replay-protect or deduplicate yet, and no adversarial webhook tests exist. When provider delivery receipts are built they must verify the provider signature and timestamp, reject replays, be idempotent on the provider event id, and ship with those adversarial tests.
+**Status: IMPLEMENTED and tested locally — NOT LIVE VERIFIED.** No real provider has called it; the signature code is verified against reference vectors, not against live Resend or Twilio traffic.
+
+`supabase/functions/notifications-webhook` (`verify_jwt = false`; authentication is the provider signature):
+
+- `POST ?provider=resend`: Svix signature (`svix-id`, `svix-timestamp`, `svix-signature`, HMAC-SHA256 with `RESEND_WEBHOOK_SECRET`), **replay window ±5 minutes**. Tracked events: sent, delivered, delivery_delayed, bounced, complained, failed.
+- `POST ?provider=twilio`: `X-Twilio-Signature` (HMAC-SHA1 over the exact public URL `TWILIO_WEBHOOK_URL` plus sorted parameters, keyed with `TWILIO_AUTH_TOKEN`). Statuses: accepted/queued/sending, sent, delivered, read, undelivered/failed.
+- Order of checks: method → size (64 KB) → signature → parse → record. Nothing is parsed or stored before the signature verifies; a provider without its secret configured rejects every call (fail closed); rejected calls log the reason only, never the payload.
+- **Idempotent:** `unique (provider, provider_event_id)`. Resend's event id is `svix-id`; Twilio's is `MessageSid:MessageStatus`. A replayed request returns 200 and changes nothing.
+- **Monotonic:** a later-arriving older status never regresses a delivery (`receipt_rank`).
+- **Message ids:** `record_delivery_receipt()` matches on the provider message id the dispatcher stored, and only within the provider's own channels (a Resend id cannot update an SMS delivery).
+- **Early receipts:** a receipt that arrives before the dispatcher has stored the message id is kept unmatched and applied by the scheduled job `reconcile_receipts` (every 10 minutes).
+- **Outbox untouched:** receipts write only `provider*`, `delivered_at`, `provider_error` and the event log — never `status`, lease, `worker_id`, `attempts` or `scheduled_for`, so claim / lease / `SKIP LOCKED` / fencing behave exactly as before (asserted in `delivery_receipts.test.sql`).
+- **Visibility:** `ops_health()` reports receipt failures (24 h), sent-without-receipt and unmatched receipts; alerts `notifications_receipt_failures` and `notifications_unmatched_receipts` (see OPERATIONS.md). Users still read only their own delivery rows.
+- **Retry monitoring:** outbox retries/dead letters are covered by the existing alerts (`notifications_backlog`, `notifications_dead_letter`, `notifications_leases_expiring`).
+
+Activation (not done here): deploy `notifications-webhook`; `supabase secrets set RESEND_WEBHOOK_SECRET=… TWILIO_WEBHOOK_URL=…` (Twilio reuses `TWILIO_AUTH_TOKEN`); register `https://<ref>.supabase.co/functions/v1/notifications-webhook?provider=resend` in Resend and `…?provider=twilio` as the Twilio status callback; enable pg_cron so `reconcile_receipts` runs.
+
+Tests: `supabase/functions/notifications-webhook/logic.test.ts` (reference vectors, tampered body, wrong secret/id/timestamp, missing headers, unconfigured secret, stale and future timestamps, multiple signatures, oversized ids, duplicate event ids) and `supabase/rls-tests/tests/delivery_receipts.test.sql` (idempotency, ordering, cross-channel isolation, reconciliation, untouched outbox state, service-role-only).
 
 ## Not built yet
 
-- Provider delivery receipts / bounce webhooks (would need an authenticated, replay-safe, idempotent endpoint — see `SECURITY.md`).
-- A delivery-status dashboard and alerting on `dead_letter` growth.
+- A delivery-status dashboard for tenant administrators (alerting on dead letters and receipt failures exists; see OPERATIONS.md).
 - Tenant-level channel kill-switch and non-secret sender configuration.

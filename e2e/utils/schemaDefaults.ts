@@ -476,7 +476,24 @@ export const TABLE_COLUMNS: Record<string, string[]> = {
     "provider_message_id",
     "error",
     "created_at",
-    "updated_at"
+    "updated_at",
+    "provider",
+    "provider_status",
+    "provider_status_at",
+    "delivered_at",
+    "provider_error"
+  ],
+  "notification_delivery_events": [
+    "id",
+    "provider",
+    "provider_event_id",
+    "provider_message_id",
+    "delivery_id",
+    "event_type",
+    "occurred_at",
+    "received_at",
+    "applied",
+    "detail"
   ],
   "notification_preferences": [
     "profile_id",
@@ -923,6 +940,9 @@ export const COLUMN_DEFAULTS: Record<string, Record<string, unknown>> = {
     "attempts": 0,
     "status": "pending"
   },
+  "notification_delivery_events": {
+    "applied": false
+  },
   "notification_preferences": {
     "email_enabled": false,
     "sms_enabled": false,
@@ -1108,6 +1128,12 @@ export const UNIQUE_KEYS: Record<string, string[][]> = {
     [
       "notification_id",
       "channel"
+    ]
+  ],
+  "notification_delivery_events": [
+    [
+      "provider",
+      "provider_event_id"
     ]
   ],
   "positions": [
@@ -1463,6 +1489,13 @@ export const ON_DELETE: Record<string, { child: string; column: string; action: 
       "child": "leave_requests",
       "column": "leave_type_id",
       "action": "restrict"
+    }
+  ],
+  "notification_deliveries": [
+    {
+      "child": "notification_delivery_events",
+      "column": "delivery_id",
+      "action": "set_null"
     }
   ],
   "notifications": [

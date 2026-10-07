@@ -44,7 +44,8 @@ Last reconciled: 2026-10-07. **CI run 123** (`workflow_dispatch` on the branch, 
 | Generated types and E2E schema match migrations | CI (`--check`) |
 | CI chain with release gate, least privilege, deploy-only-from-main | Repo; run on a branch via CI. The deploy job itself has never run (needs `main` + secrets). |
 | MFA enforced server-side (aal2 for privileged roles and enrolled users; fail-closed helpers) | Repo + Local (RLS suite + E2E). **Not live-verified.** See [MFA.md](./MFA.md) |
-| External message delivery to real providers | **Blocked** — needs deployed function, schedule, provider credentials |
+| Provider delivery receipts (signed, replay-protected, idempotent webhook; reconciliation job) | IMPLEMENTED — NOT LIVE VERIFIED (Repo + Local: Deno + RLS) |
+| External message delivery to real providers | **Blocked** — needs deployed functions, schedule, provider credentials |
 | Live RLS/grant state of the hosted project | **Blocked** — needs the live project |
 | Backups, PITR, restore drill, RPO/RTO | **Blocked** |
 | Branch protection / required checks | **Blocked** — GitHub integration permission |

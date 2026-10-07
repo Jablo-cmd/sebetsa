@@ -45,3 +45,12 @@ Deno.test('secret comparison fails closed', async () => {
   assertEquals(await secretMatches('wrong', 'right'), false);
   assertEquals(await secretMatches('right', 'right'), true);
 });
+
+Deno.test('provider receipt failures and unmatched receipts are warnings', () => {
+  const h = healthy();
+  h.notifications.receipt_failures_24h = 2;
+  h.notifications.unmatched_receipts = 25;
+  const a = evaluateAlerts(h);
+  assertEquals(a.map((x) => x.key).sort(), ['notifications_receipt_failures', 'notifications_unmatched_receipts']);
+  assertEquals(overallStatus(a), 'ok');
+});

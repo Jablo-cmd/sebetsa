@@ -2257,11 +2257,16 @@ export type Database = {
           claim_expires_at: string | null
           claimed_at: string | null
           created_at: string
+          delivered_at: string | null
           destination: string | null
           error: string | null
           id: string
           notification_id: string
+          provider: string | null
+          provider_error: string | null
           provider_message_id: string | null
+          provider_status: string | null
+          provider_status_at: string | null
           recipient_profile_id: string
           scheduled_for: string
           sent_at: string | null
@@ -2276,11 +2281,16 @@ export type Database = {
           claim_expires_at?: string | null
           claimed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           destination?: string | null
           error?: string | null
           id?: string
           notification_id: string
+          provider?: string | null
+          provider_error?: string | null
           provider_message_id?: string | null
+          provider_status?: string | null
+          provider_status_at?: string | null
           recipient_profile_id: string
           scheduled_for?: string
           sent_at?: string | null
@@ -2294,11 +2304,16 @@ export type Database = {
           claim_expires_at?: string | null
           claimed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           destination?: string | null
           error?: string | null
           id?: string
           notification_id?: string
+          provider?: string | null
+          provider_error?: string | null
           provider_message_id?: string | null
+          provider_status?: string | null
+          provider_status_at?: string | null
           recipient_profile_id?: string
           scheduled_for?: string
           sent_at?: string | null
@@ -2317,6 +2332,53 @@ export type Database = {
             foreignKeyName: "notification_deliveries_recipient_profile_id_fkey"
             columns: ["recipient_profile_id"]
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_delivery_events: {
+        Row: {
+          applied: boolean
+          delivery_id: string | null
+          detail: string | null
+          event_type: string
+          id: string
+          occurred_at: string
+          provider: string
+          provider_event_id: string
+          provider_message_id: string
+          received_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          applied?: boolean
+          delivery_id?: string | null
+          detail?: string | null
+          event_type: string
+          id?: string
+          occurred_at: string
+          provider: string
+          provider_event_id: string
+          provider_message_id: string
+          received_at?: string
+        }
+        Update: {
+          applied?: boolean
+          delivery_id?: string | null
+          detail?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          provider?: string
+          provider_event_id?: string
+          provider_message_id?: string
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_delivery_events_delivery_id_fkey"
+            columns: ["delivery_id"]
+            referencedRelation: "notification_deliveries"
             referencedColumns: ["id"]
           },
         ]
@@ -4124,6 +4186,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      apply_delivery_receipt: { Args: { p_event_id: string }; Returns: boolean }
       approve_leave_request: {
         Args: { p_decision_notes?: string; p_leave_request_id: string }
         Returns: {
@@ -4275,11 +4338,16 @@ export type Database = {
           claim_expires_at: string | null
           claimed_at: string | null
           created_at: string
+          delivered_at: string | null
           destination: string | null
           error: string | null
           id: string
           notification_id: string
+          provider: string | null
+          provider_error: string | null
           provider_message_id: string | null
+          provider_status: string | null
+          provider_status_at: string | null
           recipient_profile_id: string
           scheduled_for: string
           sent_at: string | null
@@ -5134,6 +5202,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      receipt_rank: { Args: { p_status: string }; Returns: number }
       recompute_leave_balance: {
         Args: {
           p_employee_id: string
@@ -5163,6 +5232,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      reconcile_delivery_receipts: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       record_asset_maintenance: {
         Args: {
           p_asset_id: string
@@ -5186,6 +5259,17 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      record_delivery_receipt: {
+        Args: {
+          p_detail?: string | null
+          p_event_id: string
+          p_event_type: string
+          p_message_id: string
+          p_occurred_at: string
+          p_provider: string
+        }
+        Returns: string
       }
       record_inventory_movement: {
         Args: {

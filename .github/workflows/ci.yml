@@ -81,7 +81,7 @@ jobs:
 
       - name: Type-check Edge Functions
         working-directory: supabase/functions
-        run: deno check notifications-dispatch/index.ts notifications-dispatch/logic.test.ts ops-health/index.ts ops-health/logic.test.ts
+        run: deno check notifications-dispatch/index.ts notifications-dispatch/logic.test.ts ops-health/index.ts ops-health/logic.test.ts notifications-webhook/index.ts notifications-webhook/logic.test.ts
 
       - name: Lint Edge Functions
         working-directory: supabase/functions
@@ -89,7 +89,7 @@ jobs:
 
       - name: Unit-test Edge Function logic
         working-directory: supabase/functions
-        run: deno test notifications-dispatch/ ops-health/
+        run: deno test notifications-dispatch/ ops-health/ notifications-webhook/
 
   rls-tests:
     name: RLS — migrations, policies, SECURITY DEFINER, generated types

@@ -460,3 +460,8 @@ enabled = true
 # x-health-secret header matches OPS_HEALTH_SECRET, and uses the service role only server-side.
 [functions.ops-health]
 verify_jwt = false
+
+# notifications-webhook receives provider callbacks (no Supabase JWT). Every request is authenticated by the
+# provider's signature (Svix for Resend, X-Twilio-Signature for Twilio); an unconfigured provider rejects all calls.
+[functions.notifications-webhook]
+verify_jwt = false

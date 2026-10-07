@@ -10,6 +10,9 @@ export interface OpsHealth {
     dead_letter: number;
     dead_letter_24h: number;
     expired_leases: number;
+    receipt_failures_24h?: number;
+    sent_without_receipt?: number;
+    unmatched_receipts?: number;
   };
   security: { failures_1h: number; events_24h: number };
 }
@@ -30,6 +33,8 @@ export const THRESHOLDS = {
   oldestPendingSeconds: 60 * 60,
   deadLetter24h: 1, // any message newly given up on
   expiredLeases: 5, // workers dying mid-delivery
+  receiptFailures24h: 1, // provider says failed / bounced / complained
+  unmatchedReceipts: 20, // receipts that cannot be tied to a delivery
   securityFailures1h: 10, // e.g. repeated permission/MFA refusals
 } as const;
 
@@ -58,6 +63,13 @@ export function evaluateAlerts(h: OpsHealth, now: Date = new Date()): Alert[] {
   }
   if (n.expired_leases >= THRESHOLDS.expiredLeases) {
     alerts.push({ key: 'notifications_leases_expiring', severity: 'warning', message: `${n.expired_leases} delivery leases expired without completing (workers dying?)` });
+  }
+
+  if ((n.receipt_failures_24h ?? 0) >= THRESHOLDS.receiptFailures24h) {
+    alerts.push({ key: 'notifications_receipt_failures', severity: 'warning', message: `${n.receipt_failures_24h} messages reported failed, bounced or complained by the provider in 24h` });
+  }
+  if ((n.unmatched_receipts ?? 0) >= THRESHOLDS.unmatchedReceipts) {
+    alerts.push({ key: 'notifications_unmatched_receipts', severity: 'warning', message: `${n.unmatched_receipts} provider receipts cannot be matched to a delivery` });
   }
 
   if (h.security.failures_1h >= THRESHOLDS.securityFailures1h) {

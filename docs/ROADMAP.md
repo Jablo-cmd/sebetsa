@@ -10,7 +10,7 @@ Written after the stabilisation pass, against the code as it stands. It describe
 | 2 | No frontend error reporting, uptime probe or worker alerting (`BCDR_OBSERVABILITY.md`) | Failures would be invisible in production. | S–M |
 | 3 | Live-environment verification has not happened (RLS state, backups, secrets, provider delivery, branch protection) | Source cannot prove hosted state. | M, blocked on access |
 | 4 | ~~Quiet hours are evaluated in UTC~~ — done: per-user IANA zone, organisation fallback, UTC last | — | — |
-| 5 | No provider delivery receipts / bounce handling | A message can be "sent" and never arrive. | M |
+| 5 | ~~No provider delivery receipts~~ — implemented (signed, idempotent webhook + reconciliation), not live verified | — | — |
 | 6 | Audit retention is now a scheduled, self-auditing job (activates with pg_cron); nobody is yet assigned to review the security category | An owner is an organisational decision. | S |
 | 7 | `react-router` is on v7 now; `@supabase/supabase-js` is pinned at 2.45.4 and carries two low advisories in `auth-js` | Upgrade after the next full E2E on a branch. | M |
 | 8 | Select fields in forms announce errors via `role="alert"` but are not programmatically tied with `aria-describedby` | Minor a11y debt. | S |

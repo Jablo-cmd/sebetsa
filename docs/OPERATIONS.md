@@ -31,13 +31,15 @@ Rules live in `supabase/functions/ops-health/logic.ts` (`THRESHOLDS`, `evaluateA
 | ≥ 10 deliveries pending > 15 min, or oldest > 1 h | `notifications_backlog` | critical |
 | Any delivery gave up (dead letter) in 24 h | `notifications_dead_letter` | critical |
 | ≥ 5 delivery leases expired unfinished | `notifications_leases_expiring` | warning |
+| Provider reported a message failed / bounced / complained (24 h) | `notifications_receipt_failures` | warning |
+| ≥ 20 provider receipts cannot be matched to a delivery | `notifications_unmatched_receipts` | warning |
 | ≥ 10 failed security events in 1 h | `security_failures` | critical |
 
 Delivery of the alert is the failing `uptime.yml` run (GitHub emails watchers) — deliberately lightweight. To route to Slack/PagerDuty/email, add a notification step to that workflow using a webhook secret, or point any external monitor at `HEALTH_URL` and alert on non-200. **Not configured; owner and channel must be chosen.**
 
 ## 4. Scheduled jobs
 
-Entry point `run_scheduled_job(name)` (service role / pg_cron only). Jobs: `recurring_tasks`, `escalate_overdue`, `expire_documents`, `expire_compliance`, `expire_qualifications`, `audit_retention`.
+Entry point `run_scheduled_job(name)` (service role / pg_cron only). Jobs: `recurring_tasks`, `escalate_overdue`, `expire_documents`, `expire_compliance`, `expire_qualifications`, `audit_retention`, `reconcile_receipts`.
 
 - **Idempotent and retry-safe:** one task per template per period; escalation only moves `open/in_progress` tasks to `escalated` once (one notification); expiry sweeps flip a row once; retention deletes only rows past the window.
 - **Concurrency:** a job-wide advisory lock; an overlapping run records `skipped_locked` and exits. Template rows are locked while generating.
