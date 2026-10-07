@@ -8,7 +8,7 @@
 - **Live** — verified against the hosted Supabase project, hosting and providers.
 - **Blocked** — cannot be established without access this repository does not have.
 
-Last reconciled: 2026-10-06, commit `8918193` (CI run 121; see the final report for its outcome).
+Last reconciled: 2026-10-07. CI run 122 (workflow_dispatch on the branch, commit `e4bfcc1`): quality, edge functions, RLS (incl. generated-types check), E2E (328 tests) and release gate all green; deploy correctly skipped (not `main`). Runs 120 and 121 were red on E2E (CI-only timing and popup issues, since fixed) and the release gate blocked them.
 
 ## Product areas
 
