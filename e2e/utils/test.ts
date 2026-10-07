@@ -42,6 +42,7 @@ export interface OpenOptions {
 export class AppHarness {
   readonly backends: FakeBackend[] = [];
   readonly offOrigin: string[] = [];
+  private seedGeneration = 0;
 
   constructor(private readonly page: Page) {}
 
@@ -84,8 +85,18 @@ export class AppHarness {
 
     if (options.signedIn !== false) {
       const stored = JSON.stringify(authSession(session, FIXED_NOW));
-      // Seed once: a reload must keep whatever session the app has since stored (e.g. after MFA enrolment).
-      await this.page.addInitScript(([key, value]) => { if (!window.localStorage.getItem(key)) window.localStorage.setItem(key, value); }, ['sebetsa-auth', stored]);
+      // Seed once per open(): a later open() replaces the session, but a plain reload keeps whatever the app
+      // has since stored (e.g. after MFA enrolment).
+      const generation = (this.seedGeneration += 1);
+      await this.page.addInitScript(
+        ([key, value, gen]) => {
+          const genKey = `${key}:seed-generation`;
+          if (Number(window.localStorage.getItem(genKey) ?? 0) >= Number(gen)) return;
+          window.localStorage.setItem(key, value);
+          window.localStorage.setItem(genKey, String(gen));
+        },
+        ['sebetsa-auth', stored, String(generation)],
+      );
     }
     return backend;
   }
