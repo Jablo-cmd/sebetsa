@@ -833,7 +833,7 @@ export function fakeJwt(session: Session, now: string): string {
     iat,
     exp: iat + 86400,
     app_metadata: { role: session.role, ...(session.tenantId ? { tenant_id: session.tenantId } : {}) },
-  })}.e2e-signature`;
+  })}.e2e-signature-ok`;
 }
 
 export function authSession(session: Session, now: string) {
