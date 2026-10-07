@@ -26,7 +26,7 @@ and — just as importantly — what it does *not* do until it is configured.
 
 - Only an **active** profile receives external messages.
 - A channel needs a destination: email uses `profiles.email`; SMS and WhatsApp use `profiles.phone`. If it is missing, nothing is queued for that channel.
-- **Quiet hours** defer a delivery to the end of the window. The times are stored without a time zone, so they are currently evaluated in **UTC**. A per-user time zone is a known gap — see the roadmap.
+- **Quiet hours** defer a delivery to the end of the window, evaluated in the recipient's own IANA time zone (`notification_preferences.time_zone`, chosen at `/notifications/settings`), else the organisation's `timezone`, else UTC — never an assumed country. Windows that cross midnight and daylight-saving changes are handled in local wall-clock time (`quiet_hours_release()`); an unknown zone is rejected on save and ignored by the evaluator. Covered by `quiet_hours_time_zone.test.sql` (multi-zone, half-hour offsets, spring-forward/fall-back, nonexistent local time).
 - It is idempotent (`unique (notification_id, channel)`), and in-app notifications are never blocked by it.
 - Covered by `supabase/rls-tests/tests/notification_enqueue.test.sql`.
 
@@ -62,5 +62,4 @@ No inbound webhook endpoint exists in this repository (the only Edge Function is
 
 - Provider delivery receipts / bounce webhooks (would need an authenticated, replay-safe, idempotent endpoint — see `SECURITY.md`).
 - A delivery-status dashboard and alerting on `dead_letter` growth.
-- Per-user time zone for quiet hours.
 - Tenant-level channel kill-switch and non-secret sender configuration.

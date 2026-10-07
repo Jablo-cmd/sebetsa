@@ -485,7 +485,8 @@ export const TABLE_COLUMNS: Record<string, string[]> = {
     "whatsapp_enabled",
     "quiet_hours_start",
     "quiet_hours_end",
-    "updated_at"
+    "updated_at",
+    "time_zone"
   ],
   "notifications": [
     "id",

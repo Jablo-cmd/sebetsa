@@ -13,6 +13,23 @@ import {
 } from '@/features/notifications/services/notificationPreferenceService';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
+/** Every IANA zone this browser knows; falls back to a short list on very old engines. */
+const TIME_ZONES: string[] = (() => {
+  try {
+    return (Intl as unknown as { supportedValuesOf: (key: string) => string[] }).supportedValuesOf('timeZone');
+  } catch {
+    return ['UTC', 'Africa/Johannesburg', 'Europe/London', 'America/New_York', 'Asia/Kolkata', 'Australia/Sydney'];
+  }
+})();
+
+function deviceZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return 'UTC';
+  }
+}
+
 export function NotificationSettingsPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
@@ -117,6 +134,24 @@ export function NotificationSettingsPage() {
                 />
               </label>
             </div>
+            <label className="flex max-w-sm flex-col gap-1 text-sm text-content-primary">
+              Time zone
+              <select
+                className="h-11 rounded-md border border-border-strong bg-surface-raised px-3 text-sm"
+                value={prefs.timeZone ?? ''}
+                onChange={(e) => setPrefs({ ...prefs, timeZone: e.target.value || null })}
+              >
+                <option value="">My organisation's time zone</option>
+                {TIME_ZONES.map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone}
+                  </option>
+                ))}
+              </select>
+              <span className="text-xs text-content-tertiary">
+                Quiet hours follow this zone, including daylight saving. Your device is currently set to {deviceZone()}.
+              </span>
+            </label>
           </fieldset>
 
           <div className="w-40">

@@ -2328,6 +2328,7 @@ export type Database = {
           quiet_hours_end: string | null
           quiet_hours_start: string | null
           sms_enabled: boolean
+          time_zone: string | null
           updated_at: string
           whatsapp_enabled: boolean
         }
@@ -2338,6 +2339,7 @@ export type Database = {
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           sms_enabled?: boolean
+          time_zone?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean
         }
@@ -2347,6 +2349,7 @@ export type Database = {
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           sms_enabled?: boolean
+          time_zone?: string | null
           updated_at?: string
           whatsapp_enabled?: boolean
         }
@@ -4870,6 +4873,7 @@ export type Database = {
       is_own_employee: { Args: { p_employee_id: string }; Returns: boolean }
       is_platform_admin: { Args: Record<PropertyKey, never>; Returns: boolean }
       is_scoped_role: { Args: Record<PropertyKey, never>; Returns: boolean }
+      is_valid_time_zone: { Args: { p_name: string }; Returns: boolean }
       job_escalate_overdue_tasks: {
         Args: { p_tenant_id: string }
         Returns: {
@@ -5051,6 +5055,7 @@ export type Database = {
       }
       mfa_roles: { Args: Record<PropertyKey, never>; Returns: string[] }
       mfa_satisfied: { Args: Record<PropertyKey, never>; Returns: boolean }
+      ops_health: { Args: Record<PropertyKey, never>; Returns: Json }
       provision_employee_login: {
         Args: {
           p_employee_id: string
@@ -5063,6 +5068,10 @@ export type Database = {
         }[]
       }
       purge_audit_log: { Args: { p_older_than?: string }; Returns: number }
+      quiet_hours_release: {
+        Args: { p_end: string; p_now: string; p_start: string; p_tz: string }
+        Returns: string
+      }
       reactivate_employee: {
         Args: { p_employee_id: string }
         Returns: {

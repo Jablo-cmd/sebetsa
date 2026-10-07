@@ -22,13 +22,13 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, phone,
   ('00000000-0000-0000-0000-0000000f0514', '00000000-0000-0000-0000-0000000f0501', 'Inactive', 'K', 'inactive-k@example.com', '+27000000004', 'employee', 'active'),
   ('00000000-0000-0000-0000-0000000f0515', '00000000-0000-0000-0000-0000000f0501', 'Quiet', 'K', 'quiet-k@example.com', '+27000000005', 'employee', 'active');
 
-insert into public.notification_preferences (profile_id, email_enabled, sms_enabled, whatsapp_enabled, quiet_hours_start, quiet_hours_end) values
-  ('00000000-0000-0000-0000-0000000f0511', true, true, true, null, null),
-  ('00000000-0000-0000-0000-0000000f0513', true, true, true, null, null),
-  ('00000000-0000-0000-0000-0000000f0514', true, true, true, null, null),
+insert into public.notification_preferences (profile_id, email_enabled, sms_enabled, whatsapp_enabled, quiet_hours_start, quiet_hours_end, time_zone) values
+  ('00000000-0000-0000-0000-0000000f0511', true, true, true, null, null, null),
+  ('00000000-0000-0000-0000-0000000f0513', true, true, true, null, null, null),
+  ('00000000-0000-0000-0000-0000000f0514', true, true, true, null, null, null),
   -- A window covering "now" in UTC whichever minute the suite runs (overnight form).
   ('00000000-0000-0000-0000-0000000f0515', true, false, false,
-     ((now() at time zone 'utc')::time - interval '1 hour')::time, ((now() at time zone 'utc')::time + interval '2 hours')::time);
+     ((now() at time zone 'utc')::time - interval '1 hour')::time, ((now() at time zone 'utc')::time + interval '2 hours')::time, 'UTC');
 
 update public.profiles set status = 'inactive' where id = '00000000-0000-0000-0000-0000000f0514';
 

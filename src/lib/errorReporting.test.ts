@@ -60,7 +60,7 @@ describe('reportError', () => {
     reportError('error', new Error('failed for a@b.co with password=hunter2'));
     reportError('error', new Error('failed for a@b.co with password=hunter2'));
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    const init = fetchSpy.mock.calls[0]![1] as RequestInit;
+    const init = fetchSpy.mock.calls[0]![1] as { credentials?: string; body?: unknown };
     expect(init.credentials).toBe('omit');
     const body = String(init.body);
     expect(body).not.toContain('hunter2');

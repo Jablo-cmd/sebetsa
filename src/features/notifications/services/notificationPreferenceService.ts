@@ -9,6 +9,8 @@ export interface NotificationPreferences {
   whatsappEnabled: boolean;
   quietHoursStart: string | null;
   quietHoursEnd: string | null;
+  /** IANA zone the quiet hours are evaluated in; null = the organisation's zone. */
+  timeZone: string | null;
 }
 
 const DEFAULTS: NotificationPreferences = {
@@ -17,6 +19,7 @@ const DEFAULTS: NotificationPreferences = {
   whatsappEnabled: false,
   quietHoursStart: null,
   quietHoursEnd: null,
+  timeZone: null,
 };
 
 function toPreferences(row: NotificationPreferenceRow): NotificationPreferences {
@@ -26,6 +29,7 @@ function toPreferences(row: NotificationPreferenceRow): NotificationPreferences 
     whatsappEnabled: row.whatsapp_enabled,
     quietHoursStart: row.quiet_hours_start?.slice(0, 5) ?? null,
     quietHoursEnd: row.quiet_hours_end?.slice(0, 5) ?? null,
+    timeZone: row.time_zone,
   };
 }
 
@@ -51,6 +55,7 @@ async function saveMyPreferences(profileId: string, prefs: NotificationPreferenc
         whatsapp_enabled: prefs.whatsappEnabled,
         quiet_hours_start: prefs.quietHoursStart,
         quiet_hours_end: prefs.quietHoursEnd,
+        time_zone: prefs.timeZone,
       },
       { onConflict: 'profile_id' },
     )

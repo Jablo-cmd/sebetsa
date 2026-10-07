@@ -60,3 +60,23 @@ test('every internal role can reach their own preferences', async ({ page, app }
     await expect(page.getByRole('heading', { name: 'Notification preferences' })).toBeVisible();
   }
 });
+
+test('quiet hours are saved with the chosen time zone, and "organisation time zone" clears it', async ({ page, app }) => {
+  const backend = await app.open('employee');
+  await page.goto('/notifications/settings');
+  await expect(page.getByLabel('Time zone')).toHaveValue('');
+
+  await page.getByLabel('From', { exact: true }).fill('22:00');
+  await page.getByLabel('To', { exact: true }).fill('06:00');
+  await page.getByLabel('Time zone').selectOption('Africa/Maputo');
+  await page.getByRole('button', { name: 'Save preferences' }).click();
+  await expect(page.getByText('Notification preferences saved.')).toBeVisible();
+  expect(backend.find('notification_preferences', { profile_id: PERSONAS.employee.profileId })).toMatchObject({ time_zone: 'Africa/Maputo' });
+
+  await page.reload();
+  await expect(page.getByLabel('Time zone')).toHaveValue('Africa/Maputo');
+  await page.getByLabel('Time zone').selectOption('');
+  await page.getByRole('button', { name: 'Save preferences' }).click();
+  await expect(page.getByText('Notification preferences saved.')).toBeVisible();
+  expect(backend.find('notification_preferences', { profile_id: PERSONAS.employee.profileId })).toMatchObject({ time_zone: null });
+});

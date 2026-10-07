@@ -9,14 +9,14 @@ Written after the stabilisation pass, against the code as it stands. It describe
 | 1 | ~~MFA is not enforced server-side~~ — done, see `MFA.md`; live verification pending | — | — |
 | 2 | No frontend error reporting, uptime probe or worker alerting (`BCDR_OBSERVABILITY.md`) | Failures would be invisible in production. | S–M |
 | 3 | Live-environment verification has not happened (RLS state, backups, secrets, provider delivery, branch protection) | Source cannot prove hosted state. | M, blocked on access |
-| 4 | Quiet hours are evaluated in UTC | Deliveries may be held at the wrong local time. | S (add `profiles.time_zone`) |
+| 4 | ~~Quiet hours are evaluated in UTC~~ — done: per-user IANA zone, organisation fallback, UTC last | — | — |
 | 5 | No provider delivery receipts / bounce handling | A message can be "sent" and never arrive. | M |
-| 6 | Audit retention is defined but not scheduled; nobody reviews the security category | Controls exist without an operator. | S |
+| 6 | Audit retention is now a scheduled, self-auditing job (activates with pg_cron); nobody is yet assigned to review the security category | An owner is an organisational decision. | S |
 | 7 | `react-router` is on v7 now; `@supabase/supabase-js` is pinned at 2.45.4 and carries two low advisories in `auth-js` | Upgrade after the next full E2E on a branch. | M |
 | 8 | Select fields in forms announce errors via `role="alert"` but are not programmatically tied with `aria-describedby` | Minor a11y debt. | S |
 | 9 | GitHub Actions are pinned by version tag, not commit SHA | SHA pinning needs verified SHAs from upstream; Dependabot is configured to keep them current. | S |
 | 10 | Region/client/site/contract create is not atomic with their links in every case (a contract is kept if linking its sites fails; the user is told) | Rare partial state. | S (`create_contract` RPC) |
-| 11 | Nightly/scheduled jobs (recurring tasks, escalation, expired-document sync, audit purge, delivery dispatch) are manual buttons or undefined schedules | Operations depend on someone clicking. | M (`pg_cron`) |
+| 11 | Scheduled jobs are implemented (`run_scheduled_job`, `schedule_platform_jobs()`); activation needs pg_cron on the live project, and the delivery dispatcher still needs its own schedule | Operations depend on enabling the schedule. | S |
 
 ## 1. Product roadmap
 
