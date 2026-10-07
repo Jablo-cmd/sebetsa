@@ -1,3 +1,4 @@
+import type { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 import type { SiteAssignmentRow } from '@/lib/dbTypes';
 import type {
@@ -62,7 +63,7 @@ async function createSiteAssignment(tenantId: string, input: CreateSiteAssignmen
 }
 
 async function updateSiteAssignment(id: string, updates: UpdateSiteAssignmentInput): Promise<SiteAssignment> {
-  const payload: Record<string, unknown> = {};
+  const payload: Database['public']['Tables']['site_assignments']['Update'] = {};
   if (updates.siteId !== undefined) payload.site_id = updates.siteId;
   if (updates.employeeId !== undefined) payload.employee_id = updates.employeeId;
   if (updates.roleOnSite !== undefined) payload.role_on_site = updates.roleOnSite;

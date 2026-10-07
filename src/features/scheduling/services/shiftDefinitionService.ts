@@ -1,3 +1,4 @@
+import type { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 import type { ShiftDefinitionRow } from '@/lib/dbTypes';
 import type {
@@ -49,7 +50,7 @@ async function createShiftDefinition(tenantId: string, input: CreateShiftDefinit
 }
 
 async function updateShiftDefinition(id: string, updates: UpdateShiftDefinitionInput): Promise<ShiftDefinition> {
-  const payload: Record<string, unknown> = {};
+  const payload: Database['public']['Tables']['shift_definitions']['Update'] = {};
   if (updates.name !== undefined) payload.name = updates.name;
   if (updates.startTime !== undefined) payload.start_time = updates.startTime;
   if (updates.endTime !== undefined) payload.end_time = updates.endTime;

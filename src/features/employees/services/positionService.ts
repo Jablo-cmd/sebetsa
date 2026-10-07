@@ -1,3 +1,4 @@
+import type { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 import type { PositionRow } from '@/lib/dbTypes';
 import type { Position, CreatePositionInput, UpdatePositionInput } from '@/features/employees/types/employee.types';
@@ -41,7 +42,7 @@ async function createPosition(tenantId: string, input: CreatePositionInput): Pro
 }
 
 async function updatePosition(id: string, updates: UpdatePositionInput): Promise<Position> {
-  const payload: Record<string, unknown> = {};
+  const payload: Database['public']['Tables']['positions']['Update'] = {};
   if (updates.title !== undefined) payload.title = updates.title;
   if (updates.departmentId !== undefined) payload.department_id = updates.departmentId;
   if (updates.status !== undefined) payload.status = updates.status;

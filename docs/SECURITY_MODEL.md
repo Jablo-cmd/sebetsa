@@ -75,7 +75,25 @@ The suite asserts that all thirteen rules are installed and that the guards exis
 ## 8. Browser and bundle
 
 - The browser holds only the anon key. CI refuses to deploy a bundle that contains `service_role` strings.
-- Dependency audit runs in CI (`npm audit --omit=dev --audit-level=high`). Known moderate/low runtime advisories are listed in the readiness report.
+- Dependency audit runs in CI (`npm audit --omit=dev --audit-level=high`).
+- **Runtime dependencies: 0 known advisories** (`npm audit --omit=dev`). `@supabase/supabase-js` was upgraded 2.45.4 → 2.117.2, which clears the two `@supabase/auth-js` advisories (GHSA-8r88-6cj9-9fh5, malformed-input path routing); `react-router` is on v7 (7.18.4). The upgrade tightened the client's generated typings; the eight resulting call sites were typed properly (no casts), and typecheck, lint, unit tests, build and the full E2E suite were rerun.
+- **Remaining advisories are build/test tooling only (13: 2 critical, 6 high, 5 moderate); none ships in the browser bundle.** Each needs a major-version jump that was deliberately not taken in a security-closure pass:
+
+  | Package | Advisory class | Needs | Exposure |
+  | ------- | -------------- | ----- | -------- |
+  | `vitest` / `tinypool` (critical) | prototype-pollution gadget in worker options → RCE | vitest 5 | Test runner executing only this repository's code in CI and locally; not reachable from user input or production |
+  | `vite` / `esbuild` (high/moderate) | any website can send requests to the **dev server** and read responses | vite 8 | Development server only; do not browse untrusted sites while `npm run dev` is running |
+  | `tailwindcss` → `braces`, `micromatch`, `chokidar`, `fast-glob`, `postcss-*` (high/moderate) | ReDoS / CPU exhaustion in glob and selector parsing | tailwindcss 4 | Build time over trusted source files |
+
+  Follow-up (tracked in the roadmap): move to vite 8 / vitest 5 / tailwind 4 in a dedicated branch with the full gate, then re-run the audit.
+
+## 10. CI/CD security
+
+- **Actions are pinned to commit SHAs** (all seven distinct actions in `.github/workflows/`, each annotated with its version, resolved from the upstream tags with `git ls-remote`). Dependabot (`github-actions` ecosystem, weekly) raises the bump PRs, so pins stay current.
+- **Minimal token permissions:** workflow default `contents: read`; only the deploy job adds `pages: write` and `id-token: write`; `uptime.yml` declares `permissions: {}`. Every checkout uses `persist-credentials: false`.
+- **Secrets:** the only secrets are the public anon-key build variables and the optional `OPS_HEALTH_SECRET`; none is exposed to jobs that run pull-request code. There is no `pull_request_target` trigger, so a fork's pull request runs with a read-only token and no secrets. The bundle is scanned for `service_role` strings before deploy.
+- **Release gate and deploy:** quality → edge functions → RLS → E2E → release-gate; deploy runs only for a push to `main` after the gate, in the `github-pages` environment. `workflow_dispatch` runs every gate on any branch but never deploys.
+- **Not verifiable from the repository:** branch protection / required checks and environment reviewers are GitHub settings. They are **not confirmed**; configure `main` to require the release-gate check and reviews.
 
 ## 9. Not covered
 

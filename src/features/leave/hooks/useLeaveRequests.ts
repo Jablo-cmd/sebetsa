@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { leaveService } from '@/features/leave/services/leaveService';
-import type { LeaveRequest } from '@/features/leave/types/leave.types';
+import type { LeaveRequest, LeaveStatus } from '@/features/leave/types/leave.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
 export interface UseLeaveRequestsResult {
@@ -12,7 +12,7 @@ export interface UseLeaveRequestsResult {
 
 export function useLeaveRequests(
   tenantId: string | undefined,
-  filters: { employeeId?: string; status?: string } = {},
+  filters: { employeeId?: string; status?: LeaveStatus } = {},
 ): UseLeaveRequestsResult {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { taskService } from '@/features/tasks/services/taskService';
-import type { Task } from '@/features/tasks/types/task.types';
+import type { Task, TaskStatus } from '@/features/tasks/types/task.types';
 import { getDbErrorMessage } from '@/lib/dbErrors';
 
 export interface UseTasksResult {
@@ -10,7 +10,7 @@ export interface UseTasksResult {
   refetch: () => Promise<void>;
 }
 
-export function useTasks(tenantId: string | undefined, filters: { assigneeId?: string; status?: string[] } = {}): UseTasksResult {
+export function useTasks(tenantId: string | undefined, filters: { assigneeId?: string; status?: TaskStatus[] } = {}): UseTasksResult {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

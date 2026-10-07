@@ -30,7 +30,7 @@ function toLeaveRequest(row: LeaveRequestRow): LeaveRequest {
 
 /** All leave requests visible to the caller under RLS — own rows for a plain
  * employee, tenant-wide for a leave.view-broad role (see can_view_leave_broad). */
-async function getLeaveRequests(tenantId: string, filters: { employeeId?: string; status?: string } = {}): Promise<LeaveRequest[]> {
+async function getLeaveRequests(tenantId: string, filters: { employeeId?: string; status?: LeaveRequestRow['status'] } = {}): Promise<LeaveRequest[]> {
   let query = supabase.from('leave_requests').select('*').eq('tenant_id', tenantId);
   if (filters.employeeId) query = query.eq('employee_id', filters.employeeId);
   if (filters.status) query = query.eq('status', filters.status);
@@ -97,7 +97,7 @@ async function revokeLeaveRequest(id: string, decisionNotes?: string): Promise<L
  */
 async function getLeaveRequestsSummary(
   tenantId: string,
-  filters: { employeeId?: string; status?: string } = {},
+  filters: { employeeId?: string; status?: LeaveRequestRow['status'] } = {},
 ): Promise<LeaveRequestSummary[]> {
   let query = supabase.from('leave_requests').select(SUMMARY_COLUMNS).eq('tenant_id', tenantId);
   if (filters.employeeId) query = query.eq('employee_id', filters.employeeId);

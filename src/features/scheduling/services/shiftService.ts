@@ -1,3 +1,4 @@
+import type { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 import type { ShiftRow } from '@/lib/dbTypes';
 import type { Shift, CreateShiftInput, UpdateShiftInput, ShiftsListFilters } from '@/features/scheduling/types/scheduling.types';
@@ -55,7 +56,7 @@ async function createShift(tenantId: string, input: CreateShiftInput): Promise<S
 }
 
 async function updateShift(id: string, updates: UpdateShiftInput): Promise<Shift> {
-  const payload: Record<string, unknown> = {};
+  const payload: Database['public']['Tables']['shifts']['Update'] = {};
   if (updates.siteId !== undefined) payload.site_id = updates.siteId;
   if (updates.employeeId !== undefined) payload.employee_id = updates.employeeId;
   if (updates.supervisorId !== undefined) payload.supervisor_id = updates.supervisorId;

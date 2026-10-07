@@ -1,3 +1,4 @@
+import type { Database } from '@/lib/database.types';
 import { supabase } from '@/lib/supabase';
 import type { TeamRow } from '@/lib/dbTypes';
 import type { Team, CreateTeamInput, UpdateTeamInput, TeamMember } from '@/features/teams/types/team.types';
@@ -47,7 +48,7 @@ async function createTeam(tenantId: string, input: CreateTeamInput): Promise<Tea
 }
 
 async function updateTeam(id: string, updates: UpdateTeamInput): Promise<Team> {
-  const payload: Record<string, unknown> = {};
+  const payload: Database['public']['Tables']['teams']['Update'] = {};
   if (updates.name !== undefined) payload.name = updates.name;
   if (updates.siteId !== undefined) payload.site_id = updates.siteId;
   if (updates.leadEmployeeId !== undefined) payload.lead_employee_id = updates.leadEmployeeId;

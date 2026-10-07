@@ -12,9 +12,9 @@ Written after the stabilisation pass, against the code as it stands. It describe
 | 4 | ~~Quiet hours are evaluated in UTC~~ — done: per-user IANA zone, organisation fallback, UTC last | — | — |
 | 5 | ~~No provider delivery receipts~~ — implemented (signed, idempotent webhook + reconciliation), not live verified | — | — |
 | 6 | Audit retention is now a scheduled, self-auditing job (activates with pg_cron); nobody is yet assigned to review the security category | An owner is an organisational decision. | S |
-| 7 | `react-router` is on v7 now; `@supabase/supabase-js` is pinned at 2.45.4 and carries two low advisories in `auth-js` | Upgrade after the next full E2E on a branch. | M |
+| 7 | Runtime dependencies are clean (`supabase-js` 2.117.2, `react-router` 7). Build/test tooling still has advisories needing vite 8 / vitest 5 / tailwind 4 (see `SECURITY_MODEL.md` §8) | Dev-only exposure; do on a dedicated branch. | M |
 | 8 | Select fields in forms announce errors via `role="alert"` but are not programmatically tied with `aria-describedby` | Minor a11y debt. | S |
-| 9 | GitHub Actions are pinned by version tag, not commit SHA | SHA pinning needs verified SHAs from upstream; Dependabot is configured to keep them current. | S |
+| 9 | ~~GitHub Actions pinned by tag~~ — now pinned to commit SHAs; Dependabot keeps them current. Branch protection still unverified | Needs repository admin. | S |
 | 10 | Region/client/site/contract create is not atomic with their links in every case (a contract is kept if linking its sites fails; the user is told) | Rare partial state. | S (`create_contract` RPC) |
 | 11 | Scheduled jobs are implemented (`run_scheduled_job`, `schedule_platform_jobs()`); activation needs pg_cron on the live project, and the delivery dispatcher still needs its own schedule | Operations depend on enabling the schedule. | S |
 

@@ -68,7 +68,7 @@ function toTemplate(row: TaskTemplateRow): TaskTemplate {
   };
 }
 
-async function getTasks(tenantId: string, filters: { assigneeId?: string; status?: string[] } = {}): Promise<Task[]> {
+async function getTasks(tenantId: string, filters: { assigneeId?: string; status?: TaskRow['status'][] } = {}): Promise<Task[]> {
   let query = supabase.from('tasks').select('*').eq('tenant_id', tenantId);
   if (filters.assigneeId) query = query.eq('assignee_id', filters.assigneeId);
   if (filters.status?.length) query = query.in('status', filters.status);
