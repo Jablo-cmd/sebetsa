@@ -22,14 +22,15 @@ An honest assessment. Sebetsa is a client application plus a hosted Supabase pro
 6. **Hosting / domain recovery.** The site deploys to GitHub Pages; a custom domain, if any, and its DNS records must be documented by whoever owns them. No production domain is assumed in this repository.
 7. **Provider outage.** If Resend or Twilio is down, deliveries retry with backoff and dead-letter after five attempts; in-app notifications are unaffected. Add an alert on `dead_letter` growth.
 
-## Observability gaps
+## Observability
 
-- **No frontend error reporting.** Uncaught client errors are not collected anywhere. Add an error tracker (and a React error boundary that reports) before go-live.
-- **No uptime or synthetic checks.** Add a probe of the app URL and a Supabase health/auth check.
-- **No database or API metrics wired in.** Use Supabase's built-in reports and log drains; alert on error-rate, slow queries, connection saturation and storage growth.
-- **Worker alerting.** Count of `pending` deliveries older than 15 minutes and of `dead_letter` rows should page someone; both are single queries on `notification_deliveries`.
-- **Audit review.** Nobody is yet assigned to review the `security` category; define an owner and cadence.
-- **Request correlation.** `audit_log.request_id` is populated from `x-request-id` when a gateway sets it; the browser does not currently generate one.
+See [OPERATIONS.md](./OPERATIONS.md) for the implemented mechanisms (client error reporting with scrubbing, structured Edge Function logs, the `ops-health` endpoint, `uptime.yml`, alert rules, scheduled jobs, audit retention). What remains is configuration and ownership, not code:
+
+- Set `VITE_ERROR_REPORT_URL` to a real collector.
+- Deploy `ops-health`, set its secret and the repository variables so the probe actually runs.
+- Choose an alert channel and an owner; assign a security-log reviewer.
+- Use Supabase's built-in reports and log drains for API error rate, slow queries, connections and storage growth (not wired here).
+- `audit_log.request_id` is populated from `x-request-id` when a gateway sets it; the browser does not generate one.
 
 ## Assessment
 
@@ -38,6 +39,6 @@ An honest assessment. Sebetsa is a client application plus a hosted Supabase pro
 | Rebuild from source | GREEN (verified in CI) |
 | Backups, PITR, restore drill | BLOCKED — needs the live project |
 | RPO / RTO | BLOCKED — cannot be set before a restore is timed |
-| Frontend/error observability | RED — absent |
-| Worker observability | AMBER — structured logs exist; no alerts |
+| Frontend/error observability | AMBER — implemented and tested; sends nothing until a collector URL is configured |
+| Worker observability | AMBER — logs, health endpoint and alert rules implemented; delivery channel and live probe not configured |
 | Incident runbooks | AMBER — outlined above and in `SECURITY.md`; untested |

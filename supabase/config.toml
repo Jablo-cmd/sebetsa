@@ -455,3 +455,8 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# ops-health is probed by monitors that hold no Supabase JWT. It discloses only ok/degraded unless the
+# x-health-secret header matches OPS_HEALTH_SECRET, and uses the service role only server-side.
+[functions.ops-health]
+verify_jwt = false

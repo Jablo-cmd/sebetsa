@@ -1,0 +1,50 @@
+name: Uptime and health probe
+
+# Probes the deployed app and the ops-health Edge Function. A failing run is the alert: GitHub emails
+# people watching the repository's Actions. Skips (without failing) until the variables below are set,
+# so an unconfigured repository is never reported healthy by accident — it says it was not checked.
+#   Repository variables: APP_URL (public app URL), HEALTH_URL (…/functions/v1/ops-health)
+#   Repository secret:    OPS_HEALTH_SECRET (same value as the function's secret; optional — enables detail)
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      APP_URL: ${{ vars.APP_URL }}
+      HEALTH_URL: ${{ vars.HEALTH_URL }}
+      OPS_HEALTH_SECRET: ${{ secrets.OPS_HEALTH_SECRET }}
+    steps:
+      - name: Probe app and backend
+        run: |
+          set -u
+          failed=0
+          if [ -z "${APP_URL}" ] && [ -z "${HEALTH_URL}" ]; then
+            echo "::notice::APP_URL and HEALTH_URL are not set: nothing was probed."
+            exit 0
+          fi
+
+          if [ -n "${APP_URL}" ]; then
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 --retry 2 --retry-delay 5 "${APP_URL}") || code=000
+            echo "app: HTTP ${code}"
+            [ "${code}" = "200" ] || { echo "::error::App is not serving (HTTP ${code})"; failed=1; }
+          fi
+
+          if [ -n "${HEALTH_URL}" ]; then
+            body=$(mktemp)
+            code=$(curl -s -o "${body}" -w '%{http_code}' --max-time 20 --retry 2 --retry-delay 5 \
+              ${OPS_HEALTH_SECRET:+-H "x-health-secret: ${OPS_HEALTH_SECRET}"} "${HEALTH_URL}") || code=000
+            echo "backend health: HTTP ${code}"
+            # Only alert keys and status are printed (no counts of people, no destinations).
+            if [ -s "${body}" ]; then python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print({"status": d.get("status"), "alerts": [a["key"] for a in d.get("alerts", [])]})' "${body}" || true; fi
+            [ "${code}" = "200" ] || { echo "::error::Backend health is degraded or unreachable (HTTP ${code})"; failed=1; }
+          fi
+
+          exit ${failed}

@@ -39,7 +39,7 @@ Last reconciled: 2026-10-07. **CI run 123** (`workflow_dispatch` on the branch, 
 | RLS + FORCE RLS on every table; no anon grants; definer functions pin `search_path` | Repo + Local + CI (catalogue suite) |
 | Scope-aware authorisation (restrictive policies, fail closed) | Repo + Local + CI |
 | Separation of duties (13 rules, guard triggers) | Repo + Local + CI |
-| Immutable, categorised audit trail; retention rule defined | Repo + Local + CI. Purge not scheduled. |
+| Immutable, categorised audit trail; scheduled, self-auditing retention job | Repo + Local. Schedule activates with pg_cron |
 | Deactivated accounts locked out in the database | Repo + Local + CI |
 | Generated types and E2E schema match migrations | CI (`--check`) |
 | CI chain with release gate, least privilege, deploy-only-from-main | Repo; run on a branch via CI. The deploy job itself has never run (needs `main` + secrets). |
@@ -49,7 +49,8 @@ Last reconciled: 2026-10-07. **CI run 123** (`workflow_dispatch` on the branch, 
 | Backups, PITR, restore drill, RPO/RTO | **Blocked** |
 | Branch protection / required checks | **Blocked** — GitHub integration permission |
 | Production domain, secrets presence | **Blocked** — hosting configuration not provided; none is assumed |
-| Frontend error reporting, uptime, alerting | **Absent** |
+| Frontend error reporting, health endpoint, uptime probe, alert rules | Repo + Local (unit + RLS + Deno). **Not live:** needs a collector URL, deployed `ops-health`, repo variables, an alert channel. See [OPERATIONS.md](./OPERATIONS.md) |
+| Scheduled jobs (recurring tasks, escalation, expiry sweeps, audit retention) | Repo + Local (RLS suite). pg_cron schedule **not enabled** until the extension is turned on in the live project |
 | GPS / geofencing / tours / offline | Not built (roadmap P3) |
 | Command centre | Not built (roadmap P1) |
 
