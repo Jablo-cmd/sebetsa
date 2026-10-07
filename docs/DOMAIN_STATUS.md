@@ -8,7 +8,7 @@
 - **Live** — verified against the hosted Supabase project, hosting and providers.
 - **Blocked** — cannot be established without access this repository does not have.
 
-Last reconciled: 2026-10-07. CI run 122 (workflow_dispatch on the branch, commit `e4bfcc1`): quality, edge functions, RLS (incl. generated-types check), E2E (328 tests) and release gate all green; deploy correctly skipped (not `main`). Runs 120 and 121 were red on E2E (CI-only timing and popup issues, since fixed) and the release gate blocked them.
+Last reconciled: 2026-10-07. **CI run 123** (`workflow_dispatch` on the branch, commit `5ffd3be`, https://github.com/Jablo-cmd/sebetsa/actions/runs/37568931167): quality, edge functions, RLS (21 suites + two-session outbox concurrency test + generated-types check), E2E (328 tests) and release gate all green; deploy correctly skipped (not `main`). Earlier runs 120 and 121 were red on E2E (CI-only timing/popup issues, since fixed) and the release gate blocked them; run 122 was green on the previous commit. Nothing is verified against a live Supabase project.
 
 ## Product areas
 
