@@ -23,7 +23,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, status
   ('00000000-0000-0000-0000-000000004903', '00000000-0000-0000-0000-000000000491', 'Site', 'MgrQ1', 'site-mgr-q1@example.com', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004901","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004901","app_metadata":{"role":"hr_user"}}';
 
 insert into public.employees (id, tenant_id, profile_id, employee_number, first_name, last_name, employment_status) values
   ('00000000-0000-0000-0000-000000005491', '00000000-0000-0000-0000-000000000491', '00000000-0000-0000-0000-000000004902', 'EMP-Q1', 'Emp', 'Q1', 'active');
@@ -49,7 +49,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004902","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004902","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_level public.proficiency_level;
@@ -76,7 +76,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004903","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004903","app_metadata":{"role":"site_manager"}}';
 
 do $$
 declare v_count int;
@@ -92,7 +92,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004901","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004901","app_metadata":{"role":"hr_user"}}';
 
 do $$
 declare v_id uuid; v_status public.credential_status;
@@ -156,7 +156,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004903","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004903","app_metadata":{"role":"site_manager"}}';
 
 do $$
 declare v_review_id uuid;
@@ -175,7 +175,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004902","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004902","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_review_id uuid; v_status public.performance_review_status;
@@ -189,7 +189,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004901","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004901","app_metadata":{"role":"hr_user"}}';
 
 do $$
 declare v_review_id uuid; v_status public.performance_review_status;
@@ -222,7 +222,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000004902","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000004902","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_id uuid; v_status text;

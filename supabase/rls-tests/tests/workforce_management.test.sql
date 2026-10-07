@@ -33,7 +33,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000a1', 'Admin', 'A', 'admin-a@example.com', 'organization_administrator', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
 
 -- Org A structure
 insert into public.departments (id, tenant_id, name) values
@@ -58,7 +58,7 @@ insert into public.sites (id, tenant_id, client_id, name) values
   ('00000000-0000-0000-0000-000000004002', '00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-000000003002', 'Site B');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
 
 -- Cross-tenant employee.department_id should be rejected
 do $$
@@ -160,7 +160,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-0000000000a4', '00000000-0000-0000-0000-0000000000a1', 'Site', 'Mgr', 'sitemgr-a@example.com', 'site_manager', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a4","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a4","app_metadata":{"role":"site_manager"}}';
 
 insert into public.teams (tenant_id, name, site_id) values
   ('00000000-0000-0000-0000-0000000000a1', 'Team by Site Manager', '00000000-0000-0000-0000-000000004001');

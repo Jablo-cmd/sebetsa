@@ -28,7 +28,7 @@ insert into public.user_scopes (tenant_id, profile_id, scope_type, scope_id)
 values ('00000000-0000-0000-0000-0000000f0601', '00000000-0000-0000-0000-0000000f0612', 'site', '00000000-0000-0000-0000-0000000f0631');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0611","app_metadata":{"role":"operations_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0611","app_metadata":{"role":"operations_manager"}}';
 
 do $$
 declare v_task public.tasks; v_labels text[]; v_creator uuid;
@@ -60,7 +60,7 @@ begin
 end $$;
 
 -- A scoped site manager can create tasks only inside their scope.
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0612","app_metadata":{"role":"site_manager"}}', true);
+select set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0612","app_metadata":{"role":"site_manager"}}', true);
 do $$
 declare v_task public.tasks;
 begin
@@ -76,7 +76,7 @@ begin
 end $$;
 
 -- An employee cannot create tasks at all.
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0613","app_metadata":{"role":"employee"}}', true);
+select set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0613","app_metadata":{"role":"employee"}}', true);
 do $$
 begin
   begin

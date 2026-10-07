@@ -26,7 +26,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-0000000000e4', '00000000-0000-0000-0000-0000000000e1', 'Emp', 'Two', 'employee-e2@example.com', 'employee', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.clients (id, tenant_id, name) values ('00000000-0000-0000-0000-000000003201', '00000000-0000-0000-0000-0000000000e1', 'Client E');
 insert into public.sites (id, tenant_id, client_id, name) values ('00000000-0000-0000-0000-000000004201', '00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-000000003201', 'Site E');
@@ -50,7 +50,7 @@ insert into public.employees (id, tenant_id, employee_number, first_name, last_n
   ('00000000-0000-0000-0000-000000005901', '00000000-0000-0000-0000-0000000000f1', 'F901', 'Other', 'TenantEmployee', current_date);
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
 
 -- ---------------------------------------------------------------------------
 -- clock_in: cross-tenant rejection, self-service, late computation.
@@ -79,7 +79,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e4","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000e4","app_metadata":{"role":"employee"}}';
 
 do $$
 begin
@@ -96,7 +96,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e3","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000e3","app_metadata":{"role":"employee"}}';
 
 do $$
 declare
@@ -207,7 +207,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare
@@ -248,7 +248,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e4","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000e4","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_count int;
@@ -290,7 +290,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000e2","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.shifts (id, tenant_id, site_id, employee_id, starts_at, ends_at)
 values ('00000000-0000-0000-0000-000000009202', '00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-000000004201', '00000000-0000-0000-0000-000000005202', current_date + interval '1 day' + interval '8 hours', current_date + interval '1 day' + interval '17 hours');

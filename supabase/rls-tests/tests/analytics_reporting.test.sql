@@ -29,7 +29,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, status
   ('00000000-0000-0000-0000-000000005902', '00000000-0000-0000-0000-000000000591', 'Emp', 'R1', 'employee-r1@example.com', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000005901","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000005901","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.employees (id, tenant_id, profile_id, employee_number, first_name, last_name, employment_status) values
   ('00000000-0000-0000-0000-000000006591', '00000000-0000-0000-0000-000000000591', '00000000-0000-0000-0000-000000005902', 'EMP-R1', 'Emp', 'R1', 'active'),
@@ -69,7 +69,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000005902","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000005902","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_overdue bigint;
@@ -95,7 +95,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, status
   ('00000000-0000-0000-0000-000000005903', '00000000-0000-0000-0000-000000000592', 'Admin', 'R2', 'admin-r2@example.com', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000005903","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000005903","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_employees bigint;

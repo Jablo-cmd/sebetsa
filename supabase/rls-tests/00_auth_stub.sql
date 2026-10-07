@@ -33,6 +33,16 @@ create table auth.users (
   banned_until timestamptz
 );
 
+-- GoTrue's MFA factors (only the columns the application's policies read).
+create table auth.mfa_factors (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  factor_type text not null default 'totp',
+  status text not null default 'unverified' check (status in ('unverified', 'verified')),
+  friendly_name text,
+  created_at timestamptz not null default now()
+);
+
 create table auth.identities (
   id uuid primary key,
   user_id uuid not null references auth.users (id) on delete cascade,

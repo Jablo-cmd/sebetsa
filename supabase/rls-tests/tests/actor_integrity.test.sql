@@ -17,7 +17,7 @@ insert into public.employees (id, tenant_id, employee_number, first_name, last_n
   ('00000000-0000-0000-0000-0000000f0441', '00000000-0000-0000-0000-0000000f0401', 'I001', 'E', 'I', current_date);
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"operations_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"operations_manager"}}';
 
 do $$
 declare v_task uuid := gen_random_uuid(); v_who uuid;
@@ -47,7 +47,7 @@ begin
   select recorded_by into v_who from public.attendance_records where id = v_rec;
   if v_who <> '00000000-0000-0000-0000-0000000f0411' then raise exception 'SECURITY_FAILURE: client chose attendance_records.recorded_by on insert'; end if;
 
-  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0412","app_metadata":{"role":"operations_manager"}}', true);
+  perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0412","app_metadata":{"role":"operations_manager"}}', true);
   update public.attendance_records set status = 'late', recorded_by = '00000000-0000-0000-0000-0000000f0411' where id = v_rec;
   select recorded_by into v_who from public.attendance_records where id = v_rec;
   if v_who <> '00000000-0000-0000-0000-0000000f0412' then raise exception 'SECURITY_FAILURE: a status change did not record the person who made it (%)', v_who; end if;

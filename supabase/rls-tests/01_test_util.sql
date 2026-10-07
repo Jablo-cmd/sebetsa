@@ -29,10 +29,21 @@ language sql
 stable
 as $$
   select jsonb_build_object(
+    'aal', 'aal2',
     'sub', p_user_id::text,
     'app_metadata', jsonb_build_object('role', p_role, 'tenant_id', p_tenant_id)
   )::text
 $$;
+
+-- Impersonate a user at a given assurance level ('aal1', 'aal2', or 'none' = no aal claim).
+create or replace function test_util.as_user(p_user text, p_role text, p_aal text)
+returns void language plpgsql as $$
+begin
+  perform set_config('role', 'authenticated', true);
+  perform set_config('request.jwt.claims',
+    case when p_aal = 'none' then jsonb_build_object('sub', p_user, 'app_metadata', jsonb_build_object('role', p_role))::text
+         else jsonb_build_object('aal', p_aal, 'sub', p_user, 'app_metadata', jsonb_build_object('role', p_role))::text end, true);
+end $$;
 
 -- Tests run impersonated as `authenticated` (see run.sh / test files), so
 -- that role needs access to the recording helpers themselves — this is

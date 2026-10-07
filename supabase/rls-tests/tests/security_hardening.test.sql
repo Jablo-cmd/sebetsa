@@ -101,7 +101,7 @@ begin
 end $$;
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0101","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0101","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 begin
@@ -156,7 +156,7 @@ select '00000000-0000-0000-0000-0000000f6001', '00000000-0000-0000-0000-0000000f
 from public.leave_types lt where lt.tenant_id = '00000000-0000-0000-0000-0000000f0001' limit 1;
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0101","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0101","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 begin
@@ -173,7 +173,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0102","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0102","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_status public.leave_status;
@@ -196,7 +196,7 @@ begin
 end $$;
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0101","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0101","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 begin
@@ -213,7 +213,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0102","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0102","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_status public.incident_status;
@@ -268,7 +268,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0105","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0105","app_metadata":{"role":"site_manager"}}';
 
 do $$
 declare v_ids uuid[];
@@ -291,7 +291,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0104","app_metadata":{"role":"regional_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0104","app_metadata":{"role":"regional_manager"}}';
 
 do $$
 declare v_ids uuid[];
@@ -307,7 +307,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0103","app_metadata":{"role":"operations_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0103","app_metadata":{"role":"operations_manager"}}';
 
 do $$
 declare v_count int;
@@ -320,7 +320,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0201","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0201","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_count int;
@@ -336,13 +336,13 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0102","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0102","app_metadata":{"role":"organization_administrator"}}';
 select public.revoke_user_scope(id) from public.user_scopes where profile_id = '00000000-0000-0000-0000-0000000f0105';
 
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0105","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0105","app_metadata":{"role":"site_manager"}}';
 
 do $$
 declare v_count int;

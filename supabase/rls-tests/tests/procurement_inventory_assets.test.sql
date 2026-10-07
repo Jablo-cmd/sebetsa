@@ -21,7 +21,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, status
   ('00000000-0000-0000-0000-000000002902', '00000000-0000-0000-0000-000000000291', 'Emp', 'O1', 'employee-o1@example.com', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.clients (id, tenant_id, name) values ('00000000-0000-0000-0000-000000003291', '00000000-0000-0000-0000-000000000291', 'Client O1');
 insert into public.sites (id, tenant_id, client_id, name) values ('00000000-0000-0000-0000-000000004291', '00000000-0000-0000-0000-000000000291', '00000000-0000-0000-0000-000000003291', 'Site O1');
@@ -37,7 +37,7 @@ insert into public.sites (id, tenant_id, client_id, name) values ('00000000-0000
 -- Assets: create (direct write — manager tier), assign, return, lifecycle.
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.assets (id, tenant_id, asset_number, name, category, site_id)
 values ('00000000-0000-0000-0000-000000006291', '00000000-0000-0000-0000-000000000291', 'AST-001', 'Floor Buffer', 'equipment', '00000000-0000-0000-0000-000000004291');
@@ -102,7 +102,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000002902","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000002902","app_metadata":{"role":"employee"}}';
 
 do $$
 begin
@@ -131,7 +131,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.inventory_items (id, tenant_id, sku, name, category)
 values ('00000000-0000-0000-0000-000000007291', '00000000-0000-0000-0000-000000000291', 'SKU-001', 'Disinfectant 5L', 'consumables');
@@ -181,7 +181,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000002902","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000002902","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_id uuid; v_status public.procurement_status;
@@ -196,7 +196,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000002902","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000002902","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_id uuid;
@@ -215,7 +215,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-000000002901","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_id uuid; v_status public.procurement_status;

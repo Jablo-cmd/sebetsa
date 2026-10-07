@@ -80,7 +80,7 @@ end $$;
 
 -- The outbox stays invisible to other users.
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0512","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0512","app_metadata":{"role":"employee"}}';
 do $$
 declare v_count int;
 begin

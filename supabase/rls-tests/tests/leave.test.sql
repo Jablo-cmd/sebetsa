@@ -37,7 +37,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-0000000000c6', '00000000-0000-0000-0000-0000000000c1', 'HR', 'User', 'hr-c@example.com', 'hr_user', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.clients (id, tenant_id, name) values
   ('00000000-0000-0000-0000-000000003101', '00000000-0000-0000-0000-0000000000c1', 'Client C');
@@ -54,7 +54,7 @@ insert into public.employees (id, tenant_id, employee_number, first_name, last_n
   ('00000000-0000-0000-0000-000000005901', '00000000-0000-0000-0000-0000000000d1', 'D901', 'Other', 'TenantEmployee', current_date);
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
 
 -- ---------------------------------------------------------------------------
 -- leave_types / leave_policies: seeded defaults exist, tenant isolation.
@@ -80,7 +80,7 @@ begin
   select id into v_other_tenant_leave_type_id from public.leave_types where tenant_id = '00000000-0000-0000-0000-0000000000d1' and name = 'Annual';
 
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
+  set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
 
   begin
     insert into public.leave_policies (tenant_id, leave_type_id) values ('00000000-0000-0000-0000-0000000000c1', v_other_tenant_leave_type_id);
@@ -99,7 +99,7 @@ select '00000000-0000-0000-0000-0000000000c1', id, 2 from public.leave_types whe
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
 
 do $$
 begin
@@ -116,7 +116,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
 
 -- ---------------------------------------------------------------------------
 -- submit_leave_request: self-service, cross-tenant employee rejection,
@@ -151,7 +151,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c3","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c3","app_metadata":{"role":"employee"}}';
 
 do $$
 declare
@@ -220,7 +220,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
 
 do $$
 declare v_request_id uuid;
@@ -239,7 +239,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c6","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c6","app_metadata":{"role":"hr_user"}}';
 
 do $$
 declare
@@ -292,7 +292,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c3","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c3","app_metadata":{"role":"employee"}}';
 
 -- A manual exception on a date NOT covered by the approved leave (self-service).
 insert into public.employee_availability_exceptions (tenant_id, employee_id, exception_date, is_available, reason)
@@ -332,7 +332,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 begin
@@ -354,7 +354,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
 set local app.override_leave_conflict = 'true';
 
 do $$
@@ -379,7 +379,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
 set local app.override_leave_conflict = 'true';
 
 insert into public.shifts (id, tenant_id, site_id, employee_id, starts_at, ends_at)
@@ -419,7 +419,7 @@ set local app.override_leave_conflict = 'false';
 -- touch shifts/substitutions.
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c6","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c6","app_metadata":{"role":"hr_user"}}';
 
 do $$
 declare
@@ -486,7 +486,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c3","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c3","app_metadata":{"role":"employee"}}';
 
 do $$
 declare
@@ -541,7 +541,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c4","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c4","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_other_request_id uuid;
@@ -583,7 +583,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c2","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 begin
@@ -641,7 +641,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000c5","app_metadata":{"role":"site_manager"}}';
 
 do $$
 begin

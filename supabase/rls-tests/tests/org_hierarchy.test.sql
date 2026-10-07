@@ -36,7 +36,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
 -- ---------------------------------------------------------------------------
 -- CREATE + READ: Org A's admin builds the full hierarchy.
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.regions (id, tenant_id, name)
 values ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-0000000000a1', 'Gauteng');
@@ -85,7 +85,7 @@ reset request.jwt.claims;
 -- ---------------------------------------------------------------------------
 -- TENANT ISOLATION: Org B's admin sees none of Org A's rows.
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000b2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000b2","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_count int;
@@ -132,7 +132,7 @@ reset request.jwt.claims;
 -- ---------------------------------------------------------------------------
 -- UNAUTHORIZED ROLE: an 'employee' in Org A can read but not manage.
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a3","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a3","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_count int;

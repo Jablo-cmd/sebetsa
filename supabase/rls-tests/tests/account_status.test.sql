@@ -36,7 +36,7 @@ insert into public.employees (id, tenant_id, profile_id, employee_number, first_
 -- Deactivation is enforced by the database.
 -- ---------------------------------------------------------------------------
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_sites int;
@@ -48,7 +48,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0311","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0311","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_row public.profiles; v_audit record;
@@ -89,7 +89,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_sites int; v_own int;
@@ -105,7 +105,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0312","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0312","app_metadata":{"role":"hr_user"}}';
 
 do $$
 begin
@@ -130,7 +130,7 @@ begin
 end $$;
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
 do $$
 declare v_sites int;
 begin
@@ -145,12 +145,12 @@ reset request.jwt.claims;
 do $$
 declare v_before boolean; v_after boolean;
 begin
-  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0314","app_metadata":{"role":"platform_administrator"}}', true);
+  perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0314","app_metadata":{"role":"platform_administrator"}}', true);
   select public.is_platform_admin() into v_before;
   update public.profiles set status = 'inactive' where id = '00000000-0000-0000-0000-0000000f0314';
   select public.is_platform_admin() into v_after;
   if not v_before or v_after then raise exception 'FAIL: is_platform_admin before=% after=%', v_before, v_after; end if;
-  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f09ff","app_metadata":{"role":"platform_administrator"}}', true);
+  perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f09ff","app_metadata":{"role":"platform_administrator"}}', true);
   select public.is_platform_admin() into v_after;
   if not v_after then raise exception 'FAIL: a platform administrator with no profile row (bootstrap) must still work'; end if;
   raise notice 'PASS: inactive platform administrators are locked out; bootstrap accounts without a profile still work';
@@ -161,7 +161,7 @@ reset request.jwt.claims;
 -- Document upload integrity.
 -- ---------------------------------------------------------------------------
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_doc public.employee_documents; v_count int;
@@ -169,7 +169,7 @@ begin
   select * into v_doc from public.create_document_upload_slot('00000000-0000-0000-0000-0000000f0341', 'certificate', 'a.pdf', 'application/pdf', 1000, null);
 
   begin
-    perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0312","app_metadata":{"role":"hr_user"}}', true);
+    perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0312","app_metadata":{"role":"hr_user"}}', true);
     perform public.cancel_document_upload(v_doc.id);
     raise exception 'SECURITY_FAILURE: someone other than the uploader cancelled an upload';
   exception when others then
@@ -177,7 +177,7 @@ begin
     if sqlerrm not like 'insufficient_privilege%' then raise exception 'FAIL: expected insufficient_privilege, got %', sqlerrm; end if;
   end;
 
-  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}', true);
+  perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}', true);
   perform public.cancel_document_upload(v_doc.id);
   select count(*) into v_count from public.employee_documents where id = v_doc.id;
   if v_count <> 0 then raise exception 'FAIL: cancelled upload still present'; end if;
@@ -194,7 +194,7 @@ begin
           '00000000-0000-0000-0000-0000000f0313', '00000000-0000-0000-0000-0000000f0312', now());
 
   perform set_config('role', 'authenticated', true);
-  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}', true);
+  perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0313","app_metadata":{"role":"employee"}}', true);
   select * into v_new from public.replace_document(v_old, 'new.pdf', 'application/pdf', 20, null);
   select status into v_status from public.employee_documents where id = v_old;
   if v_status <> 'archived' then raise exception 'FAIL: old version not archived (%)', v_status; end if;
@@ -223,7 +223,7 @@ insert into public.employees (id, tenant_id, employee_number, first_name, last_n
   ('00000000-0000-0000-0000-0000000f0342', '00000000-0000-0000-0000-0000000f0301', 'H002', 'Prov', 'Ision', 'provision-h@example.com', current_date);
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0311","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0311","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_user uuid; v_password text; v_count int; v_has_hash boolean;

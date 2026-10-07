@@ -27,7 +27,7 @@ insert into public.contracts (id, tenant_id, client_id, contract_number, start_d
   ('00000000-0000-0000-0000-0000000f0431', '00000000-0000-0000-0000-0000000f0401', '00000000-0000-0000-0000-0000000f0421', 'CTR-I', current_date, 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_doc public.contract_documents; v_count int; v_audit int;
@@ -36,7 +36,7 @@ begin
   select * into v_doc from public.create_contract_document_slot('00000000-0000-0000-0000-0000000f0431', 'terms.pdf', 'application/pdf', 1000);
 
   begin
-    perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0412","app_metadata":{"role":"operations_manager"}}', true);
+    perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0412","app_metadata":{"role":"operations_manager"}}', true);
     perform public.cancel_contract_document_upload(v_doc.id);
     raise exception 'SECURITY_FAILURE: someone other than the uploader cancelled a contract document upload';
   exception when others then
@@ -44,7 +44,7 @@ begin
     if sqlerrm not like 'insufficient_privilege%' then raise exception 'FAIL: expected insufficient_privilege, got %', sqlerrm; end if;
   end;
 
-  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}', true);
+  perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}', true);
   perform public.cancel_contract_document_upload(v_doc.id);
   select count(*) into v_count from public.contract_documents where id = v_doc.id;
   if v_count <> 0 then raise exception 'FAIL: cancelled contract document still present'; end if;
@@ -62,7 +62,7 @@ declare v_doc public.contract_documents;
 begin
   -- Once the file exists in storage the record can no longer be cancelled.
   set local role authenticated;
-  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}', true);
+  perform set_config('request.jwt.claims', '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}', true);
   select * into v_doc from public.create_contract_document_slot('00000000-0000-0000-0000-0000000f0431', 'signed.pdf', 'application/pdf', 1000);
   reset role;
   insert into storage.buckets (id, name, public) values ('contract-documents', 'contract-documents', false) on conflict (id) do nothing;
@@ -97,7 +97,7 @@ insert into public.sites (id, tenant_id, client_id, name) values
   ('00000000-0000-0000-0000-0000000f0444', '00000000-0000-0000-0000-0000000f0402', '00000000-0000-0000-0000-0000000f0423', 'Site of another tenant');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000f0411","app_metadata":{"role":"organization_administrator"}}';
 
 do $$
 declare v_sites uuid[];

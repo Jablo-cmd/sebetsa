@@ -26,7 +26,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-0000000000a1', 'Admin', 'A', 'admin-a@example.com', 'organization_administrator', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
 
 -- Org A structure
 insert into public.clients (id, tenant_id, name) values
@@ -48,7 +48,7 @@ insert into public.employees (id, tenant_id, employee_number, first_name, last_n
   ('00000000-0000-0000-0000-000000005003', '00000000-0000-0000-0000-0000000000b1', 'E901', 'Other', 'TenantEmployee', current_date);
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
 
 -- ---------------------------------------------------------------------------
 -- shift_definitions: valid create + tenant-scoped uniqueness sanity.
@@ -315,13 +315,13 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-0000000000a6', '00000000-0000-0000-0000-0000000000a1', 'HR', 'User', 'hr-a@example.com', 'hr_user', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a2","app_metadata":{"role":"organization_administrator"}}';
 select public.grant_user_scope('00000000-0000-0000-0000-0000000000a5', 'site', '00000000-0000-0000-0000-000000004001');
 
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a5","app_metadata":{"role":"supervisor"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a5","app_metadata":{"role":"supervisor"}}';
 
 insert into public.shifts (tenant_id, site_id, employee_id, starts_at, ends_at)
 values (
@@ -341,7 +341,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a6","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a6","app_metadata":{"role":"hr_user"}}';
 
 do $$
 begin
@@ -370,7 +370,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
 update public.employees set profile_id = '00000000-0000-0000-0000-0000000000a7' where id = '00000000-0000-0000-0000-000000005001';
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-0000000000a7","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-0000000000a7","app_metadata":{"role":"employee"}}';
 
 insert into public.employee_availability (tenant_id, employee_id, day_of_week, start_time, end_time)
 values ('00000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-000000005001', 2, '09:00', '18:00');

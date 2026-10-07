@@ -30,7 +30,7 @@ insert into public.profiles (id, tenant_id, first_name, last_name, email, role, 
   ('00000000-0000-0000-0000-00000000016a', '00000000-0000-0000-0000-00000000010a', 'Emp', 'Two', 'employee-m2@example.com', 'employee', 'active');
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000011a","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000011a","app_metadata":{"role":"organization_administrator"}}';
 
 insert into public.employees (id, tenant_id, profile_id, employee_number, first_name, last_name, employment_start_date) values
   ('00000000-0000-0000-0000-00000000017a', '00000000-0000-0000-0000-00000000010a', '00000000-0000-0000-0000-00000000015a', 'M001', 'Emp', 'One', current_date),
@@ -42,7 +42,7 @@ insert into public.employees (id, tenant_id, employee_number, first_name, last_n
   ('00000000-0000-0000-0000-00000000019a', '00000000-0000-0000-0000-00000000020a', 'N001', 'Other', 'TenantEmployee', current_date);
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000011a","app_metadata":{"role":"organization_administrator"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000011a","app_metadata":{"role":"organization_administrator"}}';
 
 -- ---------------------------------------------------------------------------
 -- create_document_upload_slot: cross-tenant, self-service, validation.
@@ -80,7 +80,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000016a","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000016a","app_metadata":{"role":"employee"}}';
 
 do $$
 begin
@@ -97,7 +97,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000015a","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000015a","app_metadata":{"role":"employee"}}';
 
 do $$
 declare
@@ -123,7 +123,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000014a","app_metadata":{"role":"site_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000014a","app_metadata":{"role":"site_manager"}}';
 
 do $$
 declare v_count int;
@@ -136,7 +136,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000013a","app_metadata":{"role":"operations_manager"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000013a","app_metadata":{"role":"operations_manager"}}';
 
 do $$
 declare v_count int;
@@ -152,7 +152,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
 
 do $$
 declare v_count int;
@@ -168,7 +168,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000015a","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000015a","app_metadata":{"role":"employee"}}';
 
 do $$
 declare v_doc_id uuid;
@@ -187,7 +187,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
 
 do $$
 declare v_doc_id uuid; v_doc public.employee_documents;
@@ -250,7 +250,7 @@ begin
   reset role;
   reset request.jwt.claims;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
+  set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
 
   -- The uploader (this hr_user) cannot verify their own upload...
   begin
@@ -266,12 +266,12 @@ begin
   reset role;
   reset request.jwt.claims;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000013a","app_metadata":{"role":"operations_manager"}}';
+  set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000013a","app_metadata":{"role":"operations_manager"}}';
   perform public.verify_document(v_doc.id, true);
   reset role;
   reset request.jwt.claims;
   set local role authenticated;
-  set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
+  set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000012a","app_metadata":{"role":"hr_user"}}';
 
   select count(*) into v_count_before from public.employee_documents where employee_id = '00000000-0000-0000-0000-00000000017a';
 
@@ -292,7 +292,7 @@ end $$;
 reset role;
 reset request.jwt.claims;
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000016a","app_metadata":{"role":"employee"}}';
+set local request.jwt.claims = '{"aal":"aal2","sub":"00000000-0000-0000-0000-00000000016a","app_metadata":{"role":"employee"}}';
 
 do $$
 begin
