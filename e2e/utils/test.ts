@@ -1,6 +1,6 @@
 import { test as base, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { FakeBackend, KNOWN_TABLES, authSession, type BackendOptions, type Row, type RpcHandler, type Session } from './fakeBackend';
+import { FakeBackend, KNOWN_TABLES, MFA_ROLES, authSession, type BackendOptions, type Row, type RpcHandler, type Session } from './fakeBackend';
 import { FIXED_NOW, ID, PERSONAS, buildDataset, sessionFor, type SignInAs } from './sebetsaFixtures';
 import { defaultRpcHandlers } from './rpcHandlers';
 
@@ -31,9 +31,9 @@ export interface OpenOptions {
   /** Mutate the freshly built dataset before the backend is created. */
   customize?: (tables: Record<string, Row[]>) => void;
   rpc?: Record<string, RpcHandler>;
-  /** MFA factors already enrolled on the signed-in auth user. */
+  /** MFA factors already enrolled on the signed-in auth user. Roles the database requires MFA for default to one verified factor at aal2; pass `[]` to test forced enrolment. */
   mfaFactors?: NonNullable<Session['factors']>;
-  /** Assurance level of the seeded session (default aal1; aal2 = step-up already completed). */
+  /** Assurance level of the seeded session (default aal2 for MFA-required roles, aal1 otherwise). */
   aal?: Session['aal'];
   /** Extra known password logins: email → password (session role taken from fixtures). */
   logins?: Record<string, string>;
@@ -52,7 +52,13 @@ export class AppHarness {
     options.customize?.(tables);
     for (const [name, rows] of Object.entries(options.tables ?? {})) tables[name] = rows;
 
-    const session: Session = { ...sessionFor(as), factors: options.mfaFactors, aal: options.aal };
+    const base = sessionFor(as);
+    const mfaRequired = MFA_ROLES.includes(base.role);
+    const session: Session = {
+      ...base,
+      factors: options.mfaFactors ?? (mfaRequired ? [{ id: 'factor-1', factor_type: 'totp', status: 'verified' }] : undefined),
+      aal: options.aal ?? (mfaRequired ? 'aal2' : 'aal1'),
+    };
     const authUsers: BackendOptions['authUsers'] = {};
     for (const persona of Object.values(PERSONAS)) {
       authUsers[persona.email.toLowerCase()] = {
@@ -78,7 +84,8 @@ export class AppHarness {
 
     if (options.signedIn !== false) {
       const stored = JSON.stringify(authSession(session, FIXED_NOW));
-      await this.page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), ['sebetsa-auth', stored]);
+      // Seed once: a reload must keep whatever session the app has since stored (e.g. after MFA enrolment).
+      await this.page.addInitScript(([key, value]) => { if (!window.localStorage.getItem(key)) window.localStorage.setItem(key, value); }, ['sebetsa-auth', stored]);
     }
     return backend;
   }
@@ -107,7 +114,8 @@ export class AppHarness {
         updated_at: now,
       },
     });
-    await this.page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), ['sebetsa-auth', stored]);
+    // Seed once: a reload must keep whatever session the app has since stored (e.g. after MFA enrolment).
+      await this.page.addInitScript(([key, value]) => { if (!window.localStorage.getItem(key)) window.localStorage.setItem(key, value); }, ['sebetsa-auth', stored]);
   }
 }
 

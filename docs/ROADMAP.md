@@ -6,7 +6,7 @@ Written after the stabilisation pass, against the code as it stands. It describe
 
 | # | Gap | Why it matters | Effort |
 | - | --- | -------------- | ------ |
-| 1 | MFA is not enforced server-side (`SECURITY_MODEL.md` §6) | A stolen administrator password is enough. | M |
+| 1 | ~~MFA is not enforced server-side~~ — done, see `MFA.md`; live verification pending | — | — |
 | 2 | No frontend error reporting, uptime probe or worker alerting (`BCDR_OBSERVABILITY.md`) | Failures would be invisible in production. | S–M |
 | 3 | Live-environment verification has not happened (RLS state, backups, secrets, provider delivery, branch protection) | Source cannot prove hosted state. | M, blocked on access |
 | 4 | Quiet hours are evaluated in UTC | Deliveries may be held at the wrong local time. | S (add `profiles.time_zone`) |

@@ -1,6 +1,8 @@
 import { FullScreenSpinner } from '@/components/ui/FullScreenSpinner';
+import { useAuth } from '@/features/auth/context/authContext';
 import { useMyEmployee } from '@/features/employees/hooks/useMyEmployee';
 import { EmployeeSelfSummary } from '@/features/employees/components/EmployeeSelfSummary';
+import { isMfaRequiredForRole } from '@/features/rbac/constants/mfaRequiredRoles';
 import { MfaEnrollmentCard } from '@/features/mfa/components/MfaEnrollmentCard';
 
 /**
@@ -10,6 +12,7 @@ import { MfaEnrollmentCard } from '@/features/mfa/components/MfaEnrollmentCard';
  * rows, if any, come back from the hook.
  */
 export function MyProfilePage() {
+  const { user } = useAuth();
   const employee = useMyEmployee();
 
   if (employee.isLoading) {
@@ -41,7 +44,7 @@ export function MyProfilePage() {
         </section>
       )}
 
-      <MfaEnrollmentCard />
+      <MfaEnrollmentCard allowRemoval={!isMfaRequiredForRole(user?.role ?? null)} />
     </div>
   );
 }

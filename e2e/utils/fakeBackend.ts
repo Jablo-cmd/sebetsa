@@ -45,6 +45,9 @@ export interface Session {
   aal?: 'aal1' | 'aal2';
 }
 
+/** Mirror of public.mfa_roles(): sessions in these roles are refused tenant access unless aal2. */
+export const MFA_ROLES = ['platform_administrator', 'organization_administrator', 'operations_manager', 'hr_user'];
+
 export interface RpcContext {
   backend: FakeBackend;
   session: Session;
@@ -381,8 +384,22 @@ export class FakeBackend {
   }
 
   /** Rows of `name` visible to the session (tenant isolation like RLS). */
+  /** public.mfa_satisfied(): aal2, or neither a privileged role nor an enrolled factor. */
+  mfaSatisfied(): boolean {
+    if (this.session.aal === 'aal2') return true;
+    if (MFA_ROLES.includes(String(this.session.role))) return false;
+    return !(this.session.factors ?? []).some((f) => f.status === 'verified');
+  }
+
   visible(name: string): Row[] {
     const rows = this.table(name);
+    // current_tenant_id() / is_platform_admin() resolve to nothing below aal2 for such sessions, so only
+    // the user's own profile row and own notifications stay readable.
+    if (!this.mfaSatisfied()) {
+      if (name === 'profiles') return rows.filter((row) => row.id === this.session.userId);
+      if (name === 'notifications') return rows.filter((row) => row.recipient_profile_id === this.session.userId);
+      return [];
+    }
     if (this.session.role === 'platform_administrator') return rows;
     if (name === 'organizations') return rows.filter((row) => row.id === this.session.tenantId);
     // profiles_select_own_or_tenant_or_platform_admin: a user always sees their own row.
@@ -471,6 +488,9 @@ export class FakeBackend {
 
     const fault = this.takeFault(table, method);
     if (fault) return json(route, { message: fault.message, code: fault.code, details: null, hint: null }, fault.status);
+    if (method !== 'GET' && method !== 'HEAD' && !this.mfaSatisfied()) {
+      return json(route, { message: `new row violates row-level security policy for table "${table}"`, code: '42501', details: null, hint: null }, 403);
+    }
 
     const prefer = request.headers()['prefer'] ?? '';
     const wantsRepresentation = prefer.includes('return=representation');
@@ -641,6 +661,9 @@ export class FakeBackend {
     this.requests.push({ method: request.method(), path: `/rest/v1/rpc/${name}`, query: {}, body, rpc: name });
     const handler = this.rpcHandlers.get(name);
     if (!handler) return this.reportUnmocked(route, `RPC ${name} (no handler registered)`);
+    if (!this.mfaSatisfied()) {
+      return json(route, { message: 'permission denied (multi-factor authentication required)', code: '42501', details: null, hint: null }, 403);
+    }
     const fault = this.takeFault(`rpc:${name}`, request.method());
     if (fault) return json(route, { message: fault.message, code: fault.code, details: null, hint: null }, fault.status);
     const result = await handler(body, this.context());
@@ -687,6 +710,9 @@ export class FakeBackend {
     const body = parseBody(request);
     this.authCalls.push({ path, method, body });
 
+    if (path === '/auth/v1/token' && method === 'POST' && request.url().includes('grant_type=refresh_token')) {
+      return json(route, authSession(this.session, this.now));
+    }
     if (path === '/auth/v1/token' && method === 'POST') {
       const credentials = body as { email?: string; password?: string };
       const user = this.authUsers[(credentials.email ?? '').toLowerCase()];
@@ -714,8 +740,25 @@ export class FakeBackend {
       if (submitted !== this.mfaCode) {
         return json(route, { error_code: 'mfa_verification_failed', msg: 'Invalid TOTP code entered', code: 400 }, 400);
       }
-      this.session = { ...this.session, aal: 'aal2' };
+      // GoTrue: a verified code promotes the session to aal2; verifying a new factor also activates it.
+      const factorId = verify![1];
+      const factors = (this.session.factors ?? []).map((f) => (f.id === factorId ? { ...f, status: 'verified' as const } : f));
+      this.session = { ...this.session, factors, aal: 'aal2' };
       return json(route, authSession(this.session, this.now));
+    }
+    if (path === '/auth/v1/factors' && method === 'POST') {
+      const id = `factor-${(this.session.factors ?? []).length + 1}`;
+      this.session = { ...this.session, factors: [...(this.session.factors ?? []), { id, factor_type: 'totp', status: 'unverified' }] };
+      return json(route, {
+        id,
+        type: 'totp',
+        totp: { qr_code: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>', secret: 'JBSWY3DPEHPK3PXP', uri: 'otpauth://totp/Sebetsa:e2e?secret=JBSWY3DPEHPK3PXP' },
+      });
+    }
+    const unenroll = /^\/auth\/v1\/factors\/([^/]+)$/.exec(path);
+    if (unenroll && method === 'DELETE') {
+      this.session = { ...this.session, factors: (this.session.factors ?? []).filter((f) => f.id !== unenroll[1]) };
+      return json(route, { id: unenroll[1] });
     }
     if (path === '/auth/v1/user' && method === 'PUT') {
       return json(route, authUser(this.session, this.now));

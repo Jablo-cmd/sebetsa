@@ -43,7 +43,7 @@ Last reconciled: 2026-10-07. **CI run 123** (`workflow_dispatch` on the branch, 
 | Deactivated accounts locked out in the database | Repo + Local + CI |
 | Generated types and E2E schema match migrations | CI (`--check`) |
 | CI chain with release gate, least privilege, deploy-only-from-main | Repo; run on a branch via CI. The deploy job itself has never run (needs `main` + secrets). |
-| MFA enforced server-side | **Not implemented** (documented open risk) |
+| MFA enforced server-side (aal2 for privileged roles and enrolled users; fail-closed helpers) | Repo + Local (RLS suite + E2E). **Not live-verified.** See [MFA.md](./MFA.md) |
 | External message delivery to real providers | **Blocked** — needs deployed function, schedule, provider credentials |
 | Live RLS/grant state of the hosted project | **Blocked** — needs the live project |
 | Backups, PITR, restore drill, RPO/RTO | **Blocked** |

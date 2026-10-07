@@ -9,11 +9,17 @@ import { getDbErrorMessage } from '@/lib/dbErrors';
 
 /**
  * Self-service TOTP enrollment/removal — lives on My Profile. Works for
- * any signed-in user, not just the roles FND-ARCH-003 soft-requires it for
- * (see mfaRequiredRoles.ts) — MFA is opt-in-available to everyone, only
- * the "you should really do this" nudge (MfaRequiredBanner) is role-gated.
+ * any signed-in user. For roles in mfaRequiredRoles.ts it is mandatory (the
+ * database refuses them without aal2) and is also shown by MfaSetupPage.
  */
-export function MfaEnrollmentCard() {
+export interface MfaEnrollmentCardProps {
+  /** Called once a factor has been verified (the session is then aal2). */
+  onEnrolled?: () => void;
+  /** False for roles that must keep MFA: the database refuses them without it, so removal would lock them out. */
+  allowRemoval?: boolean;
+}
+
+export function MfaEnrollmentCard({ onEnrolled, allowRemoval = true }: MfaEnrollmentCardProps = {}) {
   const { verifiedFactor, isLoading, error, refetch } = useMfaFactors();
   const [enrollment, setEnrollment] = useState<EnrollmentResult | null>(null);
   const [code, setCode] = useState('');
@@ -43,6 +49,7 @@ export function MfaEnrollmentCard() {
       setEnrollment(null);
       setCode('');
       await refetch();
+      onEnrolled?.();
     } catch (err) {
       setActionError(getDbErrorMessage(err, 'That code didn’t match — check your authenticator app and try again.'));
     } finally {
@@ -98,11 +105,15 @@ export function MfaEnrollmentCard() {
           <span className="inline-flex items-center rounded-full bg-success-500/10 px-2.5 py-1 text-xs font-medium text-success-500">
             Enabled
           </span>
-          <div className="w-full sm:w-auto sm:min-w-[10rem]">
-            <Button type="button" variant="secondary" isLoading={isWorking} onClick={() => void handleRemove()}>
-              Remove two-factor authentication
-            </Button>
-          </div>
+          {allowRemoval ? (
+            <div className="w-full sm:w-auto sm:min-w-[10rem]">
+              <Button type="button" variant="secondary" isLoading={isWorking} onClick={() => void handleRemove()}>
+                Remove two-factor authentication
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-content-secondary">Required for your role, so it cannot be removed here.</p>
+          )}
         </div>
       ) : enrollment ? (
         <div className="mt-4 flex flex-col gap-4">

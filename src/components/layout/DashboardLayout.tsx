@@ -4,7 +4,6 @@ import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 import { AppFooter } from '@/components/layout/AppFooter';
 import { CloseIcon } from '@/components/ui/icons';
-import { MfaRequiredBanner } from '@/features/mfa/components/MfaRequiredBanner';
 
 export function DashboardLayout() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -43,7 +42,6 @@ export function DashboardLayout() {
         )}
 
         <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
-          <MfaRequiredBanner />
           <Outlet />
         </main>
       </div>

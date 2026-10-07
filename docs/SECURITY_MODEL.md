@@ -62,7 +62,8 @@ The suite asserts that all thirteen rules are installed and that the guards exis
 - Deactivation (`admin_set_user_status`) bans the auth user and flips the profile status; reactivation reverses both. A user cannot change their own status.
 - `profiles` updates are limited to contact fields (`first_name`, `last_name`, `phone`, `avatar_url`); role, tenant, status and email change only through controlled RPCs.
 - TOTP MFA enrolment and challenge are implemented, and a banner asks privileged roles to enrol.
-- **Open risk — MFA is not enforced server-side.** No policy requires `aal2` for privileged roles, so a stolen password for an organisation administrator is enough today. Enforcing it in RLS without a rollout plan would lock out every administrator who has not enrolled. Recommended staged approach: (1) require enrolment at first sign-in for privileged roles, (2) report who is un-enrolled, (3) then add an `aal2` requirement to the privileged helpers (`can_manage_org_structure`, `is_platform_admin`, user administration RPCs) behind a feature flag. Tracked in the roadmap.
+- **MFA is enforced server-side.** For platform administrators, organisation administrators, operations managers and HR users (and anyone who has enrolled a factor) the database refuses every tenant-scoped read, write and RPC unless the session is `aal2`, through `current_tenant_id()` / `is_platform_admin()`. See [MFA.md](./MFA.md) for the design, enrolment, recovery and verification status. Tested locally and in CI; not live-verified.
+- **Fail-closed helpers.** Permission helpers return `false`, never `NULL`, so definer RPCs cannot fail open.
 - Password policy, breached-password checks, rate limiting and session lifetimes are Supabase Auth settings and must be confirmed in the hosted project.
 
 ## 7. Files
@@ -80,4 +81,4 @@ The suite asserts that all thirteen rules are installed and that the guards exis
 
 - Live verification of any of the above on the hosted project.
 - Provider webhooks (none are implemented, so there is nothing to authenticate or replay-protect yet).
-- MFA enforcement (see §6), per-user time zones for quiet hours, and automated anomaly alerting.
+- Live verification of MFA settings, per-user time zones for quiet hours, and automated anomaly alerting.

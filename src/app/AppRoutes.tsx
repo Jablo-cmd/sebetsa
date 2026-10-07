@@ -41,6 +41,10 @@ const MfaChallengePage = named(
   () => import('@/features/mfa/pages/MfaChallengePage'),
   'MfaChallengePage',
 );
+const MfaSetupPage = named(
+  () => import('@/features/mfa/pages/MfaSetupPage'),
+  'MfaSetupPage',
+);
 const DashboardPage = named(() => import('@/pages/DashboardPage'), 'DashboardPage');
 const MyProfilePage = named(() => import('@/pages/MyProfilePage'), 'MyProfilePage');
 const OrganizationsPage = named(
@@ -188,6 +192,7 @@ export function AppRoutes() {
         <Route path="/activate-account" element={<ActivateAccountPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/mfa-challenge" element={<MfaChallengePage />} />
+        <Route path="/mfa-setup" element={<MfaSetupPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<TenantGate />}>
