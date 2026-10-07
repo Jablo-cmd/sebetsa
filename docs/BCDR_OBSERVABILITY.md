@@ -1,6 +1,6 @@
 # Business continuity, disaster recovery and observability
 
-An honest assessment. Sebetsa is a client application plus a hosted Supabase project; almost everything that matters for recovery lives in the hosted project and cannot be proven from this repository. **Nothing below has been tested against a live environment.**
+An honest assessment. Recovery evidence and scenario runbooks are in [DISASTER_RECOVERY.md](./DISASTER_RECOVERY.md). Sebetsa is a client application plus a hosted Supabase project; almost everything that matters for recovery lives in the hosted project and cannot be proven from this repository. **Nothing below has been tested against a live environment.**
 
 ## What the repository gives you
 

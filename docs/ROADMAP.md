@@ -112,6 +112,61 @@ Priority order is by operational value ÷ risk, subject to dependencies. Each it
 *Testing:* evaluation sets; prompt-injection tests through free-text fields (incident descriptions, notes).
 *Risk:* highest governance risk; last.
 
+## 1a. Offline support — architectural readiness assessment (assessment only; nothing is built)
+
+**Verdict: NOT READY. Sebetsa does not support offline use and does not claim to.** What exists is honest status, not capability: `OfflineBanner` on field-critical pages and `retryOnNetworkError` (seconds-long retries of transient failures; nothing is persisted).
+
+| Dimension | Finding | Consequence |
+| --------- | ------- | ----------- |
+| App shell | No service worker, no web manifest, no precache; `public/` holds only a favicon. E2E blocks service workers. | A cold start with no network shows nothing. A PWA shell is the prerequisite for everything else. |
+| Data layer | Services call Supabase directly per page; no shared cache, no IndexedDB, no query layer. | There is no local copy of rosters, tasks or sites to read offline; a read-through cache (and a decision on what may be stored on a device) must come first. |
+| Writes | Direct table writes and RPCs (`clock_in`, `clock_out`, `complete_task`, `submit_leave_request`); no client-generated operation id, no idempotency key (the only idempotency is domain-level, e.g. one open break per record, one task per template period). | A queued write replayed after a network blip can duplicate or conflict. Each queued operation needs a client-generated UUID that the RPC treats as an idempotency key. |
+| Time | Attendance timestamps are taken server-side (`now()`); an offline clock-in has only the device clock. | Offline attendance requires a trusted-time policy (device time recorded as claimed, server time as received, a tolerance, and a review flag) and, for GPS-verified presence, the geofence design in P3. |
+| Conflicts | Workflow state machines and separation-of-duties guards run in the database. A queued action can arrive after the record changed (task reassigned, shift cancelled, leave decided). | The database already rejects invalid transitions; the client needs a visible "rejected on sync, here is why" path and a rule for who resolves it. |
+| Auth | Supabase sessions refresh over the network; MFA step-up (aal2) is required for privileged roles and enforced by the database. | Offline access must be limited to low-privilege field roles; privileged operations stay online-only. Long offline spells outlive access tokens — decide the offline grace window and re-auth on reconnect. |
+| Security | Local storage of rosters, names and evidence photos puts personal data on devices. | Needs encryption-at-rest posture (platform storage limits), remote wipe on deactivation (a deactivated user's queued writes must be refused on sync — already true in the database), retention limits, and a POPIA review. |
+| Files | Evidence and document upload is two-step (database slot, then bytes). | Needs a resumable upload queue with slot reservation and cancel-on-abandon. |
+| Testing | Service workers are blocked in the harness; the fake backend cannot simulate partial sync. | Build a service-worker-aware harness with deterministic offline/online switching before any queue code. |
+
+**Recommended order** (when/if prioritised, after P2 duties): (1) PWA shell + read-only cache of the signed-in user's own schedule and tasks; (2) client operation ids and idempotent RPCs for `clock_in`/`clock_out`/`complete_task`; (3) a persisted write queue with visible sync status and rejection handling for those three actions only; (4) evidence upload queue; (5) trusted-time and geofence rules (P3). Do not queue any privileged or approval action.
+
+## 1b. Command Centre — implementation plan (plan only; **not implemented**)
+
+Written after the production-readiness pass. Build only after the production certification gate in `DOMAIN_STATUS.md` has no RED row.
+
+**Business value.** One live view of the working day for operations: who is on shift, who is late or absent, open critical incidents, overdue and escalated tasks, expiring compliance, and SLA breaches in progress, with drill-down to the record that needs action. Success measures: time to notice a missed shift or critical incident, share of escalations acknowledged within SLA, fewer manual report requests.
+
+**User roles.**
+
+| Role | Sees | Acts |
+| ---- | ---- | ---- |
+| Operations manager, organisation administrator | Whole tenant, filterable by region/client/contract/site | Reassign, escalate, open records |
+| Regional manager, site manager, supervisor | Only their scope (existing `user_scopes` + restrictive policies) | Same, inside scope |
+| HR | Workforce exceptions (absence, expiring qualifications, documents), no operational incidents beyond what RLS already grants | Open records |
+| Employee, client user | No Command Centre | — |
+
+**Dashboard metrics** (each defined once, in SQL, versioned): shifts today (scheduled / started / late / no-show / unfilled); clock-ins vs scheduled; open incidents by severity and age; tasks overdue / escalated / due next 4 h; compliance expiring in 7/30 days; SLA measurements below threshold or projected to breach; notification backlog and failed deliveries (operational health strip, from `ops_health()` for administrators only).
+
+**Database and query requirements.** Read-only `SECURITY INVOKER` functions returning pre-aggregated rows (never owner-owned views, which bypass RLS), one per panel, taking region/client/contract/site/date filters; keyset pagination for lists; indexes proven by `EXPLAIN` on `(site_id, starts_at)`, `(status, due_at)`, `(tenant_id, status, severity)` and any the plans show missing; no per-row RPC calls (avoid N+1); a single batched call per panel. Counters that are expensive at scale move to a refresh-on-schedule summary table written by a `run_scheduled_job` job and read through RLS-protected functions; decide per panel from measured timings.
+
+**RLS and security.** No new privileges and no new tables readable by new audiences: every function runs as the caller so scope, tenant and MFA enforcement apply unchanged. Add a leakage suite: each scoped role against a two-tenant, multi-region fixture proves it receives only its own rows and counts (counts must not leak existence of out-of-scope records). Alerts rows link to records the viewer can already open.
+
+**Performance.** Budgets taken from the measured baseline in `docs/PERFORMANCE.md`: panel query p95 within the page budget at the stated dataset size; total payload per refresh bounded; refresh interval ≥ 30 s with a visible "as of" time and backoff when the tab is hidden; load test with the same harness at 2× the baseline dataset before release.
+
+**Mobile.** Summary-first stacked cards, one-tap drill-down, large touch targets, no horizontal scroll at phone width; critical exceptions first; call/message the supervisor from a card.
+
+**Accessibility.** Status never colour-only; live regions announce changes politely and sparingly (no announcement per refresh); keyboard-reachable drill-downs; axe sweep per role in the E2E suite; respects reduced motion.
+
+**Alerting.** Panels reuse the existing alert definitions (`ops-health` thresholds) for platform health; business exceptions (no-show, critical incident open > N minutes, SLA breach) become in-app notifications through `create_notification`, so quiet hours, channel preferences, the outbox and receipts apply; escalation is a scheduled job with the same idempotency/once-only guarantees as `escalate_overdue`.
+
+**Reporting.** CSV export of each panel through the existing export path (RLS-scoped); a daily operations summary job is a later increment.
+
+**E2E.** Per-role scenarios on the fake backend (scoped manager sees only scope; empty/error/loading states; drill-down opens the right record); mobile viewport; axe; fault injection for each panel (a failed panel shows an error and does not blank the page).
+
+**Operational risks.** Query cost on large tenants (mitigate: measure first, summary tables, filters required above a size); stale data presented as live (always show "as of"); alert fatigue (thresholds reviewed with operations, grouped); privilege leakage through aggregates (leakage suite is a release gate); dependence on the schedule being enabled (the health endpoint alerts when jobs have not run).
+
+**Suggested increments.** (1) Shifts-today and exceptions panels for managers, with the leakage suite; (2) incidents/tasks/compliance panels; (3) SLA panel; (4) operational-health strip; (5) in-app alerting for business exceptions.
+
 ## 2. Suggested sequence
 
 1. Section 0 gaps 1, 2, 6, 11 (security and operability) — small, unblock everything else.
