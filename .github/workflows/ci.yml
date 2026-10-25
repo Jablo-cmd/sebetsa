@@ -107,7 +107,8 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Public demo is served via Cloudflare Pages; do not publish the authenticated app bundle to GitHub Pages.
+    if: false
     needs: [quality, edge-functions, rls-tests, e2e]
     runs-on: ubuntu-latest
     permissions:
