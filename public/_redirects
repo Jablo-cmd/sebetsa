@@ -1,0 +1,3 @@
+# Serve the safe, static public demo at the domain root.
+# The authenticated application is not exposed through this public demo.
+/ /demo.html 200
