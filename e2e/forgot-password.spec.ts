@@ -17,7 +17,7 @@ test('shows a generic confirmation after requesting a reset link', async ({ page
   });
 
   await page.goto('/forgot-password');
-  await page.getByLabel('Email address').fill('admin@funda360.com');
+  await page.getByLabel('Email address').fill('employee@sebetsa.example');
   await page.getByRole('button', { name: 'Send reset link' }).click();
 
   await expect(page.getByRole('status')).toContainText("we've sent a link to reset your password");
