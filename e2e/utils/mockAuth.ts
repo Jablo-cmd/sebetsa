@@ -19,7 +19,7 @@ interface MockUserOverrides {
 }
 
 export function buildMockUser(overrides: MockUserOverrides = {}) {
-  const { email = 'admin@funda360.com', emailConfirmed = true, role = 'principal', factors = [] } = overrides;
+  const { email = 'employee@sebetsa.example', emailConfirmed = true, role = 'employee', factors = [] } = overrides;
   return {
     id: MOCK_USER_ID,
     aud: 'authenticated',
