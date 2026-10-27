@@ -2,9 +2,8 @@
 -- Creates `organizations`: the tenant root. Every tenant-scoped table in the
 -- system carries a `tenant_id` that references organizations.id.
 --
--- Pattern reused verbatim from the Funda360 platform foundation
--- (supabase/migrations/20260802125401_create_schools.sql) — only the
--- domain-specific columns change; the tenancy shape does not.
+-- Uses an organization-rooted tenancy model. Domain-specific data belongs
+-- in the relevant organization-scoped tables; the tenancy shape is consistent.
 
 create type public.organization_status as enum ('pending', 'active', 'inactive', 'suspended');
 
