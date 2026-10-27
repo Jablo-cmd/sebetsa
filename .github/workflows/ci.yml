@@ -107,8 +107,7 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    # Public demo is served via Cloudflare Pages; do not publish the authenticated app bundle to GitHub Pages.
-    if: false
+    # Deploy the authenticated application only after the security and quality gates pass.
     needs: [quality, edge-functions, rls-tests, e2e]
     runs-on: ubuntu-latest
     permissions:
@@ -125,9 +124,6 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Verify production Supabase configuration
         env:
@@ -150,12 +146,18 @@ jobs:
               ;;
           esac
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build production site
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_APP_NAME: Sebetsa
         run: npm run build
+
+      - name: Configure custom domain
+        run: echo "sebetsa.aurisnexus.co.za" > dist/CNAME
 
       - name: Verify Pages entrypoint
         run: |
