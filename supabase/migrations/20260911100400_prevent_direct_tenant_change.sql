@@ -1,6 +1,5 @@
--- Sebetsa Phase C — carry forward the Funda360 tenant-escalation fix
--- (supabase/migrations/20260803140000_prevent_direct_tenant_change.sql) from
--- day one instead of discovering the same vulnerability again later:
+-- Sebetsa Phase C — prevent tenant escalation from the outset. The trigger
+-- ensures a user's self-update cannot move them into another organization:
 -- profiles_update_own's `using (id = auth.uid()) with check (id = auth.uid())`
 -- only constrains which row, not which columns, so without this trigger a
 -- self-update could rewrite tenant_id and re-scope the caller into another
