@@ -22,8 +22,7 @@ async function expectNoSeriousViolations(page: import('@playwright/test').Page) 
 /**
  * Genuine Sebetsa Leave & Absence E2E coverage — built on the real
  * localStorage session key, table names, and role model (see
- * e2e/utils/sebetsaAuth.ts / sebetsaData.ts), replacing the stale
- * Funda360-shaped e2e/leave-requests.spec.ts (removed). Every assertion
+ * e2e/utils/sebetsaAuth.ts / sebetsaData.ts). Every assertion
  * here exercises the actual rendered UI against mocked REST/RPC responses
  * — no database-internal state is asserted through the UI; that
  * coverage belongs to supabase/rls-tests/leave.sql, not here.
