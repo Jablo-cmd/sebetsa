@@ -39,13 +39,13 @@
   --border-strong: 178 187 199;
 
   --content-primary: 23 32 51;
-  /* WCAG AA fix (FND-SEC-007): the previous value (100 116 139) measured
+  /* WCAG AA fix (WCAG AA contrast adjustment): the previous value (100 116 139) measured
      4.759:1 against white but only 4.198:1 against --surface-sunken
      (238 241 244) — the body/sidebar-area background many secondary-text
      elements actually sit on — under the 4.5:1 AA floor. This value
      clears both: 5.743:1 vs white, 5.066:1 vs surface-sunken. */
   --content-secondary: 88 103 126;
-  /* WCAG AA fix (FND-SEC-007): the previous value (148 163 184) measured
+  /* WCAG AA fix (WCAG AA contrast adjustment): the previous value (148 163 184) measured
      2.56:1 against white — well under the 4.5:1 AA floor for normal text.
      This value clears both backgrounds it's actually used against
      (5.325:1 vs white, 4.698:1 vs --surface-sunken), while staying below
@@ -59,16 +59,16 @@
 
   --danger-50: 254 242 242;
   --danger-500: 239 68 68;
-  /* WCAG AA fix (FND-SEC-007): the previous value (220 38 38) measured
+  /* WCAG AA fix (WCAG AA contrast adjustment): the previous value (220 38 38) measured
      4.415:1 against --danger-50 — just under the 4.5:1 floor (e.g. the
      "Failed to load…" error alert text). This value measures 5.405:1
      against --danger-50 and 5.913:1 against white. */
   --danger-600: 196 30 30;
 
-  /* WCAG AA fix (FND-SEC-007): the previous value (34 150 94) measured
+  /* WCAG AA fix (WCAG AA contrast adjustment): the previous value (34 150 94) measured
      3.75:1 against white and 3.357:1 against its own translucent
      background (bg-success-500/10) — both under the 4.5:1 floor (e.g. the
-     Dashboard "Online" status text, the "Paid" fee-status badge). This
+     Dashboard "Online" status text, a success-status badge). This
      value measures 5.884:1 against white and 5.26:1 against the /10
      background. */
   --success-500: 18 115 71;
@@ -112,7 +112,7 @@
 
   --content-primary: 236 240 245;
   --content-secondary: 148 163 184;
-  /* WCAG AA fix (FND-SEC-007): the previous value (100 116 139) measured
+  /* WCAG AA fix (WCAG AA contrast adjustment): the previous value (100 116 139) measured
      3.62:1 against --surface-raised — under the 4.5:1 AA floor. This value
      measures 4.925:1, while staying below --content-secondary's own
      6.722:1 to preserve the tier hierarchy. */
