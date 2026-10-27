@@ -1,5 +1,5 @@
 -- Sebetsa Phase C — Notification Engine Foundation
--- Pattern reused from Funda360's notifications.sql: durable in-app
+-- Durable in-app
 -- notifications + a SECURITY DEFINER write path. Real email/SMS delivery is
 -- out of scope here — email_status is the documented hand-off point for the
 -- notifications-dispatch Edge Function (carried forward unmodified).
