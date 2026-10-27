@@ -4,8 +4,7 @@ import type { Page, Route } from '@playwright/test';
  * Genuine Sebetsa REST/RPC mocking for the real table names Sebetsa's
  * services actually query (organizations, profiles, employees,
  * leave_types, leave_requests, leave_balances, notifications) — distinct
- * from mockData.ts, which mocks Funda360 table names (schools, learners)
- * that don't exist in this app. Every REST/RPC path this app can call
+ * with explicit safe defaults. Every REST/RPC path this app can call
  * during a test is handled explicitly with a safe default; nothing falls
  * through to `route.continue()`, so a test can never accidentally reach
  * the real hosted Sebetsa project even though the prebuilt bundle is
