@@ -1,18 +1,13 @@
 import type { Page } from '@playwright/test';
 
 /**
- * Genuine Sebetsa auth session mocking — distinct from mockAuth.ts, which
- * is Funda360-shaped (localStorage key 'funda360-auth', default role
- * 'principal', 'schools' table assumptions) and does not authenticate
- * against the real Sebetsa app at all: confirmed while building this file
- * that seedAuthenticatedSession() silently fails to authenticate (wrong
- * storage key), which is why e2e/leave-requests.spec.ts was already
- * broken before Phase H touched anything.
+ * Sebetsa auth session mocking for end-to-end tests. The session is written
+ * under the app's canonical persistence key, with role and tenant claims
+ * matching the authenticated-user mapping used by the application.
  *
- * Sebetsa's actual persistence key is `sebetsa-auth` (see
- * AUTH_STORAGE_KEY in src/lib/supabase.ts) and its role/tenant claims live
- * on `app_metadata.role` / `app_metadata.tenant_id` (see
- * toAuthenticatedUser.ts) — matched exactly here.
+ * Sebetsa's persistence key is `sebetsa-auth` (see AUTH_STORAGE_KEY in
+ * src/lib/supabase.ts); role and tenant claims live on
+ * `app_metadata.role` / `app_metadata.tenant_id` (see toAuthenticatedUser.ts).
  */
 
 export const SEBETSA_USER_ROLES = [
