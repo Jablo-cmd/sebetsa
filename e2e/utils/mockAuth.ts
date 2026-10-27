@@ -100,6 +100,6 @@ export async function seedAuthenticatedSession(page: Page, overrides: MockUserOv
   const session = buildMockSession(overrides);
   await page.addInitScript(
     ([key, value]) => window.localStorage.setItem(key, value),
-    ['funda360-auth', JSON.stringify(session)],
+    ['sebetsa-auth', JSON.stringify(session)],
   );
 }
