@@ -9,7 +9,6 @@ A production release is green only when all of the following pass on the release
 3. Unit tests
 4. Production build
 5. Edge Function typecheck and lint
-6. Payment provider adapter tests
 7. RLS / trigger / SECURITY DEFINER regression tests
 8. Playwright E2E
 9. Production configuration validation
