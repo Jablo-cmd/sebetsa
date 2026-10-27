@@ -9,10 +9,10 @@ A production release is green only when all of the following pass on the release
 3. Unit tests
 4. Production build
 5. Edge Function typecheck and lint
-7. RLS / trigger / SECURITY DEFINER regression tests
-8. Playwright E2E
-9. Production configuration validation
-10. Dependency/security audit
+6. RLS / trigger / SECURITY DEFINER regression tests
+7. Playwright E2E
+8. Production configuration validation
+9. Dependency/security audit
 
 Production deployment must run only from `main`, after all release gates pass.
 
